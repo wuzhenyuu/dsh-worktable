@@ -1329,6 +1329,22 @@ function WorktableSection(props: any) {
           sweepPreviews()
         },
         onAdd: () => openAddPanel(),
+        onReorder: (id, targetId) => {
+          if (!id || !targetId || id === CONSOLE_ID || targetId === CONSOLE_ID || id === targetId) return
+          persistProjects((prev) => {
+            const pr = projectsRef.current
+            const ids = [...pr.aliveRegisteredIds, ...prev.layouts.map((l) => l.id)].filter((x) => x !== CONSOLE_ID)
+            const known = new Set(ids)
+            const stored = prev.order.filter((x) => known.has(x))
+            const order = [...stored, ...ids.filter((x) => !stored.includes(x))]
+            const from = order.indexOf(id)
+            const to = order.indexOf(targetId)
+            if (from < 0 || to < 0) return prev
+            order.splice(from, 1)
+            order.splice(to, 0, id)
+            return { ...prev, order }
+          })
+        },
         onOpen: (id) => {
           if (id === CONSOLE_ID) return
           const pr = projectsRef.current.projects

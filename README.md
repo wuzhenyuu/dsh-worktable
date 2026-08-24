@@ -22,7 +22,7 @@
 - Rename / icon / reorder / hide each project; per-project folder; **project ↔ conversation binding** — opening a project switches the chat pane to its bound conversation
 - Collapse the sidebar and every project becomes a tappable square tile (icon only)
 - A shared luminous navy glass theme covers the host sidebar, conversation header, message canvas, composer, settings dialog, drawer, and control room
-- Settings → Appearance configures the Web interface and sidebar independently, including accent, image, opacity, overlay, blur, sizing, and position; `dsh-usage` keeps a separate hardware-monitor theme
+- Settings → Appearance configures Web and sidebar background layers, glass/content colors, and text colors; the sidebar can be independent, sync only the accent, or sync all common colors and backgrounds, while `dsh-usage` keeps a separate hardware-monitor theme
 
 ### 🪟 Dockable split workspace
 
@@ -35,6 +35,7 @@
 
 - A pinned, undeletable first project — bind one management conversation on first open
 - 3-column card grid mirrors **every** project: working / needs you / done with live runtime, subagent counts and a cleaned message preview
+- Drag project cards to reorder them; click a card to open its project and bound conversation, or click the control-room card to switch to its bound conversation
 - Event-driven host snapshot mirroring — **zero polling, zero tokens**
 - Glassmorphism cards, dark / light / system theme, neon status glows and a rotating comet on busy cards
 

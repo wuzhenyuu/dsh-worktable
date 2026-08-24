@@ -229,6 +229,8 @@ type SplitEnv = {
     getCards: () => ConsoleCardData[]
     onOpen: (id: string) => void
     onJump: (id: string) => void
+    /** 拖动项目卡片后持久化控制室中的手动顺序。 */
+    onReorder: (id: string, targetId: string) => void
     /** 点发光卡片：确认（熄灭光）再打开 */
     onAck: (id: string) => void
     /** 冷会话消息预热（打开控制室时拉最近消息） */
@@ -988,6 +990,9 @@ function ConsolePane() {
   const [, setTick] = useState(0)
   const [now, setNow] = useState(() => Date.now())
   const [themeMode, setThemeMode] = useState<'dark' | 'light' | 'system'>(() => splitEnv?.console?.getTheme?.() ?? 'system')
+  const [dragId, setDragId] = useState<string | null>(null)
+  const [dragOverId, setDragOverId] = useState<string | null>(null)
+  const suppressClickRef = useRef(false)
   const [sysDark, setSysDark] = useState(() => {
     try { return window.matchMedia('(prefers-color-scheme: dark)').matches } catch { return true }
   })
@@ -1043,6 +1048,12 @@ function ConsolePane() {
     { mode: 'light', icon: '☀️', key: 'console.themeLight' },
     { mode: 'system', icon: '🖥️', key: 'console.themeSystem' },
   ]
+  const openCard = (c: ConsoleCardData) => {
+    if (suppressClickRef.current || !env) return
+    if (c.glow) env.onAck?.(c.id)
+    if (c.self) env.onJump(c.id)
+    else env.onOpen(c.id)
+  }
   return (
     <div className="dsh-wt_console" data-wt-theme={resolvedTheme}>
       <div className="dsh-wt_consoleHead">
@@ -1063,17 +1074,50 @@ function ConsolePane() {
         {cards.map((c) => (
           <div
             key={c.id}
-            role={c.self ? undefined : 'button'}
-            tabIndex={c.self ? -1 : 0}
+            role={!c.self || c.bound ? 'button' : undefined}
+            tabIndex={!c.self || c.bound ? 0 : -1}
+            draggable={!c.self}
+            aria-grabbed={!c.self ? dragId === c.id : undefined}
             className={'dsh-wt_consoleCard' + (c.self ? ' dsh-wt_consoleCardSelf' : '')
               + (c.status === 'busy' ? ' dsh-wt_consoleCard-busy' : '')
               + (c.glow && c.status === 'done' ? ' dsh-wt_consoleCard-glowDone' : '')
-              + (c.glow && c.status === 'need' ? ' dsh-wt_consoleCard-glowNeed' : '')}
+              + (c.glow && c.status === 'need' ? ' dsh-wt_consoleCard-glowNeed' : '')
+              + (dragId === c.id ? ' dsh-wt_consoleCardDragging' : '')
+              + (dragOverId === c.id ? ' dsh-wt_consoleCardDropTarget' : '')}
             title={c.name}
-            onClick={() => {
-              if (c.self || !env) return
-              if (c.glow) env.onAck?.(c.id) // 点发光卡片：先确认熄光，再进入
-              env.onOpen(c.id)
+            onClick={() => openCard(c)}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter' && e.key !== ' ') return
+              e.preventDefault()
+              openCard(c)
+            }}
+            onDragStart={(e) => {
+              if (c.self) { e.preventDefault(); return }
+              suppressClickRef.current = true
+              setDragId(c.id)
+              setDragOverId(null)
+              e.dataTransfer.effectAllowed = 'move'
+              e.dataTransfer.setData('text/plain', c.id)
+            }}
+            onDragOver={(e) => {
+              if (!dragId || c.self || dragId === c.id) return
+              e.preventDefault()
+              e.dataTransfer.dropEffect = 'move'
+              setDragOverId(c.id)
+            }}
+            onDragLeave={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragOverId((id) => id === c.id ? null : id)
+            }}
+            onDrop={(e) => {
+              e.preventDefault()
+              const sourceId = dragId || e.dataTransfer.getData('text/plain')
+              if (sourceId && sourceId !== c.id && !c.self) env?.onReorder(sourceId, c.id)
+              setDragOverId(null)
+            }}
+            onDragEnd={() => {
+              setDragId(null)
+              setDragOverId(null)
+              window.setTimeout(() => { suppressClickRef.current = false }, 0)
             }}
           >
             <div className="dsh-wt_consoleCardHead">
