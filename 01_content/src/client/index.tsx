@@ -3,6 +3,7 @@ import { css } from './styles'
 import { NS, zh, en, type WorktableKey } from './locales'
 import { isAbs, joinPath, parentPathOf, basenameOf } from './pathutil'
 import { splitStore, SplitWorkspace, setSplitT, setSplitEnv, type LayoutSpec, type SplitPane, type ConsoleCardData } from './split'
+import { installAppearance } from './appearance'
 
 /**
  * dsh-worktable 客户端（v2）：侧边栏底部「工作台」区块。
@@ -3085,6 +3086,10 @@ export function apply(ctx: any) {
   ctx.effect(() => {
     if (ctx.locale?.register) return ctx.locale.register(NS, { zh, en })
   }, 'dsh-worktable: dictionaries')
+
+  installAppearance(ctx, (key: string) => {
+    try { return ctx.locale.bind(NS)(key) } catch { return (zh as any)[key] ?? key }
+  })
 
   // 子座位注册 id 序列跟踪（供排序/编辑模式使用）
   const syncIds = () => {

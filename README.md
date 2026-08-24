@@ -21,6 +21,8 @@
 - Collects your self-hosted projects (and resident plugins like dsh-travelatlas) in one place
 - Rename / icon / reorder / hide each project; per-project folder; **project ↔ conversation binding** — opening a project switches the chat pane to its bound conversation
 - Collapse the sidebar and every project becomes a tappable square tile (icon only)
+- A shared luminous navy glass theme covers the host sidebar, conversation header, message canvas, composer, settings dialog, drawer, and control room
+- Settings → Appearance configures the Web interface and sidebar independently, including accent, image, opacity, overlay, blur, sizing, and position; `dsh-usage` keeps a separate hardware-monitor theme
 
 ### 🪟 Dockable split workspace
 

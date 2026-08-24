@@ -7542,7 +7542,7 @@ __export(index_exports, {
   sendCustomToSession: () => sendCustomToSession
 });
 module.exports = __toCommonJS(index_exports);
-var import_react2 = require("react");
+var import_react3 = require("react");
 
 // node_modules/xterm/css/xterm.css
 var xterm_default = `/**
@@ -7758,23 +7758,108 @@ var xterm_default = `/**
 
 // src/client/styles.ts
 var css = xterm_default + "\n" + [
+  // Web 主界面与侧边栏由 dsh-worktable 分别持有；硬件监控不写这些变量。
+  ":root{--dsh-web-accent:#5278ff;--dsh-web-bg:#050b1a;--dsh-web-image:none;--dsh-web-image-opacity:0;--dsh-web-overlay-opacity:.62;--dsh-web-image-blur:0px;--dsh-web-image-size:cover;--dsh-web-image-position:center;--dsh-web-surface-opacity:.84;--dsh-sidebar-accent:#5278ff;--dsh-sidebar-bg:#071225;--dsh-sidebar-image:none;--dsh-sidebar-image-opacity:0;--dsh-sidebar-overlay-opacity:.68;--dsh-sidebar-image-blur:0px;--dsh-sidebar-image-size:cover;--dsh-sidebar-image-position:center;--dsh-sidebar-surface-opacity:.88;--dsh-glass-accent:var(--dsh-web-accent);--dsh-glass-bg:var(--dsh-web-bg);--dsh-background-image:var(--dsh-web-image);--dsh-background-image-opacity:var(--dsh-web-image-opacity);--dsh-background-overlay:var(--dsh-web-overlay-opacity);--dsh-background-blur:var(--dsh-web-image-blur);--dsh-background-size:var(--dsh-web-image-size);--dsh-background-position:var(--dsh-web-image-position);--dsh-surface-opacity:var(--dsh-web-surface-opacity);--dsh-glass-text:#edf4ff;--dsh-glass-muted:#9bacc8;--dsh-glass-line:color-mix(in srgb,var(--dsh-web-accent) 28%,#dbeafe 13%);color-scheme:dark}",
+  "html,body{background:#020713!important}",
+  ".BBZE7a_frame{position:relative;isolation:isolate;overflow:hidden;background:radial-gradient(ellipse at 24% -12%,color-mix(in srgb,var(--dsh-glass-accent) 18%,transparent),transparent 44%),radial-gradient(ellipse at 92% 106%,color-mix(in srgb,#3558b7 12%,transparent),transparent 38%),linear-gradient(145deg,var(--dsh-glass-bg),#020713 68%)!important;--dsw-alias-bg-base:color-mix(in srgb,var(--dsh-glass-bg) 88%,transparent);--dsw-alias-fill-l1:color-mix(in srgb,#dbeafe 6%,transparent);--dsw-alias-fill-l2:color-mix(in srgb,#9fc0ff 10%,transparent);--dsw-alias-border-l1:color-mix(in srgb,#b7d2ff 10%,transparent);--dsw-alias-border-l2:color-mix(in srgb,var(--dsh-glass-accent) 28%,#dbeafe 13%);--dsw-alias-state-accent-primary:var(--dsh-glass-accent);--dsw-alias-label-primary:var(--dsh-glass-text);--dsw-alias-label-secondary:#aebbd0;--dsw-alias-label-tertiary:#8292ad}",
+  '.BBZE7a_frame::before{content:"";position:absolute;inset:-4%;z-index:0;pointer-events:none;background-image:var(--dsh-background-image);background-repeat:no-repeat;background-size:var(--dsh-background-size);background-position:var(--dsh-background-position);opacity:var(--dsh-background-image-opacity);filter:blur(var(--dsh-background-blur));transform:translateZ(0)}',
+  '.BBZE7a_frame::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(rgba(2,7,19,var(--dsh-background-overlay)),rgba(2,7,19,var(--dsh-background-overlay))),linear-gradient(116deg,rgba(255,255,255,.025),transparent 22% 74%,color-mix(in srgb,var(--dsh-glass-accent) 5%,transparent))}',
+  ".BBZE7a_frame>*{position:relative;z-index:1}",
+  ".BBZE7a_sidebarCol{z-index:10!important;overflow:visible!important}",
+  ".BBZE7a_sidebarCol:has(.u_panel),.BBZE7a_sidebarCol:has(.DfbKTq_overlay){z-index:60!important;overflow:visible!important}",
+  ".xrFM8W_root{position:relative;isolation:isolate;overflow:visible;background:radial-gradient(circle at 0 0,color-mix(in srgb,var(--dsh-sidebar-accent) 14%,transparent),transparent 38%),linear-gradient(180deg,color-mix(in srgb,var(--dsh-sidebar-bg) calc(var(--dsh-sidebar-surface-opacity) * 100%),transparent),color-mix(in srgb,var(--dsh-sidebar-bg) calc(var(--dsh-sidebar-surface-opacity) * 100%),#020713))!important;border-right:1px solid color-mix(in srgb,var(--dsh-sidebar-accent) 28%,#dbeafe 13%);box-shadow:14px 0 48px rgba(0,0,0,.34),inset -1px 0 0 color-mix(in srgb,var(--dsh-sidebar-accent) 8%,transparent);scrollbar-color:color-mix(in srgb,var(--dsh-sidebar-accent) 35%,transparent) transparent}",
+  '.xrFM8W_root::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background-image:var(--dsh-sidebar-image);background-repeat:no-repeat;background-size:var(--dsh-sidebar-image-size);background-position:var(--dsh-sidebar-image-position);opacity:var(--dsh-sidebar-image-opacity);filter:blur(var(--dsh-sidebar-image-blur))}',
+  '.xrFM8W_root::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(rgba(2,7,19,var(--dsh-sidebar-overlay-opacity)),rgba(2,7,19,var(--dsh-sidebar-overlay-opacity))),linear-gradient(120deg,rgba(255,255,255,.045),transparent 26% 78%,color-mix(in srgb,var(--dsh-sidebar-accent) 5%,transparent))}',
+  ".xrFM8W_root>*{position:relative;z-index:2}",
+  ".xrFM8W_logoRow{border-bottom:1px solid color-mix(in srgb,#b7d2ff 8%,transparent);filter:drop-shadow(0 0 10px color-mix(in srgb,#dbeafe 8%,transparent))}",
+  ".xrFM8W_newSession{border:1px solid color-mix(in srgb,var(--dsh-sidebar-accent) 30%,#dbeafe 17%)!important;border-radius:12px!important;background:linear-gradient(180deg,color-mix(in srgb,#dbeafe 13%,transparent),color-mix(in srgb,var(--dsh-sidebar-accent) 8%,transparent))!important;color:var(--dsh-glass-text)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 18px color-mix(in srgb,var(--dsh-sidebar-accent) 10%,transparent);transition:border-color .2s ease,box-shadow .2s ease,transform .2s cubic-bezier(.16,1,.3,1)}",
+  ".xrFM8W_newSession:hover{border-color:color-mix(in srgb,var(--dsh-sidebar-accent) 58%,#fff 12%)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 0 22px color-mix(in srgb,var(--dsh-sidebar-accent) 23%,transparent);transform:translateY(-1px)}",
+  ".qOPyma_sectionHeader{color:#b9c8de;text-shadow:0 0 12px rgba(207,225,255,.12)}",
+  "._0zJZVa_projectRow,._0zJZVa_sessionRow{box-sizing:border-box;border:1px solid transparent!important;border-radius:10px!important;transition:background .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s cubic-bezier(.16,1,.3,1)}",
+  "._0zJZVa_projectRow:hover,._0zJZVa_sessionRow:hover{background:color-mix(in srgb,var(--dsh-sidebar-accent) 8%,transparent)!important;border-color:color-mix(in srgb,var(--dsh-sidebar-accent) 16%,transparent)!important;transform:translateX(2px)}",
+  "._0zJZVa_selected{background:linear-gradient(90deg,color-mix(in srgb,var(--dsh-sidebar-accent) 20%,transparent),color-mix(in srgb,var(--dsh-sidebar-accent) 7%,transparent))!important;border-color:color-mix(in srgb,var(--dsh-sidebar-accent) 34%,#dbeafe 10%)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 18px color-mix(in srgb,var(--dsh-sidebar-accent) 13%,transparent)}",
+  ".xrFM8W_footArea{background:linear-gradient(180deg,transparent,rgba(2,7,18,.36));border-top:1px solid color-mix(in srgb,#b7d2ff 6%,transparent)}",
+  ".DfbKTq_trigger{border:1px solid transparent!important;border-radius:10px!important;transition:background .18s ease,border-color .18s ease}",
+  ".DfbKTq_trigger:hover{background:color-mix(in srgb,var(--dsh-sidebar-accent) 8%,transparent)!important;border-color:color-mix(in srgb,var(--dsh-sidebar-accent) 16%,transparent)!important}",
+  // 宿主设置弹窗：沿用深海军蓝玻璃层次，不改变宿主布局和事件结构。
+  ".DfbKTq_overlay{background:rgba(1,5,15,.7)!important;backdrop-filter:blur(18px) saturate(135%);-webkit-backdrop-filter:blur(18px) saturate(135%)}",
+  ".DfbKTq_panel{color:var(--dsh-glass-text)!important;background:radial-gradient(circle at 8% -4%,color-mix(in srgb,var(--dsh-glass-accent) 17%,transparent),transparent 38%),linear-gradient(145deg,rgba(12,27,53,.93),rgba(3,10,25,.95))!important;border:1px solid color-mix(in srgb,var(--dsh-glass-accent) 38%,#dbeafe 18%)!important;border-radius:22px!important;box-shadow:0 0 0 1px rgba(255,255,255,.04),0 0 42px color-mix(in srgb,var(--dsh-glass-accent) 18%,transparent),0 32px 90px rgba(0,0,0,.58),inset 0 1px 0 rgba(255,255,255,.18)!important;overflow:hidden;backdrop-filter:blur(34px) saturate(170%);-webkit-backdrop-filter:blur(34px) saturate(170%)}",
+  ".DfbKTq_nav{background:linear-gradient(180deg,rgba(12,27,52,.58),rgba(3,10,24,.72))!important;border-right:1px solid color-mix(in srgb,#b7d2ff 12%,transparent)!important}",
+  ".DfbKTq_navTitle{color:#f3f7ff!important;font-weight:650;text-shadow:0 0 16px color-mix(in srgb,var(--dsh-glass-accent) 18%,transparent)}",
+  ".DfbKTq_navList{gap:5px!important}",
+  ".DfbKTq_navCell{color:#aebbd0!important;border:1px solid transparent!important;border-radius:11px!important;background:transparent!important;transition:color .18s ease,background .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s cubic-bezier(.16,1,.3,1)}",
+  ".DfbKTq_navCell:hover{color:#eef4ff!important;background:color-mix(in srgb,var(--dsh-glass-accent) 9%,transparent)!important;border-color:color-mix(in srgb,var(--dsh-glass-accent) 16%,transparent)!important;transform:translateX(2px)}",
+  ".DfbKTq_navCell.DfbKTq_active,.DfbKTq_active{color:#f6f9ff!important;background:linear-gradient(90deg,color-mix(in srgb,var(--dsh-glass-accent) 26%,transparent),color-mix(in srgb,var(--dsh-glass-accent) 9%,transparent))!important;border-color:color-mix(in srgb,var(--dsh-glass-accent) 40%,#dbeafe 12%)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.11),0 0 20px color-mix(in srgb,var(--dsh-glass-accent) 13%,transparent)!important}",
+  ".DfbKTq_navIcon{color:color-mix(in srgb,var(--dsh-glass-accent) 58%,#dbeafe)!important;filter:drop-shadow(0 0 7px color-mix(in srgb,var(--dsh-glass-accent) 24%,transparent))}",
+  ".DfbKTq_navLabel{color:inherit!important}",
+  ".DfbKTq_content{background:linear-gradient(150deg,rgba(8,19,39,.5),rgba(2,8,20,.66))!important}",
+  ".DfbKTq_header{background:linear-gradient(180deg,rgba(10,23,46,.74),rgba(5,14,31,.48))!important;border-bottom:1px solid color-mix(in srgb,#b7d2ff 10%,transparent)!important;box-shadow:0 12px 30px rgba(0,0,0,.17);backdrop-filter:blur(20px) saturate(145%);-webkit-backdrop-filter:blur(20px) saturate(145%)}",
+  ".DfbKTq_actions{gap:9px!important}",
+  ".DfbKTq_close{color:#aebbd0!important;border:1px solid transparent!important;border-radius:9px!important;transition:color .18s ease,background .18s ease,border-color .18s ease,box-shadow .18s ease}",
+  ".DfbKTq_close:hover{color:#fff!important;background:color-mix(in srgb,var(--dsh-glass-accent) 11%,transparent)!important;border-color:color-mix(in srgb,var(--dsh-glass-accent) 23%,transparent)!important;box-shadow:0 0 15px color-mix(in srgb,var(--dsh-glass-accent) 12%,transparent)}",
+  ".DfbKTq_options{color:#dbe6f7!important}",
+  ".A78rIW_section{border-bottom:1px solid color-mix(in srgb,#b7d2ff 13%,transparent)!important;background:linear-gradient(100deg,rgba(255,255,255,.018),transparent 68%)}",
+  ".A78rIW_section:last-child{border-bottom-color:transparent!important}",
+  ".AaK7Ia_row,.FxN3hG_row,.a44GgW_row,.ySsx5a_row{border:1px solid transparent!important;border-radius:12px!important;transition:background .18s ease,border-color .18s ease,box-shadow .18s ease}",
+  ".AaK7Ia_row:hover,.FxN3hG_row:hover,.a44GgW_row:hover,.ySsx5a_row:hover{background:color-mix(in srgb,var(--dsh-glass-accent) 6%,transparent)!important;border-color:color-mix(in srgb,var(--dsh-glass-accent) 14%,transparent)!important}",
+  ".AaK7Ia_title,.FxN3hG_title,.a44GgW_title,.ySsx5a_title{color:#edf4ff!important;text-shadow:0 0 12px rgba(207,225,255,.06)}",
+  ".AaK7Ia_desc,.FxN3hG_desc,.a44GgW_desc,.ySsx5a_desc{color:#899bb7!important}",
+  ".AaK7Ia_selector,.FxN3hG_selector,.a44GgW_selector,.ySsx5a_selector{color:#eef4ff!important;background:linear-gradient(180deg,rgba(219,234,254,.1),rgba(93,134,218,.055))!important;border:1px solid color-mix(in srgb,var(--dsh-glass-accent) 25%,#dbeafe 12%)!important;border-radius:999px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)!important;transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}",
+  ".AaK7Ia_selector:hover,.FxN3hG_selector:hover,.a44GgW_selector:hover,.ySsx5a_selector:hover{border-color:color-mix(in srgb,var(--dsh-glass-accent) 52%,#fff 8%)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 0 16px color-mix(in srgb,var(--dsh-glass-accent) 13%,transparent)!important}",
+  ".AaK7Ia_chevron,.FxN3hG_chevron,.a44GgW_chevron,.ySsx5a_chevron{color:#9fb3d0!important}",
+  ".GGJ6hq_group{border-top:1px solid color-mix(in srgb,#b7d2ff 12%,transparent)!important;border-bottom:1px solid color-mix(in srgb,#b7d2ff 12%,transparent)!important}",
+  ".GGJ6hq_title{color:#edf4ff!important}",
+  ".GGJ6hq_cubeRow{gap:10px!important}",
+  ".GGJ6hq_themeCube{color:#cbd8ec!important;background:linear-gradient(145deg,rgba(20,39,70,.54),rgba(5,14,30,.66))!important;border:1px solid color-mix(in srgb,#b7d2ff 16%,transparent)!important;border-radius:14px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.09)!important;transition:color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s cubic-bezier(.16,1,.3,1)}",
+  ".GGJ6hq_themeCube:hover{color:#fff!important;border-color:color-mix(in srgb,var(--dsh-glass-accent) 36%,#dbeafe 10%)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.13),0 0 18px color-mix(in srgb,var(--dsh-glass-accent) 12%,transparent)!important;transform:translateY(-1px)}",
+  ".GGJ6hq_themeCube.GGJ6hq_selected,.GGJ6hq_selected{color:#fff!important;border-color:color-mix(in srgb,var(--dsh-glass-accent) 68%,#fff 12%)!important;background:linear-gradient(145deg,color-mix(in srgb,var(--dsh-glass-accent) 20%,rgba(18,37,68,.64)),rgba(5,14,30,.7))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 21px color-mix(in srgb,var(--dsh-glass-accent) 21%,transparent)!important}",
+  "._button_kz6gm_4,._9iBpXq_action{color:#eaf2ff!important;border-color:color-mix(in srgb,var(--dsh-glass-accent) 30%,#dbeafe 13%)!important;background:linear-gradient(180deg,rgba(219,234,254,.1),rgba(82,120,255,.06))!important;border-radius:10px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.1);transition:border-color .18s ease,box-shadow .18s ease,background .18s ease,transform .18s cubic-bezier(.16,1,.3,1)}",
+  "._button_kz6gm_4:hover,._9iBpXq_action:hover{border-color:color-mix(in srgb,var(--dsh-glass-accent) 58%,#fff 10%)!important;background:color-mix(in srgb,var(--dsh-glass-accent) 15%,rgba(219,234,254,.07))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 0 17px color-mix(in srgb,var(--dsh-glass-accent) 16%,transparent);transform:translateY(-1px)}",
+  "._outline_kz6gm_56{background:rgba(10,24,48,.42)!important}",
+  ".DfbKTq_panel :is(button,[role=button],select):focus-visible{outline:2px solid color-mix(in srgb,var(--dsh-glass-accent) 72%,#cfe4ff);outline-offset:2px}",
+  ".mpqI4a_root{background:radial-gradient(ellipse at 52% -16%,color-mix(in srgb,var(--dsh-glass-accent) 13%,transparent),transparent 44%),linear-gradient(150deg,rgba(5,11,27,var(--dsh-surface-opacity)),rgba(2,7,19,var(--dsh-surface-opacity)))!important}",
+  ".mpqI4a_header{z-index:5;background:linear-gradient(180deg,rgba(11,23,47,var(--dsh-surface-opacity)),rgba(5,13,29,var(--dsh-surface-opacity)))!important;border-bottom:1px solid var(--dsh-glass-line)!important;box-shadow:0 16px 42px rgba(0,0,0,.22),inset 0 -1px 0 color-mix(in srgb,var(--dsh-glass-accent) 7%,transparent);backdrop-filter:blur(28px) saturate(165%);-webkit-backdrop-filter:blur(28px) saturate(165%)}",
+  ".mpqI4a_header button{border-radius:9px;transition:color .18s ease,background .18s ease,box-shadow .18s ease}",
+  ".mpqI4a_header button:hover{background:color-mix(in srgb,var(--dsh-glass-accent) 9%,transparent);box-shadow:0 0 14px color-mix(in srgb,var(--dsh-glass-accent) 10%,transparent)}",
+  ".mpqI4a_tabs{border-top:1px solid color-mix(in srgb,#dbeafe 4%,transparent)}",
+  ".mpqI4a_tabActive{color:#eaf2ff!important;text-shadow:0 0 14px color-mix(in srgb,var(--dsh-glass-accent) 42%,transparent);box-shadow:inset 0 -2px 0 var(--dsh-glass-accent),inset 0 -4px 9px color-mix(in srgb,var(--dsh-glass-accent) 14%,transparent)}",
+  ".mpqI4a_scrollBody{background:radial-gradient(ellipse at 50% 0,color-mix(in srgb,var(--dsh-glass-accent) 7%,transparent),transparent 48%),linear-gradient(180deg,rgba(3,9,22,calc(var(--dsh-surface-opacity) * .32)),rgba(2,7,17,calc(var(--dsh-surface-opacity) * .54)))!important}",
+  ".OCvhSa_column{color:#d8e3f4}",
+  "._markdown_1nba0_5{color:#d6e0f0;text-shadow:0 0 12px rgba(180,207,255,.035)}",
+  "._markdown_1nba0_5 h1,._markdown_1nba0_5 h2,._markdown_1nba0_5 h3{color:#f0f5ff;text-shadow:0 0 16px color-mix(in srgb,var(--dsh-glass-accent) 15%,transparent)}",
+  "._markdown_1nba0_5 a{color:color-mix(in srgb,var(--dsh-glass-accent) 68%,#bfe6ff);text-shadow:0 0 10px color-mix(in srgb,var(--dsh-glass-accent) 20%,transparent)}",
+  "._markdown_1nba0_5 code{border:1px solid color-mix(in srgb,var(--dsh-glass-accent) 16%,transparent);background:color-mix(in srgb,var(--dsh-glass-accent) 7%,rgba(0,0,0,.3))!important;border-radius:6px}",
+  "._markdown_1nba0_5 pre,._markdown_1nba0_5 table{border:1px solid color-mix(in srgb,#b7d2ff 12%,transparent);background:linear-gradient(145deg,rgba(13,28,54,.56),rgba(3,10,24,.58));box-shadow:inset 0 1px 0 rgba(255,255,255,.055)}",
+  "._markdown_1nba0_5 blockquote{border-left-color:var(--dsh-glass-accent)!important;background:color-mix(in srgb,var(--dsh-glass-accent) 6%,transparent)}",
+  "._row_9cl6j_10{border:1px solid color-mix(in srgb,#b7d2ff 9%,transparent)!important;border-radius:9px!important;background:linear-gradient(145deg,rgba(17,34,61,.38),rgba(5,13,28,.32))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.045)}",
+  ".NxemyG_root{background:linear-gradient(180deg,transparent 0%,rgba(2,7,18,.76) 34%,rgba(2,7,18,.94) 100%)!important}",
+  ".NxemyG_card{border:1px solid color-mix(in srgb,var(--dsh-glass-accent) 42%,#dbeafe 19%)!important;border-radius:20px!important;background:radial-gradient(circle at 10% 0,color-mix(in srgb,var(--dsh-glass-accent) 11%,transparent),transparent 45%),linear-gradient(145deg,rgba(16,31,58,.82),rgba(5,13,28,.86))!important;box-shadow:0 0 0 1px rgba(255,255,255,.04),0 0 28px color-mix(in srgb,var(--dsh-glass-accent) 20%,transparent),0 24px 58px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.16)!important;backdrop-filter:blur(28px) saturate(170%);-webkit-backdrop-filter:blur(28px) saturate(170%)}",
+  ".NxemyG_input{color:#edf4ff!important;caret-color:var(--dsh-glass-accent);text-shadow:0 0 10px rgba(219,234,255,.07)}",
+  ".NxemyG_input::placeholder{color:#7f91ad!important}",
+  ".NxemyG_add,.GyLz3a_trigger,.x4xJsG_trigger,.ZMFXGG_trigger{border:1px solid transparent!important;border-radius:9px!important;transition:background .18s ease,border-color .18s ease,box-shadow .18s ease}",
+  ".NxemyG_add:hover,.GyLz3a_trigger:hover,.x4xJsG_trigger:hover,.ZMFXGG_trigger:hover{background:color-mix(in srgb,var(--dsh-glass-accent) 9%,transparent)!important;border-color:color-mix(in srgb,var(--dsh-glass-accent) 18%,transparent)!important;box-shadow:0 0 12px color-mix(in srgb,var(--dsh-glass-accent) 10%,transparent)}",
+  ".NxemyG_primary{background:linear-gradient(145deg,color-mix(in srgb,var(--dsh-glass-accent) 82%,#9ec6ff),var(--dsh-glass-accent))!important;border:1px solid color-mix(in srgb,#fff 28%,var(--dsh-glass-accent))!important;box-shadow:0 0 18px color-mix(in srgb,var(--dsh-glass-accent) 46%,transparent),inset 0 1px 0 rgba(255,255,255,.35)!important}",
+  "._3YEkmW_root{color:#8193ae;text-shadow:0 0 10px rgba(183,210,255,.05)}",
+  "*{scrollbar-color:color-mix(in srgb,var(--dsh-glass-accent) 35%,transparent) transparent}",
+  "*::-webkit-scrollbar{width:8px;height:8px}*::-webkit-scrollbar-track{background:transparent}*::-webkit-scrollbar-thumb{border:2px solid transparent;border-radius:999px;background-clip:padding-box;background-color:color-mix(in srgb,var(--dsh-glass-accent) 34%,transparent)}",
+  "@media(prefers-reduced-motion:reduce){.xrFM8W_newSession,._0zJZVa_projectRow,._0zJZVa_sessionRow,.DfbKTq_navCell,.DfbKTq_close,.AaK7Ia_row,.FxN3hG_row,.a44GgW_row,.ySsx5a_row,.AaK7Ia_selector,.FxN3hG_selector,.a44GgW_selector,.ySsx5a_selector,.GGJ6hq_themeCube,._button_kz6gm_4,._9iBpXq_action{transition:none!important;transform:none!important}.BBZE7a_frame::before{filter:none!important}.dsh-wt_consoleSweep,.dsh-wt_updateBadge::after,.dsh-wt_updateDot,.dsh-wt_consoleCard-busy::before{animation:none!important}}",
   // 区块整体
-  ".dsh-wt_section{box-sizing:border-box;display:flex;flex-direction:column;gap:6px;width:100%;padding:0}",
-  ".dsh-wt_float{min-width:176px;max-width:264px;background:var(--dsw-alias-bg-base,#0b0e14);border:1px solid var(--dsw-alias-border-l2,#3a4150);border-radius:10px;padding:8px;box-shadow:var(--dsw-shadow-lv2,0 8px 24px rgba(0,0,0,.4))}",
+  ".dsh-wt_section{box-sizing:border-box;display:flex;flex-direction:column;gap:6px;width:100%;padding:0;--dsh-glass-accent:var(--dsh-sidebar-accent);--wt-sideGlass:radial-gradient(circle at 0 0,color-mix(in srgb,var(--dsh-sidebar-accent,#5278ff) 12%,transparent),transparent 44%),linear-gradient(145deg,rgba(11,25,49,.82),rgba(3,10,24,.78))}",
+  ".dsh-wt_float{min-width:176px;max-width:264px;background:var(--wt-sideGlass);border:1px solid color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 38%,#dbeafe 18%);border-radius:16px;padding:10px;backdrop-filter:blur(28px) saturate(165%);-webkit-backdrop-filter:blur(28px) saturate(165%);box-shadow:0 0 20px color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 14%,transparent),0 20px 54px rgba(0,0,0,.46),inset 0 1px 0 rgba(255,255,255,.15),inset 0 -1px 0 color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 12%,transparent)}",
   ".dsh-wt_rail{pointer-events:none}",
-  ".dsh-wt_railBox{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;padding:5px 3px;border:1px solid var(--dsw-alias-border-l2,#3a4150);border-radius:8px;background:var(--dsw-alias-bg-base,#0b0e14)}",
+  ".dsh-wt_railBox{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;padding:5px 3px;border:1px solid color-mix(in srgb,#dbeafe 14%,transparent);border-radius:10px;background:var(--wt-sideGlass);backdrop-filter:blur(18px) saturate(135%);-webkit-backdrop-filter:blur(18px) saturate(135%);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}",
   ".dsh-wt_railBtn{flex:none;width:22px;height:22px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:7px;background:var(--dsw-alias-fill-l1,rgba(255,255,255,.03));color:var(--dsw-alias-label-secondary,#9aa4b2);font:inherit;font-size:13px;line-height:1;cursor:pointer;pointer-events:auto}",
   ".dsh-wt_railBtn:hover{background:var(--dsw-alias-fill-l1,rgba(255,255,255,.08));border-color:var(--dsw-alias-state-accent-primary,#4f8ef7);color:var(--dsw-alias-label-primary,#e6e8eb)}",
   ".dsh-wt_railIcon{font-size:17px;line-height:22px}",
   // 分隔线
-  ".dsh-wt_divider{flex:none;height:1px;background:var(--dsw-alias-border-l1,#262b36);margin:2px 0}",
+  ".dsh-wt_divider{flex:none;height:1px;background:linear-gradient(90deg,transparent,color-mix(in srgb,#dbeafe 16%,transparent) 16% 84%,transparent);margin:2px 0}",
   // 头部
   ".dsh-wt_header{display:flex;align-items:center;gap:6px;padding:0 2px}",
   ".dsh-wt_handle{display:flex;align-items:center;justify-content:center;width:25px;height:25px;padding:0;border:none;border-radius:5px;background:transparent;color:var(--dsw-alias-label-tertiary,#6e7683);font-size:15px;line-height:1;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}",
   ".dsh-wt_handle:hover{color:var(--dsw-alias-label-primary,#e6e8eb);background:var(--dsw-alias-fill-l1,rgba(255,255,255,.05))}",
   ".dsh-wt_handle:active{cursor:grabbing}",
   ".dsh-wt_handle[data-float=true]{color:var(--dsw-alias-state-accent-primary,#4f8ef7)}",
-  ".dsh-wt_title{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--dsw-alias-label-secondary,#9aa4b2);cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none}",
+  ".dsh-wt_title{font-size:11px;font-weight:600;letter-spacing:.06em;color:color-mix(in srgb,var(--dsw-alias-label-secondary,#9aa4b2) 94%,#dbeafe);cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;text-shadow:0 1px 8px rgba(255,255,255,.06)}",
   ".dsh-wt_actions{margin-left:auto;display:flex;align-items:center;gap:7px}",
   ".dsh-wt_iconBtn{display:flex;align-items:center;justify-content:center;width:24px;height:22px;padding:0;border:none;border-radius:5px;background:transparent;color:var(--dsw-alias-label-secondary,#9aa4b2);font-size:12px;line-height:1;cursor:pointer}",
   ".dsh-wt_iconBtn:hover{color:var(--dsw-alias-label-primary,#e6e8eb);background:var(--dsw-alias-fill-l1,rgba(255,255,255,.05))}",
@@ -7942,9 +8027,9 @@ var css = xterm_default + "\n" + [
   ".dsh-wt_bindCircles::after{left:10px}",
   ".dsh-wt_bindBtn[data-bound=true] .dsh-wt_bindCircles::before,.dsh-wt_bindBtn[data-bound=true] .dsh-wt_bindCircles::after,.dsh-wt_bindBtn[data-bound=done] .dsh-wt_bindCircles::before,.dsh-wt_bindBtn[data-bound=done] .dsh-wt_bindCircles::after,.dsh-wt_bindBtn[data-bound=need] .dsh-wt_bindCircles::before,.dsh-wt_bindBtn[data-bound=need] .dsh-wt_bindCircles::after,.dsh-wt_bindBtn[data-bound=busy] .dsh-wt_bindCircles::before,.dsh-wt_bindBtn[data-bound=busy] .dsh-wt_bindCircles::after{background:currentColor}",
   // 布局条目卡片
-  ".dsh-wt_layout{display:flex;align-items:center;gap:7px;padding:6px 8px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:8px;background:var(--dsw-alias-fill-l1,rgba(255,255,255,.02));color:var(--dsw-alias-label-primary,#e6e8eb);font:inherit;font-size:12px;line-height:18px;cursor:pointer;text-align:left}",
-  ".dsh-wt_layout:hover{border-color:var(--dsw-alias-state-accent-primary,#4f8ef7);background:var(--dsw-alias-fill-l1,rgba(255,255,255,.05))}",
-  ".dsh-wt_layout[data-on=true]{border-color:var(--dsw-alias-state-accent-primary,#4f8ef7);background:var(--dsw-alias-fill-l1,rgba(255,255,255,.05))}",
+  ".dsh-wt_layout{display:flex;align-items:center;gap:7px;padding:6px 8px;border:1px solid color-mix(in srgb,#dbeafe 10%,transparent);border-radius:9px;background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.012));box-shadow:inset 0 1px 0 rgba(255,255,255,.055);color:var(--dsw-alias-label-primary,#e6e8eb);font:inherit;font-size:12px;line-height:18px;cursor:pointer;text-align:left;transition:border-color .18s ease,background .18s ease,box-shadow .18s ease}",
+  ".dsh-wt_layout:hover{border-color:color-mix(in srgb,var(--dsw-alias-state-accent-primary,#4f8ef7) 62%,#dbeafe);background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(79,142,247,.035));box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 6px 16px rgba(0,0,0,.12)}",
+  ".dsh-wt_layout[data-on=true]{border-color:color-mix(in srgb,var(--dsw-alias-state-accent-primary,#4f8ef7) 74%,#dbeafe);background:linear-gradient(145deg,rgba(79,142,247,.13),rgba(255,255,255,.025));box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 14px rgba(79,142,247,.12)}",
   ".dsh-wt_layout[data-on=true] .dsh-wt_layoutName{color:var(--dsw-alias-state-accent-primary,#4f8ef7)}",
   ".dsh-wt_layoutIcon{flex:none;font-size:15px}",
   ".dsh-wt_layoutText{flex:1;min-width:0;display:flex;flex-direction:column;gap:0}",
@@ -7954,7 +8039,7 @@ var css = xterm_default + "\n" + [
   // 入驻项目卡自带箭头（桥注入 .dsh-wt_resArrow）：与布局卡同款视觉居中
   "button[data-wt-id] > .dsh-wt_resArrow{display:inline-flex;align-items:center;height:18px;line-height:18px;transform:translateY(-1.5px)}",
   // 项目卡片统一：所有入驻项目卡片（data-wt-id 通用标记）与布局卡片同款常显框
-  ".dsh-wt_projects [data-wt-id]{border-color:var(--dsw-alias-border-l1,#262b36);background:var(--dsw-alias-fill-l1,rgba(255,255,255,.02))}",
+  ".dsh-wt_projects [data-wt-id]{border-color:color-mix(in srgb,#dbeafe 10%,transparent);background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.012));box-shadow:inset 0 1px 0 rgba(255,255,255,.055)}",
   ".dsh-wt_projects [data-wt-id]:hover{border-color:var(--dsw-alias-state-accent-primary,#4f8ef7);background:var(--dsw-alias-fill-l1,rgba(255,255,255,.05))}",
   ".dsh-wt_projects [data-wt-id][data-on=true]{border-color:var(--dsw-alias-state-accent-primary,#4f8ef7);background:var(--dsw-alias-fill-l1,rgba(255,255,255,.05))}",
   // 标签精简：项目卡片只留名称一行，小字描述行去掉
@@ -8138,7 +8223,7 @@ var css = xterm_default + "\n" + [
   ".dsh-wt_subSection{flex:none;padding:6px 8px 2px;font-size:10px;font-weight:600;letter-spacing:.05em;color:var(--dsw-alias-label-tertiary,#6e7683)}",
   // 控制室面板：项目卡片网格（每行 3 张、超出换行；DSH 简洁 + 苹果式卡片）。
   // 主题变量自带作用域：dark 缺省；data-wt-theme=light 换浅色；system 由面板读宿主 color-scheme 落成 dark/light。
-  ".dsh-wt_console{--wt-bg:#0a0d13;--wt-card:#171c25;--wt-cardHover:#1d232e;--wt-border:#2a3140;--wt-borderHover:#39445a;--wt-text:#e6e8eb;--wt-text2:#9aa4b2;--wt-text3:#6e7683;--wt-chip:rgba(255,255,255,.06);--wt-grid:rgba(255,255,255,.045);--wt-shadow:0 6px 20px rgba(0,0,0,.35);position:relative;flex:1;min-height:0;overflow:auto;padding:22px;background-image:linear-gradient(var(--wt-grid) 1px,transparent 1px),linear-gradient(90deg,var(--wt-grid) 1px,transparent 1px);background-size:30px 30px;background-color:var(--wt-bg)}",
+  ".dsh-wt_console{--wt-bg:#030919;--wt-card:rgba(13,28,54,.72);--wt-cardHover:rgba(20,41,75,.78);--wt-border:color-mix(in srgb,#b7d2ff 12%,transparent);--wt-borderHover:color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 40%,#dbeafe 12%);--wt-text:#edf4ff;--wt-text2:#aebbd0;--wt-text3:#7f90ab;--wt-chip:color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 9%,transparent);--wt-grid:color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 8%,transparent);--wt-shadow:0 12px 34px rgba(0,0,0,.4);position:relative;flex:1;min-height:0;overflow:auto;padding:22px;background-image:radial-gradient(ellipse at 50% -10%,color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 17%,transparent),transparent 46%),linear-gradient(var(--wt-grid) 1px,transparent 1px),linear-gradient(90deg,var(--wt-grid) 1px,transparent 1px),linear-gradient(145deg,var(--dsh-glass-bg,#050b1a),#020713);background-size:auto,30px 30px,30px 30px,auto}",
   // 工作中的卡片流光：光带加长羽化 + 光层超出卡片（移动时不露整齐边缘），每 ~3.2s 从左上斜扫到右下
   ".dsh-wt_consoleSweep{position:absolute;inset:-30%;border-radius:inherit;pointer-events:none;background:linear-gradient(115deg,rgba(255,255,255,.01) 0%,rgba(255,255,255,.045) 30%,rgba(255,255,255,.13) 50%,rgba(255,255,255,.045) 70%,rgba(255,255,255,.01) 100%);opacity:0;animation:consoleSweep 3.2s ease-in-out infinite}",
   ".dsh-wt_console[data-wt-theme=light] .dsh-wt_consoleSweep{background:linear-gradient(115deg,rgba(255,255,255,.1) 0%,rgba(255,255,255,.3) 30%,rgba(255,255,255,.55) 50%,rgba(255,255,255,.3) 70%,rgba(255,255,255,.1) 100%)}",
@@ -8151,14 +8236,14 @@ var css = xterm_default + "\n" + [
   ".dsh-wt_consoleThemeBtn:hover{opacity:1;background:var(--wt-chip)}",
   ".dsh-wt_consoleThemeBtnOn{background:var(--wt-chip);color:var(--wt-text);opacity:1}",
   ".dsh-wt_consoleGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:64px;align-content:start;margin-top:clamp(32px,9vh,110px);max-width:856px;margin-left:auto;margin-right:auto}",
-  ".dsh-wt_consoleCard{position:relative;display:flex;flex-direction:column;gap:14px;aspect-ratio:1/1;min-height:192px;padding:21px;background:linear-gradient(135deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,.07) 30%,rgba(255,255,255,.01) 60%,rgba(0,0,0,.07) 100%),rgba(18,23,32,.24);border:1px solid transparent;border-radius:16px;box-shadow:0 10px 28px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.13);cursor:pointer;transition:transform .14s ease,box-shadow .14s ease;overflow:hidden}",
+  ".dsh-wt_consoleCard{position:relative;display:flex;flex-direction:column;gap:14px;aspect-ratio:1/1;min-height:192px;padding:21px;background:radial-gradient(circle at 12% 0,color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 13%,transparent),transparent 43%),linear-gradient(135deg,rgba(209,227,255,.09),rgba(13,28,54,.58) 38%,rgba(3,10,24,.7));border:1px solid color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 26%,#dbeafe 13%);border-radius:18px;box-shadow:0 0 22px color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 9%,transparent),0 16px 38px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.17);backdrop-filter:blur(24px) saturate(160%);cursor:pointer;transition:transform .2s cubic-bezier(.16,1,.3,1),box-shadow .2s ease,border-color .2s ease;overflow:hidden}",
   // 玻璃边缘：四角黑白渐变描边（左上/右下=白，右上/左下=黑），1px 环挖空实现
   '.dsh-wt_consoleCard::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:conic-gradient(from 45deg,rgba(0,0,0,.4) 0deg,rgba(255,255,255,.55) 90deg,rgba(0,0,0,.4) 180deg,rgba(255,255,255,.55) 270deg,rgba(0,0,0,.4) 360deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;pointer-events:none;opacity:.5}',
   ".dsh-wt_console[data-wt-theme=light] .dsh-wt_consoleCard{background:linear-gradient(135deg,rgba(255,255,255,1) 0%,rgba(255,255,255,.65) 30%,rgba(255,255,255,.12) 60%,rgba(31,41,55,.06) 100%),rgba(255,255,255,.34);box-shadow:0 10px 28px rgba(31,41,55,.18),inset 0 1px 0 rgba(255,255,255,1)}",
   ".dsh-wt_console[data-wt-theme=light] .dsh-wt_consoleCard::after{background:conic-gradient(from 45deg,rgba(27,31,36,.4) 0deg,rgba(255,255,255,1) 90deg,rgba(27,31,36,.4) 180deg,rgba(255,255,255,1) 270deg,rgba(27,31,36,.4) 360deg);opacity:.9}",
   // 状态光效卡片：玻璃边缘让位给霓虹描边/旋转光环
   ".dsh-wt_consoleCard-glowDone::after,.dsh-wt_consoleCard-glowNeed::after{opacity:0}",
-  ".dsh-wt_consoleCard:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.09)}",
+  ".dsh-wt_consoleCard:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 52%,#fff 10%);box-shadow:0 0 28px color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 18%,transparent),0 20px 46px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.2)}",
   ".dsh-wt_consoleCardSelf{cursor:default;opacity:.97}",
   ".dsh-wt_consoleCardHead{display:flex;align-items:center;gap:13px;min-width:0}",
   ".dsh-wt_consoleIcon{flex:none;font-size:31px;line-height:1}",
@@ -8190,10 +8275,10 @@ var css = xterm_default + "\n" + [
   ".dsh-wt_consoleAdd:hover .dsh-wt_consoleAddPlus{color:var(--dsw-alias-state-accent-primary,#4f8ef7)}",
   ".dsh-wt_consoleAddLabel{font-size:17px;font-weight:600;color:var(--wt-text2)}",
   ".dsh-wt_consoleAdd:hover .dsh-wt_consoleAddLabel{color:var(--dsw-alias-state-accent-primary,#4f8ef7)}",
-  // 控制室入口卡：统筹主程序的差异化（渐变底 + 微光；无描边，颜色更亮更饱和）
-  ".dsh-wt_projects .dsh-wt_consoleEntry{background:linear-gradient(135deg,rgba(109,164,255,.30),rgba(167,130,255,.22));border-color:transparent;box-shadow:0 0 14px rgba(96,150,255,.22)}",
-  ".dsh-wt_projects .dsh-wt_consoleEntry:hover{background:linear-gradient(135deg,rgba(109,164,255,.42),rgba(167,130,255,.32));box-shadow:0 0 18px rgba(96,150,255,.32)}",
-  ".dsh-wt_projects .dsh-wt_consoleEntry[data-on=true]{background:linear-gradient(135deg,rgba(109,164,255,.38),rgba(167,130,255,.28));box-shadow:0 0 18px rgba(96,150,255,.34)}",
+  // 控制室入口卡：与余额监控台一致的低饱和玻璃高光
+  ".dsh-wt_projects .dsh-wt_consoleEntry{background:linear-gradient(135deg,rgba(109,164,255,.16),rgba(167,130,255,.09));border-color:rgba(154,190,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 14px rgba(96,150,255,.10)}",
+  ".dsh-wt_projects .dsh-wt_consoleEntry:hover{background:linear-gradient(135deg,rgba(109,164,255,.23),rgba(167,130,255,.13));box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 18px rgba(96,150,255,.17)}",
+  ".dsh-wt_projects .dsh-wt_consoleEntry[data-on=true]{background:linear-gradient(135deg,rgba(109,164,255,.26),rgba(167,130,255,.14));box-shadow:inset 0 1px 0 rgba(255,255,255,.13),0 0 18px rgba(96,150,255,.20)}",
   ".dsh-wt_projects .dsh-wt_consoleEntry .dsh-wt_layoutIcon{font-size:15px}",
   ".dsh-wt_projects .dsh-wt_consoleEntry .dsh-wt_layoutName{font-weight:600;color:var(--dsw-alias-label-primary,#e6e8eb)}",
   // 控制室强制绑定弹窗：左加入现有 / 右新建对话
@@ -8232,7 +8317,19 @@ var css = xterm_default + "\n" + [
   ".dsh-wt_updateSwitch{position:relative;width:26px;height:14px;border-radius:999px;background:var(--dsw-alias-state-accent-primary,#4f8ef7);cursor:pointer}",
   '.dsh-wt_updateSwitch::after{content:"";position:absolute;top:2px;right:2px;width:10px;height:10px;border-radius:50%;background:#fff;transition:right .15s}',
   ".dsh-wt_updateSwitch[data-off=true]{background:var(--dsw-alias-border-l1,#333a48)}",
-  ".dsh-wt_updateSwitch[data-off=true]::after{right:14px}"
+  ".dsh-wt_updateSwitch[data-off=true]::after{right:14px}",
+  ".dsh-appearance{display:flex;flex-direction:column;gap:16px;color:#edf4ff;max-width:760px}",
+  ".dsh-appearance header h2{margin:0 0 5px;font-size:18px;font-weight:650}.dsh-appearance header p{margin:0;color:#9bacc8;font-size:12px}",
+  ".dsh-appearance_group{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px;margin:0;padding:15px 16px 17px;border:1px solid color-mix(in srgb,var(--dsh-web-accent) 24%,#dbeafe 12%);border-radius:15px;background:linear-gradient(145deg,rgba(219,234,254,.065),rgba(5,14,30,.36));box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}",
+  ".dsh-appearance_group legend{padding:0 7px;color:#f1f6ff;font-size:13px;font-weight:650}.dsh-appearance_group:disabled{opacity:.46}",
+  ".dsh-appearance_row,.dsh-appearance_color,.dsh-appearance_select,.dsh-appearance_upload{display:grid;grid-template-columns:minmax(104px,1fr) minmax(100px,1.35fr) 44px;align-items:center;gap:9px;font-size:12px;color:#b9c8de}",
+  ".dsh-appearance_row input[type=range]{width:100%;accent-color:var(--dsh-web-accent)}.dsh-appearance_row output{text-align:right;color:#e7f0ff;font-variant-numeric:tabular-nums}",
+  ".dsh-appearance_color input[type=color]{width:42px;height:28px;padding:2px;border:1px solid color-mix(in srgb,var(--dsh-web-accent) 30%,#dbeafe 12%);border-radius:8px;background:rgba(255,255,255,.04)}.dsh-appearance_color code{font-size:10px;color:#9fb0cb}",
+  ".dsh-appearance_upload{grid-template-columns:minmax(104px,1fr) auto auto}.dsh-appearance button,.dsh-appearance select{min-height:30px;border:1px solid color-mix(in srgb,var(--dsh-web-accent) 28%,#dbeafe 12%);border-radius:9px;background:linear-gradient(180deg,rgba(219,234,254,.1),rgba(82,120,255,.055));color:#eaf2ff;padding:5px 10px}.dsh-appearance button{cursor:pointer}.dsh-appearance button:hover{border-color:color-mix(in srgb,var(--dsh-web-accent) 58%,#fff 10%);box-shadow:0 0 14px color-mix(in srgb,var(--dsh-web-accent) 14%,transparent)}",
+  ".dsh-appearance_select{grid-template-columns:minmax(104px,1fr) minmax(132px,1.35fr)}.dsh-appearance_select select{width:100%}",
+  ".dsh-appearance_accent{max-width:360px}.dsh-appearance_sidebarHead{display:flex;align-items:center;justify-content:space-between;gap:14px}.dsh-appearance_sidebarHead label{display:flex;align-items:center;gap:7px;color:#b9c8de;font-size:12px}.dsh-appearance_sidebarHead input{accent-color:var(--dsh-web-accent)}",
+  ".dsh-appearance_actions{display:flex;gap:9px;justify-content:flex-end}.dsh-appearance_error{grid-column:1/-1;margin:0;color:#ff9d9d;font-size:11px}",
+  "@media(max-width:760px){.dsh-appearance_group{grid-template-columns:1fr}.dsh-appearance_actions{justify-content:flex-start}}"
 ].join("\n");
 
 // src/client/locales.ts
@@ -8405,7 +8502,36 @@ var zh = {
   "update.copied": "\u5DF2\u590D\u5236",
   "update.copyFail": "\u590D\u5236\u5931\u8D25\uFF0C\u8BF7\u624B\u52A8\u9009\u62E9\u6587\u672C",
   "update.skipDone": "\u5DF2\u5FFD\u7565\u6B64\u7248\u672C\uFF08\u4E0B\u4E00\u7248\u53D1\u5E03\u65F6\u518D\u63D0\u9192\uFF09",
-  "update.upgradeHint": "\u6267\u884C\u547D\u4EE4\u540E\u9700\u91CD\u542F dsh web \u5E76\u5237\u65B0\u9875\u9762"
+  "update.upgradeHint": "\u6267\u884C\u547D\u4EE4\u540E\u9700\u91CD\u542F dsh web \u5E76\u5237\u65B0\u9875\u9762",
+  "appearance.nav": "\u5916\u89C2\u4E0E\u80CC\u666F",
+  "appearance.title": "\u5916\u89C2\u4E0E\u80CC\u666F",
+  "appearance.description": "Web \u4E3B\u754C\u9762\u4E0E\u4FA7\u8FB9\u680F\u5206\u522B\u8BBE\u7F6E\uFF1B\u8FD9\u4E9B\u9009\u9879\u4E0D\u4F1A\u6539\u53D8\u786C\u4EF6\u76D1\u63A7\u53F0\u3002",
+  "appearance.web": "Web \u4E3B\u754C\u9762",
+  "appearance.sidebar": "\u5DE6\u4FA7\u4FA7\u8FB9\u680F",
+  "appearance.sidebarIndependent": "\u4FA7\u8FB9\u680F\u72EC\u7ACB\u5916\u89C2",
+  "appearance.followWeb": "\u8DDF\u968F Web \u4E3B\u754C\u9762",
+  "appearance.accent": "\u4E3B\u9898\u8272",
+  "appearance.sidebarAccent": "\u4FA7\u8FB9\u680F\u4E3B\u9898\u8272",
+  "appearance.background": "\u80CC\u666F\u989C\u8272",
+  "appearance.image": "\u80CC\u666F\u56FE\u7247",
+  "appearance.choose": "\u9009\u62E9\u56FE\u7247",
+  "appearance.clear": "\u6E05\u9664",
+  "appearance.imageOpacity": "\u56FE\u7247\u900F\u660E\u5EA6",
+  "appearance.overlay": "\u80CC\u666F\u906E\u7F69",
+  "appearance.surface": "\u5185\u5BB9\u73BB\u7483\u900F\u660E\u5EA6",
+  "appearance.blur": "\u80CC\u666F\u6A21\u7CCA",
+  "appearance.fit": "\u56FE\u7247\u9002\u914D",
+  "appearance.position": "\u56FE\u7247\u4F4D\u7F6E",
+  "appearance.position.center": "\u5C45\u4E2D",
+  "appearance.position.top": "\u9876\u90E8",
+  "appearance.position.bottom": "\u5E95\u90E8",
+  "appearance.position.left": "\u5DE6\u4FA7",
+  "appearance.position.right": "\u53F3\u4FA7",
+  "appearance.resetWeb": "\u91CD\u7F6E Web \u4E3B\u754C\u9762",
+  "appearance.resetSidebar": "\u91CD\u7F6E\u4FA7\u8FB9\u680F",
+  "appearance.error.size": "\u56FE\u7247\u8D85\u8FC7 20MB\uFF0C\u8BF7\u9009\u62E9\u8F83\u5C0F\u7684\u6587\u4EF6\u3002",
+  "appearance.error.storage": "\u56FE\u7247\u538B\u7F29\u540E\u4ECD\u8FC7\u5927\uFF0C\u65E0\u6CD5\u4FDD\u5B58\u5230\u6D4F\u89C8\u5668\u3002",
+  "appearance.error.image": "\u65E0\u6CD5\u8BFB\u53D6\u8FD9\u5F20\u56FE\u7247\uFF0C\u8BF7\u6362\u4E00\u5F20\u91CD\u8BD5\u3002"
 };
 var en = {
   "title": "Worktable",
@@ -8576,7 +8702,36 @@ var en = {
   "update.copied": "Copied",
   "update.copyFail": "Copy failed \u2014 select the text manually",
   "update.skipDone": "Skipped (will remind on the next release)",
-  "update.upgradeHint": "Run the command, then restart dsh web and refresh"
+  "update.upgradeHint": "Run the command, then restart dsh web and refresh",
+  "appearance.nav": "Appearance",
+  "appearance.title": "Appearance & background",
+  "appearance.description": "Configure the Web view and sidebar separately. These options never change the hardware monitor.",
+  "appearance.web": "Web interface",
+  "appearance.sidebar": "Left sidebar",
+  "appearance.sidebarIndependent": "Independent sidebar appearance",
+  "appearance.followWeb": "Follow Web interface",
+  "appearance.accent": "Accent color",
+  "appearance.sidebarAccent": "Sidebar accent",
+  "appearance.background": "Background color",
+  "appearance.image": "Background image",
+  "appearance.choose": "Choose image",
+  "appearance.clear": "Clear",
+  "appearance.imageOpacity": "Image opacity",
+  "appearance.overlay": "Background overlay",
+  "appearance.surface": "Content glass opacity",
+  "appearance.blur": "Background blur",
+  "appearance.fit": "Image fit",
+  "appearance.position": "Image position",
+  "appearance.position.center": "Center",
+  "appearance.position.top": "Top",
+  "appearance.position.bottom": "Bottom",
+  "appearance.position.left": "Left",
+  "appearance.position.right": "Right",
+  "appearance.resetWeb": "Reset Web interface",
+  "appearance.resetSidebar": "Reset sidebar",
+  "appearance.error.size": "The image is larger than 20MB.",
+  "appearance.error.storage": "The compressed image is still too large to save.",
+  "appearance.error.image": "This image could not be read. Try another file."
 };
 var NS = "worktable";
 
@@ -16543,16 +16698,16 @@ var splitStore = {
     const viewArea = root.children[1];
     if (!header || !viewArea) return false;
     this.spec = { ...spec, chatSide: spec.chatSide === "left" ? "left" : "right" };
-    const normalize2 = (p) => {
+    const normalize3 = (p) => {
       if (p.tabs && p.tabs.length > 0) return p;
       if (p.content) {
         return { ...p, content: null, tabs: [{ id: "t1", title: tabTitleOf(p.content), content: p.content }], active: 0 };
       }
       return { ...p, content: null, tabs: [], active: 0 };
     };
-    if (spec.top) this.spec.top = spec.top.map(normalize2);
-    if (spec.left) this.spec.left = normalize2(spec.left);
-    this.spec.main = (spec.main ?? []).map(normalize2);
+    if (spec.top) this.spec.top = spec.top.map(normalize3);
+    if (spec.left) this.spec.left = normalize3(spec.left);
+    this.spec.main = (spec.main ?? []).map(normalize3);
     const main = this.spec.main ?? [];
     const top = spec.top ?? [];
     const left = spec.left ?? null;
@@ -18285,21 +18440,282 @@ try {
 } catch {
 }
 
-// src/client/index.tsx
+// src/client/appearance.tsx
+var import_react2 = require("react");
 var import_jsx_runtime2 = require("react/jsx-runtime");
+var STORAGE_KEY = "dsh.worktable.appearance.v1";
+var LEGACY_USAGE_KEY = "dsh-usage:settings:v2";
+var MAX_FILE_BYTES = 20 * 1024 * 1024;
+var MAX_DATA_URL_LENGTH = 18e5;
+var baseSurface = () => ({
+  background: "#050b1a",
+  image: null,
+  imageOpacity: 0,
+  overlayOpacity: 0.62,
+  imageBlur: 0,
+  imageSize: "cover",
+  imagePosition: "center",
+  surfaceOpacity: 0.84
+});
+var defaults = () => ({
+  web: { ...baseSurface(), accent: "#5278ff" },
+  sidebar: { ...baseSurface(), accent: "#5278ff", background: "#071225", overlayOpacity: 0.68, surfaceOpacity: 0.88, followWeb: true }
+});
+var clamp2 = (value, fallback, min = 0, max = 1) => typeof value === "number" && Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : fallback;
+var color = (value, fallback) => typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
+var image2 = (value) => typeof value === "string" && value.length <= MAX_DATA_URL_LENGTH && /^data:image\/(?:webp|jpeg|png);base64,/i.test(value) ? value : null;
+function normalizeSurface(value, fallback) {
+  return {
+    background: color(value?.background, fallback.background),
+    image: image2(value?.image),
+    imageOpacity: clamp2(value?.imageOpacity, fallback.imageOpacity),
+    overlayOpacity: clamp2(value?.overlayOpacity, fallback.overlayOpacity),
+    imageBlur: clamp2(value?.imageBlur, fallback.imageBlur, 0, 32),
+    imageSize: value?.imageSize === "contain" ? "contain" : "cover",
+    imagePosition: ["center", "top", "bottom", "left", "right"].includes(value?.imagePosition) ? value.imagePosition : fallback.imagePosition,
+    surfaceOpacity: clamp2(value?.surfaceOpacity, fallback.surfaceOpacity, 0.18, 1)
+  };
+}
+function normalize2(value) {
+  const fallback = defaults();
+  return {
+    web: { ...normalizeSurface(value?.web, fallback.web), accent: color(value?.web?.accent, fallback.web.accent) },
+    sidebar: { ...normalizeSurface(value?.sidebar, fallback.sidebar), accent: color(value?.sidebar?.accent, fallback.sidebar.accent), followWeb: value?.sidebar?.followWeb !== false },
+    migration: value?.migration?.fromUsageV2 ? { fromUsageV2: true } : void 0
+  };
+}
+function migrateLegacy() {
+  const raw = localStorage.getItem(LEGACY_USAGE_KEY);
+  if (!raw) return null;
+  try {
+    const legacy = JSON.parse(raw);
+    const theme = legacy?.theme;
+    if (!theme || typeof theme !== "object") return null;
+    const next = defaults();
+    next.web = normalize2({ web: {
+      accent: theme.accent,
+      background: theme.background ?? next.web.background,
+      image: theme.backgroundImage,
+      imageOpacity: theme.backgroundImageOpacity,
+      overlayOpacity: theme.backgroundOverlay,
+      imageBlur: theme.backgroundBlur,
+      imageSize: theme.backgroundSize,
+      imagePosition: theme.backgroundPosition,
+      surfaceOpacity: theme.opacity
+    } }).web;
+    next.migration = { fromUsageV2: true };
+    return next;
+  } catch {
+    return null;
+  }
+}
+function loadAppearance() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return normalize2(JSON.parse(raw));
+    const migrated = migrateLegacy();
+    if (migrated) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      return migrated;
+    }
+  } catch {
+  }
+  return defaults();
+}
+function cssImage(value) {
+  return value ? `url(${JSON.stringify(value)})` : "none";
+}
+function applyAppearance(value) {
+  const root = document.documentElement;
+  const sidebar = value.sidebar.followWeb ? value.web : value.sidebar;
+  const setSurface = (prefix, surface) => {
+    root.style.setProperty(`--dsh-${prefix}-bg`, surface.background);
+    root.style.setProperty(`--dsh-${prefix}-image`, cssImage(surface.image));
+    root.style.setProperty(`--dsh-${prefix}-image-opacity`, String(surface.imageOpacity));
+    root.style.setProperty(`--dsh-${prefix}-overlay-opacity`, String(surface.overlayOpacity));
+    root.style.setProperty(`--dsh-${prefix}-image-blur`, `${surface.imageBlur}px`);
+    root.style.setProperty(`--dsh-${prefix}-image-size`, surface.imageSize);
+    root.style.setProperty(`--dsh-${prefix}-image-position`, surface.imagePosition);
+    root.style.setProperty(`--dsh-${prefix}-surface-opacity`, String(surface.surfaceOpacity));
+  };
+  root.style.setProperty("--dsh-web-accent", value.web.accent);
+  root.style.setProperty("--dsh-sidebar-accent", value.sidebar.followWeb ? value.web.accent : value.sidebar.accent);
+  setSurface("web", value.web);
+  setSurface("sidebar", sidebar);
+}
+function saveAppearance(value) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+  applyAppearance(value);
+}
+function optimizeImage(file) {
+  if (!file.type.startsWith("image/")) return Promise.reject(new Error("type"));
+  if (file.size > MAX_FILE_BYTES) return Promise.reject(new Error("size"));
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const source = new Image();
+    source.onload = () => {
+      try {
+        const scale = Math.min(1, 2560 / Math.max(source.naturalWidth, source.naturalHeight));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(source.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(source.naturalHeight * scale));
+        canvas.getContext("2d")?.drawImage(source, 0, 0, canvas.width, canvas.height);
+        let quality = 0.86;
+        let mime = "image/webp";
+        let data = canvas.toDataURL(mime, quality);
+        if (!data.startsWith("data:image/webp")) {
+          mime = "image/jpeg";
+          data = canvas.toDataURL(mime, quality);
+        }
+        while (data.length > MAX_DATA_URL_LENGTH && quality > 0.5) {
+          quality -= 0.08;
+          data = canvas.toDataURL(mime, quality);
+        }
+        data.length <= MAX_DATA_URL_LENGTH ? resolve(data) : reject(new Error("storage"));
+      } catch {
+        reject(new Error("decode"));
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    };
+    source.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("decode"));
+    };
+    source.src = url;
+  });
+}
+function Range({ label, value, min = 0, max = 1, step = 0.05, unit = "%", onChange }) {
+  const shown = unit === "%" ? `${Math.round(value * 100)}%` : `${value}${unit}`;
+  return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("label", { className: "dsh-appearance_row", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { children: label }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("input", { type: "range", min, max, step, value, onChange: (event) => onChange(Number(event.target.value)) }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("output", { children: shown })
+  ] });
+}
+function SurfaceEditor({ title, value, disabled = false, onChange, t }) {
+  const input = (0, import_react2.useRef)(null);
+  const [error2, setError] = (0, import_react2.useState)("");
+  const patch = (part) => onChange({ ...value, ...part });
+  const pick = async (file) => {
+    if (!file) return;
+    setError("");
+    try {
+      patch({ image: await optimizeImage(file), imageOpacity: value.imageOpacity || 0.72 });
+    } catch (cause) {
+      setError(t(`appearance.error.${cause?.message === "size" ? "size" : cause?.message === "storage" ? "storage" : "image"}`));
+    }
+  };
+  return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("fieldset", { className: "dsh-appearance_group", disabled, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("legend", { children: title }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("label", { className: "dsh-appearance_color", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { children: t("appearance.background") }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("input", { type: "color", value: value.background, onChange: (e) => patch({ background: e.target.value }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("code", { children: value.background })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-appearance_upload", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { children: t("appearance.image") }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("input", { ref: input, hidden: true, type: "file", accept: "image/*", onChange: (e) => void pick(e.target.files?.[0]) }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", onClick: () => input.current?.click(), children: t("appearance.choose") }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", disabled: !value.image, onClick: () => patch({ image: null, imageOpacity: 0 }), children: t("appearance.clear") })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Range, { label: t("appearance.imageOpacity"), value: value.imageOpacity, onChange: (imageOpacity) => patch({ imageOpacity }) }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Range, { label: t("appearance.overlay"), value: value.overlayOpacity, onChange: (overlayOpacity) => patch({ overlayOpacity }) }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Range, { label: t("appearance.surface"), value: value.surfaceOpacity, min: 0.18, onChange: (surfaceOpacity) => patch({ surfaceOpacity }) }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Range, { label: t("appearance.blur"), value: value.imageBlur, min: 0, max: 32, step: 1, unit: "px", onChange: (imageBlur) => patch({ imageBlur }) }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("label", { className: "dsh-appearance_select", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { children: t("appearance.fit") }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("select", { value: value.imageSize, onChange: (e) => patch({ imageSize: e.target.value }), children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("option", { value: "cover", children: "Cover" }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("option", { value: "contain", children: "Contain" })
+      ] })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("label", { className: "dsh-appearance_select", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { children: t("appearance.position") }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("select", { value: value.imagePosition, onChange: (e) => patch({ imagePosition: e.target.value }), children: ["center", "top", "bottom", "left", "right"].map((position) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("option", { value: position, children: t(`appearance.position.${position}`) }, position)) })
+    ] }),
+    error2 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { className: "dsh-appearance_error", role: "alert", children: error2 })
+  ] });
+}
+function AppearanceSection(props) {
+  const t = (key) => {
+    try {
+      return props.t?.(key) ?? key;
+    } catch {
+      return key;
+    }
+  };
+  const [settings, setSettings] = (0, import_react2.useState)(loadAppearance);
+  const update = (next) => {
+    const normalized = normalize2(next);
+    setSettings(normalized);
+    try {
+      saveAppearance(normalized);
+    } catch {
+      applyAppearance(normalized);
+    }
+  };
+  return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-appearance", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("header", { children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("h2", { children: t("appearance.title") }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { children: t("appearance.description") })
+    ] }) }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("label", { className: "dsh-appearance_color dsh-appearance_accent", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { children: t("appearance.accent") }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("input", { type: "color", value: settings.web.accent, onChange: (e) => update({ ...settings, web: { ...settings.web, accent: e.target.value } }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("code", { children: settings.web.accent })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(SurfaceEditor, { title: t("appearance.web"), value: settings.web, t, onChange: (web) => update({ ...settings, web }) }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-appearance_sidebarHead", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("strong", { children: t("appearance.sidebar") }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("label", { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("input", { type: "checkbox", checked: settings.sidebar.followWeb, onChange: (e) => update({ ...settings, sidebar: { ...settings.sidebar, followWeb: e.target.checked } }) }),
+        t("appearance.followWeb")
+      ] })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("label", { className: "dsh-appearance_color dsh-appearance_accent", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { children: t("appearance.sidebarAccent") }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("input", { disabled: settings.sidebar.followWeb, type: "color", value: settings.sidebar.accent, onChange: (e) => update({ ...settings, sidebar: { ...settings.sidebar, accent: e.target.value } }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("code", { children: settings.sidebar.accent })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(SurfaceEditor, { title: t("appearance.sidebarIndependent"), disabled: settings.sidebar.followWeb, value: settings.sidebar, t, onChange: (sidebar) => update({ ...settings, sidebar }) }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-appearance_actions", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", onClick: () => update({ ...settings, web: defaults().web }), children: t("appearance.resetWeb") }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", onClick: () => update({ ...settings, sidebar: defaults().sidebar }), children: t("appearance.resetSidebar") })
+    ] })
+  ] });
+}
+function installAppearance(ctx, t) {
+  applyAppearance(loadAppearance());
+  const onStorage = (event) => {
+    if (event.key === STORAGE_KEY) applyAppearance(loadAppearance());
+  };
+  window.addEventListener("storage", onStorage);
+  ctx.effect(() => () => window.removeEventListener("storage", onStorage), "dsh-worktable: appearance sync");
+  ctx.slots.inject("settings.section", () => ctx.slots.register({
+    name: "settings.section",
+    id: "appearance",
+    order: 5,
+    label: () => t("appearance.nav"),
+    locale: "worktable"
+  }, AppearanceSection), "dsh-worktable: appearance settings");
+}
+
+// src/client/index.tsx
+var import_jsx_runtime3 = require("react/jsx-runtime");
 var LOCAL_VERSION = false ? "dev" : "0.2.2";
 var UPDATE_REPO = "Aisland-SJL/dsh-worktable";
 var UPGRADE_CMD = 'dsh plugin --profile web add "https://github.com/Aisland-SJL/dsh-worktable/releases/latest/download/dsh-worktable.tgz"';
 var UPGRADE_AI = "\u5E2E\u6211\u5347\u7EA7 dsh-worktable\uFF1A\u6267\u884C " + UPGRADE_CMD + "\uFF0C\u5B8C\u6210\u540E\u63D0\u9192\u6211\u91CD\u542F dsh web \u5E76\u5237\u65B0\u9875\u9762";
-var ICON_SYNC = /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("svg", { viewBox: "0 0 16 16", "aria-hidden": true, children: [
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { fill: "none", stroke: "currentColor", strokeWidth: "1.6", strokeLinecap: "round", strokeLinejoin: "round", d: "M1.5 8a6.5 6.5 0 0 1 11.1-4.6L14.5 5" }),
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { fill: "none", stroke: "currentColor", strokeWidth: "1.6", strokeLinecap: "round", strokeLinejoin: "round", d: "M14.5 1.5V5h-3.5" }),
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { fill: "none", stroke: "currentColor", strokeWidth: "1.6", strokeLinecap: "round", strokeLinejoin: "round", d: "M14.5 8a6.5 6.5 0 0 1-11.1 4.6L1.5 11" }),
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { fill: "none", stroke: "currentColor", strokeWidth: "1.6", strokeLinecap: "round", strokeLinejoin: "round", d: "M1.5 14.5V11h3.5" })
+var ICON_SYNC = /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("svg", { viewBox: "0 0 16 16", "aria-hidden": true, children: [
+  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("path", { fill: "none", stroke: "currentColor", strokeWidth: "1.6", strokeLinecap: "round", strokeLinejoin: "round", d: "M1.5 8a6.5 6.5 0 0 1 11.1-4.6L14.5 5" }),
+  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("path", { fill: "none", stroke: "currentColor", strokeWidth: "1.6", strokeLinecap: "round", strokeLinejoin: "round", d: "M14.5 1.5V5h-3.5" }),
+  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("path", { fill: "none", stroke: "currentColor", strokeWidth: "1.6", strokeLinecap: "round", strokeLinejoin: "round", d: "M14.5 8a6.5 6.5 0 0 1-11.1 4.6L1.5 11" }),
+  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("path", { fill: "none", stroke: "currentColor", strokeWidth: "1.6", strokeLinecap: "round", strokeLinejoin: "round", d: "M1.5 14.5V11h3.5" })
 ] });
-var ICON_SPARK = /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("svg", { viewBox: "0 0 16 16", "aria-hidden": true, children: [
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { d: "M8 1.6l1.5 3.9 3.9 1.5-3.9 1.5L8 12.4 6.5 8.5 2.6 7l3.9-1.5z", fill: "none", stroke: "currentColor", strokeWidth: "1.3", strokeLinejoin: "round" }),
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { d: "M12.6 11.2l.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5z", fill: "currentColor" })
+var ICON_SPARK = /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("svg", { viewBox: "0 0 16 16", "aria-hidden": true, children: [
+  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("path", { d: "M8 1.6l1.5 3.9 3.9 1.5-3.9 1.5L8 12.4 6.5 8.5 2.6 7l3.9-1.5z", fill: "none", stroke: "currentColor", strokeWidth: "1.3", strokeLinejoin: "round" }),
+  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("path", { d: "M12.6 11.2l.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5z", fill: "currentColor" })
 ] });
 function cmpVer(a, b) {
   const pa = a.split(".").map(Number);
@@ -18340,14 +18756,14 @@ var PRESET_DEFS = [
   { id: "l23", leftCount: 0, topCount: 2, contentCount: 3, chatFull: true, topHeightRatio: 0.5 }
 ];
 var EMOJI_SET = ["\u{1F9F1}", "\u{1F3E0}", "\u{1F393}", "\u{1F697}", "\u2708\uFE0F", "\u{1F30D}", "\u{1F3E5}", "\u{1F4DA}", "\u270F\uFE0F", "\u2699\uFE0F", "\u{1F3A8}", "\u{1F3AE}", "\u{1F30F}", "\u{1F4D0}", "\u{1F9EA}", "\u{1F916}", "\u{1F4E6}", "\u{1F4AC}"];
-var ICON_SEARCH = /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("svg", { width: "14", height: "14", viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: [
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { d: "M11.894845 6.647401C11.894845 3.725463 9.534486 1.356779 6.623219 1.35657C3.711786 1.35657 1.351635 3.725338 1.351635 6.647401C1.351843 9.569296 3.711911 11.938273 6.623219 11.938273C9.534361 11.938064 11.894637 9.569171 11.894845 6.647401ZM13.245462 6.647401C13.245254 10.317935 10.280401 13.293613 6.623219 13.293821C2.965871 13.293821 0.000204 10.31806 0 6.647401C0 2.976574 2.965746 0 6.623219 0C10.280526 0.000205 13.245462 2.9767 13.245462 6.647401Z", fill: "currentColor" }),
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { d: "M16.000417 15.041079L15.044449 16.000433L11.530434 12.473588L12.486298 11.514234L16.000417 15.041079Z", fill: "currentColor" })
+var ICON_SEARCH = /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("svg", { width: "14", height: "14", viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: [
+  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("path", { d: "M11.894845 6.647401C11.894845 3.725463 9.534486 1.356779 6.623219 1.35657C3.711786 1.35657 1.351635 3.725338 1.351635 6.647401C1.351843 9.569296 3.711911 11.938273 6.623219 11.938273C9.534361 11.938064 11.894637 9.569171 11.894845 6.647401ZM13.245462 6.647401C13.245254 10.317935 10.280401 13.293613 6.623219 13.293821C2.965871 13.293821 0.000204 10.31806 0 6.647401C0 2.976574 2.965746 0 6.623219 0C10.280526 0.000205 13.245462 2.9767 13.245462 6.647401Z", fill: "currentColor" }),
+  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("path", { d: "M16.000417 15.041079L15.044449 16.000433L11.530434 12.473588L12.486298 11.514234L16.000417 15.041079Z", fill: "currentColor" })
 ] });
-var ICON_VIEW_OPTIONS = /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("svg", { width: "16", height: "16", viewBox: "0 0 16 16", fill: "none", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { transform: "translate(1.292 1.3)", d: "M10.3232 9.18164C11.2868 9.18164 12.0985 9.82833 12.3506 10.7109L13.415 10.7109L13.415 11.8711L12.3496 11.8711C12.0971 12.7532 11.2864 13.3994 10.3232 13.3994C9.36031 13.3992 8.55012 12.7531 8.29785 11.8711L0 11.8711L0 10.7109L8.29688 10.7109C8.54876 9.82845 9.35988 9.18186 10.3232 9.18164ZM10.3232 10.3418C9.7999 10.3421 9.37534 10.7667 9.375 11.29C9.375 11.8137 9.79969 12.239 10.3232 12.2393C10.847 12.2393 11.2725 11.8138 11.2725 11.29C11.2721 10.7666 10.8468 10.3418 10.3232 10.3418ZM12.4326 11.291C12.4326 11.3549 12.4284 11.418 12.4229 11.4805C12.4287 11.4181 12.4326 11.355 12.4326 11.291ZM8.21484 11.2832C8.21484 11.2856 8.21484 11.2886 8.21484 11.291L8.21484 11.29C8.21484 11.2878 8.21484 11.2855 8.21484 11.2832ZM3.08301 4.59082C4.04605 4.59095 4.85696 5.23717 5.10938 6.11914L13.415 6.11914L13.415 7.2793L5.11035 7.2793C4.85833 8.16202 4.04648 8.80846 3.08301 8.80859C2.11972 8.80843 1.30963 8.16179 1.05762 7.2793L0 7.2793L0 6.11914L1.05762 6.11914C1.30994 5.23728 2.12006 4.59098 3.08301 4.59082ZM3.08301 5.75098C2.55962 5.75117 2.13512 6.17587 2.13477 6.69922C2.13477 7.22287 2.5594 7.64824 3.08301 7.64844C3.60665 7.64828 4.03223 7.2229 4.03223 6.69922C4.03187 6.17585 3.60643 5.75113 3.08301 5.75098ZM5.19238 6.69922C5.19238 6.763 5.18816 6.82633 5.18262 6.88867C5.18846 6.82629 5.19238 6.76313 5.19238 6.69922C5.19236 6.63495 5.18853 6.57152 5.18262 6.50879C5.18826 6.57154 5.19236 6.635 5.19238 6.69922ZM0.982422 6.52344C0.977382 6.58136 0.97463 6.63999 0.974609 6.69922C0.974609 6.75775 0.977496 6.81579 0.982422 6.87305C0.977758 6.81579 0.974609 6.75767 0.974609 6.69922C0.974628 6.64 0.977618 6.58142 0.982422 6.52344ZM10.3232 0C11.2869 0 12.0986 0.646596 12.3506 1.5293L13.415 1.5293L13.415 2.68945L12.3496 2.68945C12.363 2.64266 12.3754 2.59488 12.3857 2.54688C12.1838 3.50118 11.3376 4.21777 10.3232 4.21777C9.36037 4.21756 8.55018 3.57139 8.29785 2.68945L0 2.68945L0 1.5293L8.29688 1.5293C8.5487 0.646717 9.35981 0.00021854 10.3232 0ZM10.3232 1.16016C9.79984 1.16042 9.37524 1.58499 9.375 2.1084C9.375 2.63201 9.79969 3.05735 10.3232 3.05762C10.847 3.05762 11.2725 2.63217 11.2725 2.1084C11.2722 1.58483 10.8469 1.16016 10.3232 1.16016ZM12.4229 2.29883C12.4287 2.23641 12.4326 2.17331 12.4326 2.10938C12.4326 2.17327 12.4284 2.23638 12.4229 2.29883ZM8.21484 2.10938L8.21484 2.1084L8.21484 2.10938ZM8.22266 1.93359C8.21785 1.98897 8.21506 2.04499 8.21484 2.10156C8.21503 2.04501 8.2181 1.98902 8.22266 1.93359ZM8.22266 11.1162C8.2179 11.1713 8.21507 11.227 8.21484 11.2832C8.21504 11.227 8.21814 11.1713 8.22266 11.1162Z", fill: "currentColor" }) });
-var ICON_ADD = /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 16 16", fill: "none", children: [
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { transform: "translate(9.52 2.52)", d: "M3.55246 0L3.55246 2.44252L6 2.44252L6 3.55748L3.55246 3.55748L3.55246 6L2.43834 6L2.43834 3.55748L0 3.55748L0 2.44252L2.43834 2.44252L2.43834 0L3.55246 0Z", fill: "currentColor" }),
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { transform: "translate(0.3496 2.35)", d: "M4.76367 0C5.36861 1.80598e-05 5.93113 0.310294 6.25488 0.821289L6.78027 1.64941C6.79685 1.67558 6.81791 1.69775 6.83887 1.71973C6.72186 2.15521 6.65702 2.61192 6.65137 3.08301C6.25601 2.96045 5.90909 2.70478 5.68164 2.3457L5.15723 1.5166C5.07183 1.38189 4.92318 1.3008 4.76367 1.30078L2.32422 1.30078C1.7589 1.30078 1.30078 1.7589 1.30078 2.32422L1.30078 10.1338C1.30078 10.6991 1.7589 11.1572 2.32422 11.1572L11.9766 11.1572C12.5419 11.1572 13 10.6991 13 10.1338L13 8.58398C13.4545 8.5135 13.8903 8.38748 14.3008 8.21289L14.3008 10.1338C14.3008 11.4171 13.2598 12.458 11.9766 12.458L2.32422 12.458C1.04093 12.458 0 11.4171 0 10.1338L0 2.32422C0 1.04093 1.04093 0 2.32422 0L4.76367 0Z", fill: "currentColor" })
+var ICON_VIEW_OPTIONS = /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("svg", { width: "16", height: "16", viewBox: "0 0 16 16", fill: "none", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("path", { transform: "translate(1.292 1.3)", d: "M10.3232 9.18164C11.2868 9.18164 12.0985 9.82833 12.3506 10.7109L13.415 10.7109L13.415 11.8711L12.3496 11.8711C12.0971 12.7532 11.2864 13.3994 10.3232 13.3994C9.36031 13.3992 8.55012 12.7531 8.29785 11.8711L0 11.8711L0 10.7109L8.29688 10.7109C8.54876 9.82845 9.35988 9.18186 10.3232 9.18164ZM10.3232 10.3418C9.7999 10.3421 9.37534 10.7667 9.375 11.29C9.375 11.8137 9.79969 12.239 10.3232 12.2393C10.847 12.2393 11.2725 11.8138 11.2725 11.29C11.2721 10.7666 10.8468 10.3418 10.3232 10.3418ZM12.4326 11.291C12.4326 11.3549 12.4284 11.418 12.4229 11.4805C12.4287 11.4181 12.4326 11.355 12.4326 11.291ZM8.21484 11.2832C8.21484 11.2856 8.21484 11.2886 8.21484 11.291L8.21484 11.29C8.21484 11.2878 8.21484 11.2855 8.21484 11.2832ZM3.08301 4.59082C4.04605 4.59095 4.85696 5.23717 5.10938 6.11914L13.415 6.11914L13.415 7.2793L5.11035 7.2793C4.85833 8.16202 4.04648 8.80846 3.08301 8.80859C2.11972 8.80843 1.30963 8.16179 1.05762 7.2793L0 7.2793L0 6.11914L1.05762 6.11914C1.30994 5.23728 2.12006 4.59098 3.08301 4.59082ZM3.08301 5.75098C2.55962 5.75117 2.13512 6.17587 2.13477 6.69922C2.13477 7.22287 2.5594 7.64824 3.08301 7.64844C3.60665 7.64828 4.03223 7.2229 4.03223 6.69922C4.03187 6.17585 3.60643 5.75113 3.08301 5.75098ZM5.19238 6.69922C5.19238 6.763 5.18816 6.82633 5.18262 6.88867C5.18846 6.82629 5.19238 6.76313 5.19238 6.69922C5.19236 6.63495 5.18853 6.57152 5.18262 6.50879C5.18826 6.57154 5.19236 6.635 5.19238 6.69922ZM0.982422 6.52344C0.977382 6.58136 0.97463 6.63999 0.974609 6.69922C0.974609 6.75775 0.977496 6.81579 0.982422 6.87305C0.977758 6.81579 0.974609 6.75767 0.974609 6.69922C0.974628 6.64 0.977618 6.58142 0.982422 6.52344ZM10.3232 0C11.2869 0 12.0986 0.646596 12.3506 1.5293L13.415 1.5293L13.415 2.68945L12.3496 2.68945C12.363 2.64266 12.3754 2.59488 12.3857 2.54688C12.1838 3.50118 11.3376 4.21777 10.3232 4.21777C9.36037 4.21756 8.55018 3.57139 8.29785 2.68945L0 2.68945L0 1.5293L8.29688 1.5293C8.5487 0.646717 9.35981 0.00021854 10.3232 0ZM10.3232 1.16016C9.79984 1.16042 9.37524 1.58499 9.375 2.1084C9.375 2.63201 9.79969 3.05735 10.3232 3.05762C10.847 3.05762 11.2725 2.63217 11.2725 2.1084C11.2722 1.58483 10.8469 1.16016 10.3232 1.16016ZM12.4229 2.29883C12.4287 2.23641 12.4326 2.17331 12.4326 2.10938C12.4326 2.17327 12.4284 2.23638 12.4229 2.29883ZM8.21484 2.10938L8.21484 2.1084L8.21484 2.10938ZM8.22266 1.93359C8.21785 1.98897 8.21506 2.04499 8.21484 2.10156C8.21503 2.04501 8.2181 1.98902 8.22266 1.93359ZM8.22266 11.1162C8.2179 11.1713 8.21507 11.227 8.21484 11.2832C8.21504 11.227 8.21814 11.1713 8.22266 11.1162Z", fill: "currentColor" }) });
+var ICON_ADD = /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 16 16", fill: "none", children: [
+  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("path", { transform: "translate(9.52 2.52)", d: "M3.55246 0L3.55246 2.44252L6 2.44252L6 3.55748L3.55246 3.55748L3.55246 6L2.43834 6L2.43834 3.55748L0 3.55748L0 2.44252L2.43834 2.44252L2.43834 0L3.55246 0Z", fill: "currentColor" }),
+  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("path", { transform: "translate(0.3496 2.35)", d: "M4.76367 0C5.36861 1.80598e-05 5.93113 0.310294 6.25488 0.821289L6.78027 1.64941C6.79685 1.67558 6.81791 1.69775 6.83887 1.71973C6.72186 2.15521 6.65702 2.61192 6.65137 3.08301C6.25601 2.96045 5.90909 2.70478 5.68164 2.3457L5.15723 1.5166C5.07183 1.38189 4.92318 1.3008 4.76367 1.30078L2.32422 1.30078C1.7589 1.30078 1.30078 1.7589 1.30078 2.32422L1.30078 10.1338C1.30078 10.6991 1.7589 11.1572 2.32422 11.1572L11.9766 11.1572C12.5419 11.1572 13 10.6991 13 10.1338L13 8.58398C13.4545 8.5135 13.8903 8.38748 14.3008 8.21289L14.3008 10.1338C14.3008 11.4171 13.2598 12.458 11.9766 12.458L2.32422 12.458C1.04093 12.458 0 11.4171 0 10.1338L0 2.32422C0 1.04093 1.04093 0 2.32422 0L4.76367 0Z", fill: "currentColor" })
 ] });
 function buildLayout(presetId, name) {
   const def = PRESET_DEFS.find((d) => d.id === presetId) ?? PRESET_DEFS[0];
@@ -18375,94 +18791,94 @@ function buildLayout(presetId, name) {
   };
 }
 function presetThumb(defId) {
-  const cell = (chat, key) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_thumbCell" + (chat ? " dsh-wt_thumbChat" : ""), children: chat ? "\u{1F4AC}" : "" }, key);
+  const cell = (chat, key) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_thumbCell" + (chat ? " dsh-wt_thumbChat" : ""), children: chat ? "\u{1F4AC}" : "" }, key);
   if (defId === "2h") {
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_thumb", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_thumb", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
       cell(false, "a"),
       cell(true, "b")
     ] }) });
   }
   if (defId === "3h") {
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_thumb", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_thumb", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
       cell(false, "a"),
       cell(false, "b"),
       cell(true, "c")
     ] }) });
   }
   if (defId === "g4") {
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumb dsh-wt_thumbCols", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumbCol", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumb dsh-wt_thumbCols", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumbCol", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
           cell(false, "a"),
           cell(false, "b")
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
           cell(false, "c"),
           cell(false, "d")
         ] })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_thumbCol", children: cell(true, "e") })
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_thumbCol", children: cell(true, "e") })
     ] });
   }
   if (defId === "l23") {
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumb dsh-wt_thumbCols", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumbCol", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumb dsh-wt_thumbCols", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumbCol", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
           cell(false, "a"),
           cell(false, "b")
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
           cell(false, "c"),
           cell(false, "d"),
           cell(false, "e")
         ] })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_thumbCol", children: cell(true, "f") })
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_thumbCol", children: cell(true, "f") })
     ] });
   }
   if (defId === "l13") {
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumb dsh-wt_thumbCols", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumbCol", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_thumbRow", children: cell(false, "a") }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumb dsh-wt_thumbCols", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumbCol", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_thumbRow", children: cell(false, "a") }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
           cell(false, "b"),
           cell(false, "c"),
           cell(false, "d")
         ] })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_thumbCol", children: cell(true, "e") })
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_thumbCol", children: cell(true, "e") })
     ] });
   }
   if (defId === "grid") {
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumb", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumb", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
         cell(false, "a"),
         cell(false, "b")
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
         cell(false, "c"),
         cell(true, "d")
       ] })
     ] });
   }
   if (defId === "l2") {
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumb dsh-wt_thumbCols", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumbCol", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_thumbRow", children: cell(false, "a") }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_thumbRow", children: cell(false, "b") })
+    return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumb dsh-wt_thumbCols", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumbCol", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_thumbRow", children: cell(false, "a") }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_thumbRow", children: cell(false, "b") })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_thumbCol", children: cell(true, "c") })
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_thumbCol", children: cell(true, "c") })
     ] });
   }
-  return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumb dsh-wt_thumbCols", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumbCol", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_thumbRow", children: cell(false, "a") }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
+  return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumb dsh-wt_thumbCols", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumbCol", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_thumbRow", children: cell(false, "a") }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_thumbRow", children: [
         cell(false, "b"),
         cell(false, "c")
       ] })
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_thumbCol", children: cell(true, "d") })
+    /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_thumbCol", children: cell(true, "d") })
   ] });
 }
 var DEFAULT_VIEW = {
@@ -18525,7 +18941,7 @@ function loadProjects() {
     return { ...DEFAULT_PROJECTS };
   }
 }
-var clamp2 = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+var clamp3 = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
 function findSidebar(start) {
   let el = start;
   while (el && el !== document.body) {
@@ -19150,17 +19566,17 @@ function syncSessionScope(list2) {
   }
 }
 function EyeIcon(props) {
-  return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("svg", { width: "12", height: "12", viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg", "aria-hidden": true, children: props.closed ? /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { d: "M1.8 8s2.6-3.1 6.2-3.1S14.2 8 14.2 8s-2.6 3.1-6.2 3.1S1.8 8 1.8 8Z", stroke: "currentColor", strokeWidth: "1.2", strokeLinejoin: "round" }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { d: "M3.6 8h8.8", stroke: "currentColor", strokeWidth: "1.2", strokeLinecap: "round" })
-  ] }) : /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { d: "M1.8 8s2.6-3.1 6.2-3.1S14.2 8 14.2 8s-2.6 3.1-6.2 3.1S1.8 8 1.8 8Z", stroke: "currentColor", strokeWidth: "1.2", strokeLinejoin: "round" }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("circle", { cx: "8", cy: "8", r: "1.7", fill: "currentColor" })
+  return /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("svg", { width: "12", height: "12", viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg", "aria-hidden": true, children: props.closed ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_jsx_runtime3.Fragment, { children: [
+    /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("path", { d: "M1.8 8s2.6-3.1 6.2-3.1S14.2 8 14.2 8s-2.6 3.1-6.2 3.1S1.8 8 1.8 8Z", stroke: "currentColor", strokeWidth: "1.2", strokeLinejoin: "round" }),
+    /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("path", { d: "M3.6 8h8.8", stroke: "currentColor", strokeWidth: "1.2", strokeLinecap: "round" })
+  ] }) : /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_jsx_runtime3.Fragment, { children: [
+    /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("path", { d: "M1.8 8s2.6-3.1 6.2-3.1S14.2 8 14.2 8s-2.6 3.1-6.2 3.1S1.8 8 1.8 8Z", stroke: "currentColor", strokeWidth: "1.2", strokeLinejoin: "round" }),
+    /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("circle", { cx: "8", cy: "8", r: "1.7", fill: "currentColor" })
   ] }) });
 }
 function RenameInput(props) {
-  const [val, setVal] = (0, import_react2.useState)(props.initial);
-  (0, import_react2.useEffect)(() => {
+  const [val, setVal] = (0, import_react3.useState)(props.initial);
+  (0, import_react3.useEffect)(() => {
     setVal(props.initial);
   }, [props.initial]);
   const commit = () => {
@@ -19168,7 +19584,7 @@ function RenameInput(props) {
     props.onCommit(v);
     if (!v.trim()) setVal(props.initial);
   };
-  return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
     "input",
     {
       className: "dsh-wt_manageInput",
@@ -19199,23 +19615,23 @@ function WorktableSection(props) {
     if (params) for (const [k, v] of Object.entries(params)) s = s.replace("{" + k + "}", v);
     return s;
   };
-  const [view, setView] = (0, import_react2.useState)(loadView);
-  const [notifyTick, setNotifyTick] = (0, import_react2.useState)(0);
-  const [projects, setProjects] = (0, import_react2.useState)(loadProjects);
-  const [metas, setMetas] = (0, import_react2.useState)({});
-  const [registeredIds, setRegisteredIds] = (0, import_react2.useState)(() => [...registryStore.ids]);
-  const [addOpen, setAddOpen] = (0, import_react2.useState)(false);
-  const [viewOptionsOpen, setViewOptionsOpen] = (0, import_react2.useState)(false);
-  const [updateInfo, setUpdateInfo] = (0, import_react2.useState)(null);
-  const [updateCheckOn, setUpdateCheckOn] = (0, import_react2.useState)(() => localStorage.getItem("dsh.worktable.updateCheck.v1") !== "0");
-  const [updateCopied, setUpdateCopied] = (0, import_react2.useState)(false);
-  const [updateStatus, setUpdateStatus] = (0, import_react2.useState)("idle");
-  const updateCheckingRef = (0, import_react2.useRef)(false);
-  const updateAliveRef = (0, import_react2.useRef)(true);
-  (0, import_react2.useEffect)(() => () => {
+  const [view, setView] = (0, import_react3.useState)(loadView);
+  const [notifyTick, setNotifyTick] = (0, import_react3.useState)(0);
+  const [projects, setProjects] = (0, import_react3.useState)(loadProjects);
+  const [metas, setMetas] = (0, import_react3.useState)({});
+  const [registeredIds, setRegisteredIds] = (0, import_react3.useState)(() => [...registryStore.ids]);
+  const [addOpen, setAddOpen] = (0, import_react3.useState)(false);
+  const [viewOptionsOpen, setViewOptionsOpen] = (0, import_react3.useState)(false);
+  const [updateInfo, setUpdateInfo] = (0, import_react3.useState)(null);
+  const [updateCheckOn, setUpdateCheckOn] = (0, import_react3.useState)(() => localStorage.getItem("dsh.worktable.updateCheck.v1") !== "0");
+  const [updateCopied, setUpdateCopied] = (0, import_react3.useState)(false);
+  const [updateStatus, setUpdateStatus] = (0, import_react3.useState)("idle");
+  const updateCheckingRef = (0, import_react3.useRef)(false);
+  const updateAliveRef = (0, import_react3.useRef)(true);
+  (0, import_react3.useEffect)(() => () => {
     updateAliveRef.current = false;
   }, []);
-  const checkUpdates = (0, import_react2.useCallback)(async (force = false) => {
+  const checkUpdates = (0, import_react3.useCallback)(async (force = false) => {
     if (updateCheckingRef.current) return;
     const last = Number(localStorage.getItem("dsh.worktable.lastUpdateCheck.v1") ?? "0");
     if (!force && Date.now() - last < 24 * 3600 * 1e3) return;
@@ -19256,7 +19672,7 @@ function WorktableSection(props) {
       updateCheckingRef.current = false;
     }
   }, []);
-  (0, import_react2.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     if (updateCheckOn) void checkUpdates();
   }, [updateCheckOn, checkUpdates]);
   const copyUpgradeAi = async () => {
@@ -19278,49 +19694,49 @@ function WorktableSection(props) {
       return !v;
     });
   };
-  const [wsPreset, setWsPreset] = (0, import_react2.useState)("2h");
-  const [wsName, setWsName] = (0, import_react2.useState)("");
-  const [wsError, setWsError] = (0, import_react2.useState)(false);
-  const [wsFolderParent, setWsFolderParent] = (0, import_react2.useState)("");
-  const [wsFolderError, setWsFolderError] = (0, import_react2.useState)(false);
-  const [iconPick, setIconPick] = (0, import_react2.useState)(null);
-  const [bindPick, setBindPick] = (0, import_react2.useState)(null);
-  const [bindGroups, setBindGroups] = (0, import_react2.useState)([]);
-  const [bindListOpen, setBindListOpen] = (0, import_react2.useState)(false);
-  const [consoleBind, setConsoleBind] = (0, import_react2.useState)(null);
-  const [consoleGroups, setConsoleGroups] = (0, import_react2.useState)([]);
-  const [consoleMode, setConsoleMode] = (0, import_react2.useState)("none");
-  const [consoleWsId, setConsoleWsId] = (0, import_react2.useState)("");
-  const [consoleParent, setConsoleParent] = (0, import_react2.useState)("");
-  const [consoleName, setConsoleName] = (0, import_react2.useState)("");
-  const [consoleErr, setConsoleErr] = (0, import_react2.useState)(false);
-  const [consoleBusy, setConsoleBusy] = (0, import_react2.useState)(false);
-  const [customOpen, setCustomOpen] = (0, import_react2.useState)(false);
-  const [customLayoutText, setCustomLayoutText] = (0, import_react2.useState)("");
-  const [copiedToast, setCopiedToast] = (0, import_react2.useState)(null);
-  const copyToastTimerRef = (0, import_react2.useRef)(null);
-  const [requestDelete, setRequestDelete] = (0, import_react2.useState)(null);
-  const [viewPickFor, setViewPickFor] = (0, import_react2.useState)(null);
-  const [float, setFloat] = (0, import_react2.useState)(
+  const [wsPreset, setWsPreset] = (0, import_react3.useState)("2h");
+  const [wsName, setWsName] = (0, import_react3.useState)("");
+  const [wsError, setWsError] = (0, import_react3.useState)(false);
+  const [wsFolderParent, setWsFolderParent] = (0, import_react3.useState)("");
+  const [wsFolderError, setWsFolderError] = (0, import_react3.useState)(false);
+  const [iconPick, setIconPick] = (0, import_react3.useState)(null);
+  const [bindPick, setBindPick] = (0, import_react3.useState)(null);
+  const [bindGroups, setBindGroups] = (0, import_react3.useState)([]);
+  const [bindListOpen, setBindListOpen] = (0, import_react3.useState)(false);
+  const [consoleBind, setConsoleBind] = (0, import_react3.useState)(null);
+  const [consoleGroups, setConsoleGroups] = (0, import_react3.useState)([]);
+  const [consoleMode, setConsoleMode] = (0, import_react3.useState)("none");
+  const [consoleWsId, setConsoleWsId] = (0, import_react3.useState)("");
+  const [consoleParent, setConsoleParent] = (0, import_react3.useState)("");
+  const [consoleName, setConsoleName] = (0, import_react3.useState)("");
+  const [consoleErr, setConsoleErr] = (0, import_react3.useState)(false);
+  const [consoleBusy, setConsoleBusy] = (0, import_react3.useState)(false);
+  const [customOpen, setCustomOpen] = (0, import_react3.useState)(false);
+  const [customLayoutText, setCustomLayoutText] = (0, import_react3.useState)("");
+  const [copiedToast, setCopiedToast] = (0, import_react3.useState)(null);
+  const copyToastTimerRef = (0, import_react3.useRef)(null);
+  const [requestDelete, setRequestDelete] = (0, import_react3.useState)(null);
+  const [viewPickFor, setViewPickFor] = (0, import_react3.useState)(null);
+  const [float, setFloat] = (0, import_react3.useState)(
     () => view.dock === "float" && view.floatTop != null ? { top: view.floatTop } : null
   );
-  const rootRef = (0, import_react2.useRef)(null);
-  const dragRef = (0, import_react2.useRef)(null);
-  const dragIdRef = (0, import_react2.useRef)(null);
-  const [railRect, setRailRect] = (0, import_react2.useState)(null);
-  const [bottomInset, setBottomInset] = (0, import_react2.useState)(0);
-  const bottomInsetRef = (0, import_react2.useRef)(0);
-  const [floatGeo, setFloatGeo] = (0, import_react2.useState)(null);
-  const [sidebarRight, setSidebarRight] = (0, import_react2.useState)(null);
-  const [activeSplitId, setActiveSplitId] = (0, import_react2.useState)(
+  const rootRef = (0, import_react3.useRef)(null);
+  const dragRef = (0, import_react3.useRef)(null);
+  const dragIdRef = (0, import_react3.useRef)(null);
+  const [railRect, setRailRect] = (0, import_react3.useState)(null);
+  const [bottomInset, setBottomInset] = (0, import_react3.useState)(0);
+  const bottomInsetRef = (0, import_react3.useRef)(0);
+  const [floatGeo, setFloatGeo] = (0, import_react3.useState)(null);
+  const [sidebarRight, setSidebarRight] = (0, import_react3.useState)(null);
+  const [activeSplitId, setActiveSplitId] = (0, import_react3.useState)(
     () => splitStore.active && splitStore.spec ? splitStore.spec.id : null
   );
-  const projectsRef = (0, import_react2.useRef)(
+  const projectsRef = (0, import_react3.useRef)(
     { projects, metas, aliveRegisteredIds: registeredIds }
   );
-  const actionsRef = (0, import_react2.useRef)(null);
-  const ackRef = (0, import_react2.useRef)(null);
-  const viewRef = (0, import_react2.useRef)(view);
+  const actionsRef = (0, import_react3.useRef)(null);
+  const ackRef = (0, import_react3.useRef)(null);
+  const viewRef = (0, import_react3.useRef)(view);
   viewRef.current = view;
   const getConsoleCards = () => {
     const pr = projectsRef.current;
@@ -19425,7 +19841,7 @@ function WorktableSection(props) {
       if (cwd) setWsFolderParent(cwd);
     }
   };
-  (0, import_react2.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     const env = {
       getScope: () => {
         const s = sessionScopeStore.snapshot;
@@ -19537,7 +19953,7 @@ function WorktableSection(props) {
       }
     };
   }, []);
-  const floatRef = (0, import_react2.useRef)(null);
+  const floatRef = (0, import_react3.useRef)(null);
   const persistView = (patch) => {
     setView((prev) => {
       const next = { ...prev, ...patch };
@@ -19558,21 +19974,21 @@ function WorktableSection(props) {
       return next;
     });
   };
-  (0, import_react2.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     const saved = projects.views[CONSOLE_ID];
     if (!specHasConsoleTab(saved)) {
       const spec = buildConsoleSpec((k) => t(k));
       persistProjects((prev) => ({ ...prev, views: { ...prev.views, [CONSOLE_ID]: spec } }));
     }
   }, [projects.views[CONSOLE_ID]]);
-  (0, import_react2.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     const sync = () => setRegisteredIds([...registryStore.ids]);
     registryStore.listeners.add(sync);
     return () => {
       registryStore.listeners.delete(sync);
     };
   }, []);
-  (0, import_react2.useEffect)(() => splitStore.subscribe(() => {
+  (0, import_react3.useEffect)(() => splitStore.subscribe(() => {
     setActiveSplitId(splitStore.active && splitStore.spec ? splitStore.spec.id : null);
     if (!splitStore.active) {
       if (!suppressRestoreRef.current) {
@@ -19589,7 +20005,7 @@ function WorktableSection(props) {
     }
     suppressRestoreRef.current = false;
   }), []);
-  (0, import_react2.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     splitStore.onSpecMutated = (spec) => {
       persistProjects((prev) => {
         if (prev.layouts.some((l) => l.id === spec.id)) {
@@ -19602,11 +20018,11 @@ function WorktableSection(props) {
       splitStore.onSpecMutated = null;
     };
   }, []);
-  (0, import_react2.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     setSplitT((k, p) => t(k, p));
     return () => setSplitT(null);
   }, [t]);
-  const measureRailRect = (0, import_react2.useCallback)(() => {
+  const measureRailRect = (0, import_react3.useCallback)(() => {
     const el = rootRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
@@ -19614,7 +20030,7 @@ function WorktableSection(props) {
       setRailRect((prev) => prev && Math.abs(prev.left - r.left) < 1 && Math.abs(prev.width - r.width) < 1 ? prev : { left: r.left, width: r.width });
     }
   }, []);
-  (0, import_react2.useLayoutEffect)(() => {
+  (0, import_react3.useLayoutEffect)(() => {
     if (!wide) {
       const t1 = window.setTimeout(measureRailRect, 320);
       const t2 = window.setTimeout(measureRailRect, 750);
@@ -19624,7 +20040,7 @@ function WorktableSection(props) {
       };
     }
   }, [wide, measureRailRect]);
-  const measureFloatGeo = (0, import_react2.useCallback)(() => {
+  const measureFloatGeo = (0, import_react3.useCallback)(() => {
     const sidebar = findSidebar(rootRef.current);
     if (!sidebar) {
       setFloatGeo({ left: 14, width: null });
@@ -19643,7 +20059,7 @@ function WorktableSection(props) {
       setFloatGeo({ left: 14, width: null });
     }
   }, []);
-  (0, import_react2.useLayoutEffect)(() => {
+  (0, import_react3.useLayoutEffect)(() => {
     measureFloatGeo();
     const sidebar = findSidebar(rootRef.current);
     if (!sidebar) return;
@@ -19651,7 +20067,7 @@ function WorktableSection(props) {
     ro.observe(sidebar);
     return () => ro.disconnect();
   }, [measureFloatGeo]);
-  (0, import_react2.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     const onResize = () => {
       setFloat(null);
       persistView({ dock: "footer" });
@@ -19659,7 +20075,7 @@ function WorktableSection(props) {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
-  const reportMeta = (0, import_react2.useCallback)((meta) => {
+  const reportMeta = (0, import_react3.useCallback)((meta) => {
     if (!meta || typeof meta.id !== "string" || !meta.id) return;
     setMetas((prev) => {
       const cur = prev[meta.id];
@@ -19667,9 +20083,9 @@ function WorktableSection(props) {
       return { ...prev, [meta.id]: { id: meta.id, name: typeof meta.name === "string" ? meta.name : meta.id, icon: meta.icon } };
     });
   }, []);
-  const engineIdsRef = (0, import_react2.useRef)(/* @__PURE__ */ new Set());
-  const lastLegacyBumpRef = (0, import_react2.useRef)({});
-  const reportUsed = (0, import_react2.useCallback)((id) => {
+  const engineIdsRef = (0, import_react3.useRef)(/* @__PURE__ */ new Set());
+  const lastLegacyBumpRef = (0, import_react3.useRef)({});
+  const reportUsed = (0, import_react3.useCallback)((id) => {
     if (typeof id !== "string" || !id) return;
     const now = Date.now();
     const bump = () => {
@@ -19732,7 +20148,7 @@ function WorktableSection(props) {
       req
     ].join("\n");
   }
-  const openSplit = (0, import_react2.useCallback)((spec) => {
+  const openSplit = (0, import_react3.useCallback)((spec) => {
     engineIdsRef.current.add(spec.id);
     splitStore.open(projects.views[spec.id] ?? spec);
     if (splitStore.active && splitStore.spec?.id === spec.id) {
@@ -19771,7 +20187,7 @@ function WorktableSection(props) {
       }
     }
   }, [projects.views]);
-  const openConsole = (0, import_react2.useCallback)((explicitBound) => {
+  const openConsole = (0, import_react3.useCallback)((explicitBound) => {
     const saved = projects.views[CONSOLE_ID];
     const broken = !specHasConsoleTab(saved);
     const spec = broken ? buildConsoleSpec((k) => t(k)) : saved;
@@ -19811,8 +20227,8 @@ function WorktableSection(props) {
     }
     const r = anchor.getBoundingClientRect();
     setConsoleBind({
-      x: clamp2(Math.round(r.right + 8), 8, window.innerWidth - 640),
-      y: clamp2(Math.round(r.top), 8, window.innerHeight - 460)
+      x: clamp3(Math.round(r.right + 8), 8, window.innerWidth - 640),
+      y: clamp3(Math.round(r.top), 8, window.innerHeight - 460)
     });
     setConsoleGroups([]);
     fetchSessionGroups().then((res) => setConsoleGroups(res.groups)).catch(() => setConsoleGroups([]));
@@ -19874,10 +20290,10 @@ function WorktableSection(props) {
     }
   };
   actionsRef.current = { openSplit, openConsole };
-  const openBindPick = (0, import_react2.useCallback)((id, anchor) => {
+  const openBindPick = (0, import_react3.useCallback)((id, anchor) => {
     const r = anchor.getBoundingClientRect();
-    const x = clamp2(Math.round(r.right + 8), 8, window.innerWidth - 300);
-    const y = clamp2(Math.round(r.top), 8, window.innerHeight - 420);
+    const x = clamp3(Math.round(r.right + 8), 8, window.innerWidth - 300);
+    const y = clamp3(Math.round(r.top), 8, window.innerHeight - 420);
     setBindPick({ id, x, y });
     setBindListOpen(false);
     setBindGroups([]);
@@ -19943,7 +20359,7 @@ function WorktableSection(props) {
     if (copyToastTimerRef.current != null) window.clearTimeout(copyToastTimerRef.current);
     copyToastTimerRef.current = window.setTimeout(() => setCopiedToast(null), 6e3);
   };
-  (0, import_react2.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     const l = () => {
       setNotifyTick((t2) => t2 + 1);
       notifyConsole();
@@ -19954,10 +20370,10 @@ function WorktableSection(props) {
       sessionsSnapshotStore.listeners.delete(l);
     };
   }, []);
-  (0, import_react2.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     notifyConsole();
   }, [projects]);
-  const applyWidgetManifest = (0, import_react2.useCallback)(async (projectId, rawManifest) => {
+  const applyWidgetManifest = (0, import_react3.useCallback)(async (projectId, rawManifest) => {
     const folder = projectsRef.current.projects.folders[projectId];
     if (!folder) return;
     try {
@@ -20006,11 +20422,11 @@ function WorktableSection(props) {
     } catch {
     }
   }, []);
-  const tryAutoMount = (0, import_react2.useCallback)(async (projectId, sid) => {
+  const tryAutoMount = (0, import_react3.useCallback)(async (projectId, sid) => {
     void sid;
     await applyWidgetManifest(projectId, null);
   }, [applyWidgetManifest]);
-  (0, import_react2.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     const byId = sessionsSnapshotStore.snapshot?.byId ?? {};
     for (const [pid, sid] of Object.entries(projects.bindings)) {
       const e = byId[sid];
@@ -20025,7 +20441,7 @@ function WorktableSection(props) {
       }
     }
   }, [notifyTick, projects.bindings, tryAutoMount]);
-  (0, import_react2.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     let cancelled = false;
     const folders = projects.folders ?? {};
     (async () => {
@@ -20048,7 +20464,7 @@ function WorktableSection(props) {
       cancelled = true;
     };
   }, [projects.folders, applyWidgetManifest]);
-  const collectKids = (0, import_react2.useCallback)((sid) => {
+  const collectKids = (0, import_react3.useCallback)((sid) => {
     const kids = /* @__PURE__ */ new Set();
     const snap = sessionsSnapshotStore.snapshot;
     const byId = snap?.byId ?? {};
@@ -20064,7 +20480,7 @@ function WorktableSection(props) {
     });
     return kids;
   }, []);
-  const bindNotifyMap = (0, import_react2.useMemo)(() => {
+  const bindNotifyMap = (0, import_react3.useMemo)(() => {
     const map2 = {};
     const byId = sessionsSnapshotStore.snapshot?.byId ?? {};
     const ack = loadNotifyAck();
@@ -20130,15 +20546,15 @@ function WorktableSection(props) {
     }
   };
   ackRef.current = ackProjectNotify;
-  const layoutIds = (0, import_react2.useMemo)(() => projects.layouts.map((l) => l.id), [projects.layouts]);
-  const aliveRegisteredIds = (0, import_react2.useMemo)(
+  const layoutIds = (0, import_react3.useMemo)(() => projects.layouts.map((l) => l.id), [projects.layouts]);
+  const aliveRegisteredIds = (0, import_react3.useMemo)(
     () => registeredIds.filter((id) => !projects.removed.includes(id)),
     [registeredIds, projects.removed]
   );
   projectsRef.current = { projects, metas, aliveRegisteredIds };
   projectBindingsRef.current = projects.bindings;
-  const allIds = (0, import_react2.useMemo)(() => [...aliveRegisteredIds, ...layoutIds], [aliveRegisteredIds, layoutIds]);
-  const effectiveOrder = (0, import_react2.useMemo)(() => {
+  const allIds = (0, import_react3.useMemo)(() => [...aliveRegisteredIds, ...layoutIds], [aliveRegisteredIds, layoutIds]);
+  const effectiveOrder = (0, import_react3.useMemo)(() => {
     const known = new Set(allIds);
     const stored = projects.order.filter((id) => known.has(id));
     const rest = allIds.filter((id) => !stored.includes(id));
@@ -20183,7 +20599,7 @@ function WorktableSection(props) {
     if (!d.dragging && Math.abs(dy) < 6) return;
     d.dragging = true;
     const maxTop = Math.max(MIN_TOP, window.innerHeight - d.startRect.height - 12);
-    setFloat({ top: clamp2(d.startRect.top + dy, MIN_TOP, maxTop) });
+    setFloat({ top: clamp3(d.startRect.top + dy, MIN_TOP, maxTop) });
   };
   const onHandlePointerUp = (e) => {
     const d = dragRef.current;
@@ -20368,7 +20784,7 @@ function WorktableSection(props) {
   const setProjectIcon = (id, icon) => {
     persistProjects((prev) => ({ ...prev, iconOverrides: { ...prev.iconOverrides, [id]: icon } }));
   };
-  (0, import_react2.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     const sync = () => {
       const box = document.querySelector(".dsh-wt_projects");
       if (!box) return;
@@ -20422,7 +20838,7 @@ function WorktableSection(props) {
     mo.observe(document.body, { childList: true, subtree: true });
     return () => mo.disconnect();
   }, [aliveRegisteredIds, projects.iconOverrides, projects.views, activeSplitId, projects.bindings, bindNotifyMap]);
-  (0, import_react2.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     const onDocClick = (e) => {
       const target = e.target;
       const card = target && target.closest ? target.closest(".dsh-wt_projects [data-wt-id]") : null;
@@ -20482,13 +20898,13 @@ function WorktableSection(props) {
     ...floatGeo?.width != null ? { width: floatGeo.width } : {},
     zIndex: 70
   } : void 0;
-  (0, import_react2.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     bottomInsetRef.current = bottomInset;
   }, [bottomInset]);
-  (0, import_react2.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     floatRef.current = float;
   }, [float]);
-  const measureBottomOverlay = (0, import_react2.useCallback)(() => {
+  const measureBottomOverlay = (0, import_react3.useCallback)(() => {
     if (isFloat) return;
     const root = rootRef.current;
     if (!root) return;
@@ -20517,10 +20933,10 @@ function WorktableSection(props) {
     }
     setBottomInset((prev) => Math.abs(prev - needed) < 2 ? prev : needed);
   }, [isFloat]);
-  (0, import_react2.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     if (!isFloat) measureBottomOverlay();
   }, [isFloat, wide, measureBottomOverlay]);
-  (0, import_react2.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     const timer = window.setInterval(() => {
       if (!floatRef.current) measureBottomOverlay();
     }, 2e3);
@@ -20529,11 +20945,11 @@ function WorktableSection(props) {
   const dockedStyle = !isFloat && bottomInset > 0 ? { marginBottom: bottomInset } : void 0;
   const sectionTop = rootRef.current?.getBoundingClientRect().top ?? 100;
   const popLeft = sidebarRight != null ? Math.min(sidebarRight + 8, Math.max(16, window.innerWidth - 344)) : 16;
-  const popTop = clamp2(sectionTop, MIN_TOP, Math.max(MIN_TOP, window.innerHeight - 540));
+  const popTop = clamp3(sectionTop, MIN_TOP, Math.max(MIN_TOP, window.innerHeight - 540));
   const POP_BOTTOM_MARGIN = 12;
-  const settingsRef = (0, import_react2.useRef)(null);
-  const [settingsTop, setSettingsTop] = (0, import_react2.useState)(null);
-  (0, import_react2.useLayoutEffect)(() => {
+  const settingsRef = (0, import_react3.useRef)(null);
+  const [settingsTop, setSettingsTop] = (0, import_react3.useState)(null);
+  (0, import_react3.useLayoutEffect)(() => {
     const recalc = () => {
       if (!viewOptionsOpen || !settingsRef.current) return;
       const h = settingsRef.current.offsetHeight;
@@ -20585,15 +21001,15 @@ function WorktableSection(props) {
       }))
     ];
     const railStyle = isFloat && railRect ? { position: "fixed", top: float.top, left: railRect.left, width: railRect.width, zIndex: 70 } : bottomInset > 0 ? { marginBottom: bottomInset } : void 0;
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { ref: rootRef, className: "dsh-wt_section dsh-wt_rail", style: railStyle, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_divider" }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_railBox", children: railItems.length > 0 ? railItems.map((it, i) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", className: "dsh-wt_railBtn", title: it.name, "aria-label": it.name, onClick: it.onClick, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { "aria-hidden": true, children: it.icon }) }, i)) : /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_railIcon", children: "\u2261" }) })
+    return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { ref: rootRef, className: "dsh-wt_section dsh-wt_rail", style: railStyle, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_divider" }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_railBox", children: railItems.length > 0 ? railItems.map((it, i) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_railBtn", title: it.name, "aria-label": it.name, onClick: it.onClick, children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { "aria-hidden": true, children: it.icon }) }, i)) : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_railIcon", children: "\u2261" }) })
     ] });
   }
-  return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { ref: rootRef, className: "dsh-wt_section" + (isFloat ? " dsh-wt_float" : ""), style: isFloat ? floatStyle : dockedStyle, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_divider" }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_header", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { ref: rootRef, className: "dsh-wt_section" + (isFloat ? " dsh-wt_float" : ""), style: isFloat ? floatStyle : dockedStyle, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_divider" }),
+    /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_header", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
         "button",
         {
           type: "button",
@@ -20609,7 +21025,7 @@ function WorktableSection(props) {
           children: "\u2261"
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
         "span",
         {
           className: "dsh-wt_title",
@@ -20622,7 +21038,7 @@ function WorktableSection(props) {
           children: t("title")
         }
       ),
-      updateInfo && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+      updateInfo && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
         "button",
         {
           type: "button",
@@ -20633,8 +21049,8 @@ function WorktableSection(props) {
           children: ICON_SYNC
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_actions", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_actions", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
           "button",
           {
             type: "button",
@@ -20645,7 +21061,7 @@ function WorktableSection(props) {
             children: ICON_SEARCH
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
           "button",
           {
             type: "button",
@@ -20659,7 +21075,7 @@ function WorktableSection(props) {
             children: ICON_VIEW_OPTIONS
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
           "button",
           {
             type: "button",
@@ -20679,8 +21095,8 @@ function WorktableSection(props) {
         )
       ] })
     ] }),
-    view.searchOpen && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_search", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+    view.searchOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_search", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
         "input",
         {
           autoFocus: true,
@@ -20691,7 +21107,7 @@ function WorktableSection(props) {
           onKeyDown: onSearchKeyDown
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
         "button",
         {
           type: "button",
@@ -20702,11 +21118,11 @@ function WorktableSection(props) {
         }
       )
     ] }),
-    addOpen && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_popBackdrop", onClick: () => setAddOpen(false) }),
-    addOpen && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_menu dsh-wt_add dsh-wt_pop", style: { position: "fixed", left: popLeft, top: popTop, width: 360, zIndex: 80 }, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_menuLabel", children: t("add.chooseLayout") }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_presets", children: [
-        PRESET_DEFS.map((def) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+    addOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop", onClick: () => setAddOpen(false) }),
+    addOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_menu dsh-wt_add dsh-wt_pop", style: { position: "fixed", left: popLeft, top: popTop, width: 360, zIndex: 80 }, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_menuLabel", children: t("add.chooseLayout") }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_presets", children: [
+        PRESET_DEFS.map((def) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
           "button",
           {
             type: "button",
@@ -20720,7 +21136,7 @@ function WorktableSection(props) {
           },
           def.id
         )),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
           "button",
           {
             type: "button",
@@ -20731,14 +21147,14 @@ function WorktableSection(props) {
               setCustomOpen(true);
             },
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_presetAddIcon", "aria-hidden": true, children: "\uFF0B" }),
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_presetAddText", children: t("customLayout.add") })
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_presetAddIcon", "aria-hidden": true, children: "\uFF0B" }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_presetAddText", children: t("customLayout.add") })
             ]
           }
         )
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_addForm", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_addForm", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
           "input",
           {
             type: "text",
@@ -20750,10 +21166,10 @@ function WorktableSection(props) {
             }
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_addFolderRow", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_customLabel", children: t("add.folderParent") }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_addFolderPath" + (wsFolderParent ? "" : " dsh-wt_addFolderPathNone"), title: wsFolderParent || "", children: wsFolderParent || t("add.folderNone") }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", className: "dsh-wt_bindFolderChange", onClick: () => {
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_addFolderRow", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_customLabel", children: t("add.folderParent") }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_addFolderPath" + (wsFolderParent ? "" : " dsh-wt_addFolderPathNone"), title: wsFolderParent || "", children: wsFolderParent || t("add.folderNone") }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_bindFolderChange", onClick: () => {
             pickFolder((p) => {
               setWsFolderParent(p);
               setWsFolderError(false);
@@ -20761,18 +21177,18 @@ function WorktableSection(props) {
             setWsError(false);
           }, children: t("add.folderPick") })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", className: "dsh-wt_addBtn", onClick: saveLayout, children: t("add.layoutSave") })
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_addBtn", onClick: saveLayout, children: t("add.layoutSave") })
       ] }),
-      wsError && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { className: "dsh-wt_addError", children: t("add.layoutInvalid") }),
-      wsFolderError && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { className: "dsh-wt_addError", children: t("add.folderRequired") })
+      wsError && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { className: "dsh-wt_addError", children: t("add.layoutInvalid") }),
+      wsFolderError && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { className: "dsh-wt_addError", children: t("add.folderRequired") })
     ] }),
-    iconPick && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_popBackdrop", onClick: () => setIconPick(null) }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_iconPop", style: { left: iconPick.x, top: iconPick.y }, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_iconPopTitle", children: t("icons.title") }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_iconGrid", children: EMOJI_SET.map((em) => {
+    iconPick && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_jsx_runtime3.Fragment, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop", onClick: () => setIconPick(null) }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_iconPop", style: { left: iconPick.x, top: iconPick.y }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_iconPopTitle", children: t("icons.title") }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_iconGrid", children: EMOJI_SET.map((em) => {
           const cur = iconPick.kind === "layout" ? projects.layouts.find((l) => l.id === iconPick.id)?.icon ?? "\u{1F9F1}" : iconPick.kind === "shortcut" ? projects.shortcuts.find((s) => s.id === iconPick.id)?.icon ?? "\u{1F517}" : projects.iconOverrides[iconPick.id] ?? metas[iconPick.id]?.icon ?? "\u{1F4E6}";
-          return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+          return /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
             "button",
             {
               type: "button",
@@ -20791,9 +21207,9 @@ function WorktableSection(props) {
         }) })
       ] })
     ] }),
-    viewOptionsOpen && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_popBackdrop", onClick: () => setViewOptionsOpen(false) }),
-    viewOptionsOpen && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { ref: settingsRef, className: "dsh-wt_manage dsh-wt_pop dsh-wt_settings", style: { position: "fixed", left: popLeft, top: settingsTop ?? popTop, width: 280, zIndex: 80 }, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+    viewOptionsOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop", onClick: () => setViewOptionsOpen(false) }),
+    viewOptionsOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { ref: settingsRef, className: "dsh-wt_manage dsh-wt_pop dsh-wt_settings", style: { position: "fixed", left: popLeft, top: settingsTop ?? popTop, width: 280, zIndex: 80 }, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
         "button",
         {
           type: "button",
@@ -20804,35 +21220,35 @@ function WorktableSection(props) {
           children: "\u2715"
         }
       ),
-      updateInfo && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_updateCard", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_updateHead", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_updateDot" }),
+      updateInfo && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_updateCard", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_updateHead", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_updateDot" }),
           t("update.available"),
           " \xB7 v",
           updateInfo.latest
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_updateVers", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_updateVers", children: [
           t("update.current"),
           " v",
           LOCAL_VERSION,
           " \u2192 v",
           updateInfo.latest
         ] }),
-        updateInfo.notes && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_updateNotes", children: updateInfo.notes }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_updateCmd", children: UPGRADE_CMD }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_updateBtns", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", className: "dsh-wt_updateBtn dsh-wt_updateBtnCopy", onClick: () => void copyUpgradeAi(), children: updateCopied ? "\u2713 " + t("update.copied") : /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
+        updateInfo.notes && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_updateNotes", children: updateInfo.notes }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_updateCmd", children: UPGRADE_CMD }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_updateBtns", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_updateBtn dsh-wt_updateBtnCopy", onClick: () => void copyUpgradeAi(), children: updateCopied ? "\u2713 " + t("update.copied") : /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_jsx_runtime3.Fragment, { children: [
             ICON_SPARK,
             " ",
             t("update.copyAi")
           ] }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", className: "dsh-wt_updateBtn", onClick: skipUpdate, children: t("update.skip") })
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_updateBtn", onClick: skipUpdate, children: t("update.skip") })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_updateHint", children: t("update.upgradeHint") })
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_updateHint", children: t("update.upgradeHint") })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_manageHead", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_manageTitle", children: t("sort.label") }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_sortRow", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_manageHead", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_manageTitle", children: t("sort.label") }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_sortRow", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
           "button",
           {
             type: "button",
@@ -20842,7 +21258,7 @@ function WorktableSection(props) {
             children: t("sort.manual")
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
           "button",
           {
             type: "button",
@@ -20853,14 +21269,14 @@ function WorktableSection(props) {
           }
         )
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_menuSep" }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_manageHead", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_manageTitle", children: t("manage.title") }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_menuSep" }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_manageHead", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_manageTitle", children: t("manage.title") }) }),
       effectiveOrder.map((id) => {
         const meta = metas[id];
         const layout = projects.layouts.find((l) => l.id === id);
         const display = projects.nameOverrides[id] ?? layout?.title ?? meta?.name ?? id;
         const isHidden = projects.hidden.includes(id);
-        return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
+        return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
           "div",
           {
             className: "dsh-wt_manageRow" + (isHidden ? " dsh-wt_manageRowOff" : ""),
@@ -20882,8 +21298,8 @@ function WorktableSection(props) {
               dragIdRef.current = null;
             },
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_manageGrip", "aria-hidden": true, children: "\u2261" }),
-              layout ? /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_manageGrip", "aria-hidden": true, children: "\u2261" }),
+              layout ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
                 "span",
                 {
                   className: "dsh-wt_manageIcon dsh-wt_iconPick",
@@ -20896,7 +21312,7 @@ function WorktableSection(props) {
                   },
                   children: layout.icon ?? "\u{1F9F1}"
                 }
-              ) : /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+              ) : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
                 "span",
                 {
                   className: "dsh-wt_manageIcon dsh-wt_iconPick",
@@ -20910,10 +21326,10 @@ function WorktableSection(props) {
                   children: projects.iconOverrides[id] ?? meta?.icon ?? "\u{1F4E6}"
                 }
               ),
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(RenameInput, { initial: display, placeholder: t("manage.renamePh"), onCommit: (v) => renameProject(id, v) }),
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", className: "dsh-wt_manageBtn", title: isHidden ? t("manage.show") : t("manage.hide"), onClick: () => toggleHidden(id), children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(EyeIcon, { closed: isHidden }) }),
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", className: "dsh-wt_manageBtn", title: t("manage.changeView"), onClick: () => setViewPickFor(id), children: "\u{1F9E9}" }),
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(RenameInput, { initial: display, placeholder: t("manage.renamePh"), onCommit: (v) => renameProject(id, v) }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_manageBtn", title: isHidden ? t("manage.show") : t("manage.hide"), onClick: () => toggleHidden(id), children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(EyeIcon, { closed: isHidden }) }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_manageBtn", title: t("manage.changeView"), onClick: () => setViewPickFor(id), children: "\u{1F9E9}" }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
                 "button",
                 {
                   type: "button",
@@ -20928,9 +21344,9 @@ function WorktableSection(props) {
           id
         );
       }),
-      projects.shortcuts.map((s) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_manageRow dsh-wt_manageRowSc", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_manageGrip", "aria-hidden": true, children: "\u{1F517}" }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+      projects.shortcuts.map((s) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_manageRow dsh-wt_manageRowSc", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_manageGrip", "aria-hidden": true, children: "\u{1F517}" }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
           "span",
           {
             className: "dsh-wt_manageIcon dsh-wt_iconPick",
@@ -20944,32 +21360,32 @@ function WorktableSection(props) {
             children: s.icon
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_manageScName", children: s.name }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", className: "dsh-wt_manageBtn", title: t("manage.deleteShortcut"), onClick: () => askDelete("shortcut", s.id, s.name), children: "\u2715" })
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_manageScName", children: s.name }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_manageBtn", title: t("manage.deleteShortcut"), onClick: () => askDelete("shortcut", s.id, s.name), children: "\u2715" })
       ] }, s.id)),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_versionRow", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_versionRow", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { children: [
           "v",
           LOCAL_VERSION,
           updateStatus === "uptodate" && !updateInfo ? " \xB7 " + t("update.upToDate") : "",
           updateStatus === "failed" && !updateInfo ? " \xB7 " + t("update.checkFail") : ""
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_versionActions", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", className: "dsh-wt_updateBtn", disabled: updateStatus === "checking", onClick: () => void checkUpdates(true), children: updateStatus === "checking" ? t("update.checking") : t("update.checkNow") }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_updateToggle", onClick: toggleUpdateCheck, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { children: t("update.autoCheck") }),
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_updateSwitch", "data-off": updateCheckOn ? void 0 : "true" })
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_versionActions", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_updateBtn", disabled: updateStatus === "checking", onClick: () => void checkUpdates(true), children: updateStatus === "checking" ? t("update.checking") : t("update.checkNow") }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_updateToggle", onClick: toggleUpdateCheck, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: t("update.autoCheck") }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_updateSwitch", "data-off": updateCheckOn ? void 0 : "true" })
           ] })
         ] })
       ] })
     ] }),
-    viewPickFor && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_popBackdrop", style: { zIndex: 81 }, onClick: () => setViewPickFor(null) }),
-    viewPickFor && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_menu dsh-wt_pop", style: { position: "fixed", left: popLeft, top: popTop, width: 320, zIndex: 82 }, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_menuLabel", children: t("viewPick.title") }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_presets", children: [
+    viewPickFor && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop", style: { zIndex: 81 }, onClick: () => setViewPickFor(null) }),
+    viewPickFor && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_menu dsh-wt_pop", style: { position: "fixed", left: popLeft, top: popTop, width: 320, zIndex: 82 }, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_menuLabel", children: t("viewPick.title") }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_presets", children: [
         PRESET_DEFS.map((def) => {
           const cur = projects.layouts.find((l) => l.id === viewPickFor) ?? projects.views[viewPickFor];
-          return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+          return /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
             "button",
             {
               type: "button",
@@ -20981,7 +21397,7 @@ function WorktableSection(props) {
             def.id
           );
         }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
           "button",
           {
             type: "button",
@@ -20992,38 +21408,38 @@ function WorktableSection(props) {
               setCustomOpen(true);
             },
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_presetAddIcon", "aria-hidden": true, children: "\uFF0B" }),
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_presetAddText", children: t("customLayout.add") })
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_presetAddIcon", "aria-hidden": true, children: "\uFF0B" }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_presetAddText", children: t("customLayout.add") })
             ]
           }
         )
       ] })
     ] }),
-    bindPick && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_popBackdrop", style: { zIndex: 83 }, onClick: () => {
+    bindPick && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop", style: { zIndex: 83 }, onClick: () => {
       setBindPick(null);
       setBindListOpen(false);
     } }),
-    bindPick && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_menu dsh-wt_pop dsh-wt_bindPop", style: { position: "fixed", left: bindPick.x, top: bindPick.y, width: 280, zIndex: 84 }, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_bindFolderBox", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_bindFolderRow", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_bindFolderLabel", children: [
+    bindPick && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_menu dsh-wt_pop dsh-wt_bindPop", style: { position: "fixed", left: bindPick.x, top: bindPick.y, width: 280, zIndex: 84 }, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_bindFolderBox", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_bindFolderRow", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_bindFolderLabel", children: [
             "\u{1F4C1} ",
             t("bind.folder")
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("button", { type: "button", className: "dsh-wt_bindFolderChange", onClick: changeBindFolder, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("button", { type: "button", className: "dsh-wt_bindFolderChange", onClick: changeBindFolder, children: [
             t("bind.folderChange"),
             " \u21BB"
           ] })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_bindFolderPath" + (projects.folders[bindPick.id] ? "" : " dsh-wt_bindFolderPathNone"), title: projects.folders[bindPick.id] ?? "", children: projects.folders[bindPick.id] ?? t("bind.folderNone") })
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_bindFolderPath" + (projects.folders[bindPick.id] ? "" : " dsh-wt_bindFolderPathNone"), title: projects.folders[bindPick.id] ?? "", children: projects.folders[bindPick.id] ?? t("bind.folderNone") })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_bindFolderBox", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_bindFolderRow", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_bindFolderLabel", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_bindFolderBox", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_bindFolderRow", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_bindFolderLabel", children: [
             "\u{1F4AC} ",
             t("bind.title")
           ] }),
-          projects.bindings[bindPick.id] && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("button", { type: "button", className: "dsh-wt_bindUnbind", onClick: () => setProjectBinding(bindPick.id, null), children: [
+          projects.bindings[bindPick.id] && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("button", { type: "button", className: "dsh-wt_bindUnbind", onClick: () => setProjectBinding(bindPick.id, null), children: [
             t("bind.unbind"),
             " \u2715"
           ] })
@@ -21031,38 +21447,38 @@ function WorktableSection(props) {
         (() => {
           const sid = projects.bindings[bindPick.id];
           if (!sid) {
-            return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", className: "dsh-wt_bindConvRow dsh-wt_bindConvRowNone", title: t("bind.tipUnbound"), onClick: () => setBindListOpen((v) => !v), children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_bindNoneText", children: [
+            return /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_bindConvRow dsh-wt_bindConvRowNone", title: t("bind.tipUnbound"), onClick: () => setBindListOpen((v) => !v), children: /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_bindNoneText", children: [
               t("bind.unbound"),
               " \xB7 ",
               t("bind.clickPick")
             ] }) });
           }
           const info = bindInfoOf(bindGroups, sid);
-          return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("button", { type: "button", className: "dsh-wt_bindConvRow", title: t("bind.tipBound", { name: info.title }), onClick: () => setBindListOpen((v) => !v), children: [
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_bindFolder", title: info.folder, children: [
+          return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("button", { type: "button", className: "dsh-wt_bindConvRow", title: t("bind.tipBound", { name: info.title }), onClick: () => setBindListOpen((v) => !v), children: [
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_bindFolder", title: info.folder, children: [
               "\u{1F4C2} ",
               info.folder
             ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_bindSep", "aria-hidden": true, children: "|" }),
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_bindConvName", title: info.title, children: info.title }),
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_bindConvChevron", "aria-hidden": true, children: "\u25BE" })
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_bindSep", "aria-hidden": true, children: "|" }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_bindConvName", title: info.title, children: info.title }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_bindConvChevron", "aria-hidden": true, children: "\u25BE" })
           ] });
         })(),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { className: "dsh-wt_bindHint", children: t("bind.hint") })
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { className: "dsh-wt_bindHint", children: t("bind.hint") })
       ] })
     ] }),
     bindPick && bindListOpen && (() => {
       const rightFits = bindPick.x + 300 + 260 <= window.innerWidth - 8;
       const listLeft = rightFits ? bindPick.x + 300 : Math.max(8, bindPick.x - 268);
-      return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_menu dsh-wt_pop dsh-wt_bindListPop", style: { position: "fixed", left: listLeft, top: clamp2(bindPick.y, 8, window.innerHeight - 348), width: 260, zIndex: 86 }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_selectList dsh-wt_bindList", children: bindGroups.map((g, gi) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_react2.Fragment, { children: [
-        g.title && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_selectDivider" }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_selectGroup", children: [
+      return /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_menu dsh-wt_pop dsh-wt_bindListPop", style: { position: "fixed", left: listLeft, top: clamp3(bindPick.y, 8, window.innerHeight - 348), width: 260, zIndex: 86 }, children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_selectList dsh-wt_bindList", children: bindGroups.map((g, gi) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_react3.Fragment, { children: [
+        g.title && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_jsx_runtime3.Fragment, { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_selectDivider" }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_selectGroup", children: [
             "\u{1F4C1} ",
             g.title
           ] })
         ] }),
-        g.sessions.map((s) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
+        g.sessions.map((s) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
           "button",
           {
             type: "button",
@@ -21072,73 +21488,73 @@ function WorktableSection(props) {
               setBindListOpen(false);
             },
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_selectItemTitle", children: s.title }),
-              s.isCurrent && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_selectCurrent", children: t("custom.sessionCurrent") })
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_selectItemTitle", children: s.title }),
+              s.isCurrent && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_selectCurrent", children: t("custom.sessionCurrent") })
             ]
           },
           s.id
         ))
       ] }, g.title || "g" + gi)) }) });
     })(),
-    consoleBind && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_popBackdrop", style: { zIndex: 85 }, onClick: () => setConsoleBind(null) }),
-    consoleBind && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_menu dsh-wt_pop dsh-wt_consoleBindPop", style: { position: "fixed", left: consoleBind.x, top: consoleBind.y, width: 560, zIndex: 86 }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_consoleBindCols", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_consoleBindCol", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_consoleBindLabel", children: [
+    consoleBind && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop", style: { zIndex: 85 }, onClick: () => setConsoleBind(null) }),
+    consoleBind && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_menu dsh-wt_pop dsh-wt_consoleBindPop", style: { position: "fixed", left: consoleBind.x, top: consoleBind.y, width: 560, zIndex: 86 }, children: /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_consoleBindCols", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_consoleBindCol", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_consoleBindLabel", children: [
           "\u2795 ",
           t("console.joinExisting")
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_selectList dsh-wt_consoleBindList", children: [
-          consoleGroups.map((g, gi) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_react2.Fragment, { children: [
-            g.title && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_selectDivider" }),
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_selectGroup", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_selectList dsh-wt_consoleBindList", children: [
+          consoleGroups.map((g, gi) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_react3.Fragment, { children: [
+            g.title && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_jsx_runtime3.Fragment, { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_selectDivider" }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_selectGroup", children: [
                 "\u{1F4C1} ",
                 g.title
               ] })
             ] }),
-            g.sessions.map((s) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
+            g.sessions.map((s) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
               "button",
               {
                 type: "button",
                 className: "dsh-wt_selectItem" + (projects.bindings[CONSOLE_ID] === s.id ? " dsh-wt_selectItemOn" : ""),
                 onClick: () => bindConsoleExisting(s.id),
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_selectItemTitle", children: s.title }),
-                  s.isCurrent && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_selectCurrent", children: t("custom.sessionCurrent") })
+                  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_selectItemTitle", children: s.title }),
+                  s.isCurrent && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_selectCurrent", children: t("custom.sessionCurrent") })
                 ]
               },
               s.id
             ))
           ] }, g.title || "g" + gi)),
-          consoleGroups.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_consoleBindEmpty", children: t("console.noSessions") })
+          consoleGroups.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_consoleBindEmpty", children: t("console.noSessions") })
         ] })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_consoleBindCol dsh-wt_consoleBindColNew", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_consoleBindLabel", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_consoleBindCol dsh-wt_consoleBindColNew", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_consoleBindLabel", children: [
           "\u2728 ",
           t("console.newConv")
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("select", { className: "dsh-wt_consoleSelect", value: consoleMode, onChange: (e) => setConsoleMode(e.target.value), children: [
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("option", { value: "none", children: t("console.groupNone") }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("option", { value: "existing", children: t("console.groupExisting") }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("option", { value: "new", children: t("console.groupNew") })
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("select", { className: "dsh-wt_consoleSelect", value: consoleMode, onChange: (e) => setConsoleMode(e.target.value), children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "none", children: t("console.groupNone") }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "existing", children: t("console.groupExisting") }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "new", children: t("console.groupNew") })
         ] }),
-        consoleMode === "existing" && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("select", { className: "dsh-wt_consoleSelect", value: consoleWsId, onChange: (e) => setConsoleWsId(e.target.value), children: listWorkspaces().map((w) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("option", { value: w.id, children: w.title }, w.id)) }),
-        consoleMode === "new" && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("input", { className: "dsh-wt_consoleInput", placeholder: t("console.newParentPh"), value: consoleParent, onChange: (e) => setConsoleParent(e.target.value) }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("input", { className: "dsh-wt_consoleInput", placeholder: t("console.newNamePh"), value: consoleName, onChange: (e) => setConsoleName(e.target.value) })
+        consoleMode === "existing" && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("select", { className: "dsh-wt_consoleSelect", value: consoleWsId, onChange: (e) => setConsoleWsId(e.target.value), children: listWorkspaces().map((w) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: w.id, children: w.title }, w.id)) }),
+        consoleMode === "new" && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_jsx_runtime3.Fragment, { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { className: "dsh-wt_consoleInput", placeholder: t("console.newParentPh"), value: consoleParent, onChange: (e) => setConsoleParent(e.target.value) }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { className: "dsh-wt_consoleInput", placeholder: t("console.newNamePh"), value: consoleName, onChange: (e) => setConsoleName(e.target.value) })
         ] }),
-        consoleErr && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { className: "dsh-wt_consoleErr", children: t("console.bindFail") }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", className: "dsh-wt_consoleCreateBtn", disabled: consoleBusy, onClick: bindConsoleNew, children: consoleBusy ? "\u2026" : t("console.createBind") })
+        consoleErr && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { className: "dsh-wt_consoleErr", children: t("console.bindFail") }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_consoleCreateBtn", disabled: consoleBusy, onClick: bindConsoleNew, children: consoleBusy ? "\u2026" : t("console.createBind") })
       ] })
     ] }) }),
-    customOpen && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_popBackdrop", style: { zIndex: 83 }, onClick: () => setCustomOpen(false) }),
-    customOpen && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_menu dsh-wt_pop", style: { position: "fixed", left: popLeft, top: popTop, width: 340, zIndex: 84 }, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "dsh-wt_menuLabel", children: [
+    customOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop", style: { zIndex: 83 }, onClick: () => setCustomOpen(false) }),
+    customOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_menu dsh-wt_pop", style: { position: "fixed", left: popLeft, top: popTop, width: 340, zIndex: 84 }, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_menuLabel", children: [
         "\u2728 ",
         t("customLayout.title")
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
         "textarea",
         {
           className: "dsh-wt_customLayoutInput",
@@ -21149,23 +21565,23 @@ function WorktableSection(props) {
           onChange: (e) => setCustomLayoutText(e.target.value)
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", className: "dsh-wt_customLayoutBtn", onClick: copyCustomLayout, children: t("customLayout.copy") }),
-      copiedToast && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { className: "dsh-wt_customLayoutToast" + (copiedToast === "fail" ? " dsh-wt_customLayoutToastFail" : ""), children: copiedToast === "ok" ? "\u2705 " + t("customLayout.copied") : "\u26A0\uFE0F " + t("customLayout.copyFail") })
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_customLayoutBtn", onClick: copyCustomLayout, children: t("customLayout.copy") }),
+      copiedToast && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { className: "dsh-wt_customLayoutToast" + (copiedToast === "fail" ? " dsh-wt_customLayoutToastFail" : ""), children: copiedToast === "ok" ? "\u2705 " + t("customLayout.copied") : "\u26A0\uFE0F " + t("customLayout.copyFail") })
     ] }),
-    requestDelete && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_confirmBackdrop", onClick: () => setRequestDelete(null) }),
-    requestDelete && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_confirm", role: "alertdialog", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_confirmTitle", children: [
+    requestDelete && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_confirmBackdrop", onClick: () => setRequestDelete(null) }),
+    requestDelete && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_confirm", role: "alertdialog", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_confirmTitle", children: [
         "\u26A0\uFE0F ",
         t("confirm.title")
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_confirmBody", children: requestDelete.kind === "layout" ? t("confirm.layoutBody", { name: requestDelete.name }) : requestDelete.kind === "shortcut" ? t("confirm.shortcutBody", { name: requestDelete.name }) : t("confirm.projectBody", { name: requestDelete.name }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_confirmActions", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", className: "dsh-wt_confirmCancel", onClick: () => setRequestDelete(null), children: t("confirm.cancel") }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", className: "dsh-wt_confirmDelete", onClick: doDelete, children: t("confirm.delete") })
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_confirmBody", children: requestDelete.kind === "layout" ? t("confirm.layoutBody", { name: requestDelete.name }) : requestDelete.kind === "shortcut" ? t("confirm.shortcutBody", { name: requestDelete.name }) : t("confirm.projectBody", { name: requestDelete.name }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_confirmActions", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_confirmCancel", onClick: () => setRequestDelete(null), children: t("confirm.cancel") }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_confirmDelete", onClick: doDelete, children: t("confirm.delete") })
       ] })
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "dsh-wt_projects", "data-managing": viewOptionsOpen ? "true" : void 0, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
+    /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_projects", "data-managing": viewOptionsOpen ? "true" : void 0, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
         "button",
         {
           type: "button",
@@ -21175,9 +21591,9 @@ function WorktableSection(props) {
           title: t("console.name"),
           onClick: (e) => clickConsoleCard(e.currentTarget),
           children: [
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_layoutIcon", children: CONSOLE_ICON }),
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_layoutText", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_layoutName", children: t("console.name") }) }),
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_layoutIcon", children: CONSOLE_ICON }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_layoutText", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_layoutName", children: t("console.name") }) }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
               "span",
               {
                 className: "dsh-wt_bindBtn",
@@ -21190,15 +21606,15 @@ function WorktableSection(props) {
                   e.stopPropagation();
                   openBindPick(CONSOLE_ID, e.currentTarget);
                 },
-                children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_bindCircles", "aria-hidden": true })
+                children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_bindCircles", "aria-hidden": true })
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_layoutArrow", "aria-hidden": true, children: "\u203A" })
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_layoutArrow", "aria-hidden": true, children: "\u203A" })
           ]
         }
       ),
-      renderProjectSlot ? renderProjectSlot("sidebar.worktable.project", ownerProps) : /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_empty", children: t("empty") }),
-      visibleLayouts.map((l) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
+      renderProjectSlot ? renderProjectSlot("sidebar.worktable.project", ownerProps) : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_empty", children: t("empty") }),
+      visibleLayouts.map((l) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
         "button",
         {
           type: "button",
@@ -21210,7 +21626,7 @@ function WorktableSection(props) {
             reportUsed(l.id);
           },
           children: [
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
               "span",
               {
                 className: "dsh-wt_layoutIcon dsh-wt_iconPick",
@@ -21224,8 +21640,8 @@ function WorktableSection(props) {
                 children: l.icon ?? "\u{1F9F1}"
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_layoutText", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_layoutName", children: projects.nameOverrides[l.id] ?? l.title }) }),
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_layoutText", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_layoutName", children: projects.nameOverrides[l.id] ?? l.title }) }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
               "span",
               {
                 className: "dsh-wt_bindBtn",
@@ -21238,16 +21654,16 @@ function WorktableSection(props) {
                   e.stopPropagation();
                   openBindPick(l.id, e.currentTarget);
                 },
-                children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_bindCircles", "aria-hidden": true })
+                children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_bindCircles", "aria-hidden": true })
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_layoutArrow", "aria-hidden": true, children: "\u203A" })
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_layoutArrow", "aria-hidden": true, children: "\u203A" })
           ]
         },
         l.id
       ))
     ] }),
-    visibleShortcuts.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "dsh-wt_shortcuts", children: visibleShortcuts.map((s) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
+    visibleShortcuts.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_shortcuts", children: visibleShortcuts.map((s) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
       "a",
       {
         className: "dsh-wt_shortcut",
@@ -21256,7 +21672,7 @@ function WorktableSection(props) {
         rel: "noreferrer noopener",
         title: s.href,
         children: [
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
             "span",
             {
               className: "dsh-wt_shortcutIcon dsh-wt_iconPick",
@@ -21271,8 +21687,8 @@ function WorktableSection(props) {
               children: s.icon
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_shortcutName", children: s.name }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "dsh-wt_shortcutBadge", children: t("shortcut.badge") })
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_shortcutName", children: s.name }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_shortcutBadge", children: t("shortcut.badge") })
         ]
       },
       s.id
@@ -21338,6 +21754,13 @@ function apply(ctx) {
   ctx.effect(() => {
     if (ctx.locale?.register) return ctx.locale.register(NS, { zh, en });
   }, "dsh-worktable: dictionaries");
+  installAppearance(ctx, (key) => {
+    try {
+      return ctx.locale.bind(NS)(key);
+    } catch {
+      return zh[key] ?? key;
+    }
+  });
   const syncIds = () => {
     const entries = ctx.slots.entries("sidebar.worktable.project");
     const ids = [];
