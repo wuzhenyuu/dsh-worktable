@@ -4,6 +4,7 @@ import { NS, zh, en, type WorktableKey } from './locales'
 import { isAbs, joinPath, parentPathOf, basenameOf } from './pathutil'
 import { splitStore, SplitWorkspace, setSplitT, setSplitEnv, type LayoutSpec, type SplitPane, type ConsoleCardData } from './split'
 import { installAppearance } from './appearance'
+import { installModalFocusGuard } from './modalFocus'
 import {
   CONTROL_ROOMS_KEY,
   CONTROL_ROOMS_TRASH_KEY,
@@ -1101,6 +1102,9 @@ function WorktableSection(props: any) {
   const [roomManageId, setRoomManageId] = useState<string | null>(null)
   const [roomMoreOpen, setRoomMoreOpen] = useState(false)
   const [roomDeleteId, setRoomDeleteId] = useState<string | null>(null)
+  const roomDeleteDialogRef = useRef<HTMLDivElement | null>(null)
+  const roomDeleteCancelRef = useRef<HTMLButtonElement | null>(null)
+  const roomDeleteReturnFocusRef = useRef<HTMLElement | null>(null)
   const [roomReloadNotice, setRoomReloadNotice] = useState(false)
   const [roomSaveFailed, setRoomSaveFailed] = useState(false)
   const [metas, setMetas] = useState<Record<string, ProjectMeta>>({})
@@ -1202,9 +1206,13 @@ function WorktableSection(props: any) {
       let loaded: ReturnType<ControlRoomsStorage['load']>
       try { loaded = controlRoomsStorageRef.current!.load() } catch { return }
       const local = controlRoomsRef.current
-      const resolved = resolveControlRoomStorageEvent(local.state, loaded.state, local.state.activeId, loaded.trash)
+      const resolved = resolveControlRoomStorageEvent(local.state, loaded.state, local.state.activeId, local.trash, loaded.trash)
       if (resolved.requiresReload) setRoomReloadNotice(true)
-      const next = { state: resolved.state, trash: loaded.trash }
+      const next = { state: resolved.state, trash: resolved.trash }
+      if (!resolved.requiresReload) {
+        const saved = controlRoomsStorageRef.current!.save(next.state, next.trash)
+        setRoomSaveFailed(!saved.ok)
+      }
       controlRoomsRef.current = next
       currentRoomRef.current = next.state.activeId ? next.state.rooms[next.state.activeId] ?? null : null
       setControlRooms(next)
@@ -1213,6 +1221,16 @@ function WorktableSection(props: any) {
     window.addEventListener('storage', onStorage)
     return () => window.removeEventListener('storage', onStorage)
   }, [])
+
+  useEffect(() => {
+    if (!roomDeleteId || !roomDeleteDialogRef.current || !roomDeleteCancelRef.current) return
+    return installModalFocusGuard({
+      dialog: roomDeleteDialogRef.current,
+      initialFocus: roomDeleteCancelRef.current,
+      returnFocus: roomDeleteReturnFocusRef.current,
+      onEscape: () => setRoomDeleteId(null),
+    })
+  }, [roomDeleteId])
 
   /** 自定义布局弹窗（预设网格末尾的 ＋ 磁贴）：描述 → 复制提示词到剪贴板 */
   const [customOpen, setCustomOpen] = useState(false)
@@ -2186,6 +2204,9 @@ function buildCustomLayoutPrompt(req: string): string {
     })
     if (roomManageId === roomDeleteId) setRoomManageId(null)
     setRoomDeleteId(null)
+    window.requestAnimationFrame(() => {
+      document.querySelector<HTMLElement>('.dsh-wt_roomNav[aria-current="page"],.dsh-wt_roomCreate')?.focus()
+    })
   }
   const restoreRoomFromTrash = (roomId: string) => {
     commitControlRooms((current) => {
@@ -3240,7 +3261,7 @@ function buildCustomLayoutPrompt(req: string): string {
       {roomManageId && controlRooms.state.rooms[roomManageId] && (() => {
         const room = controlRooms.state.rooms[roomManageId]
         return (
-          <div className="dsh-wt_roomDialog dsh-wt_roomManageDialog" role="dialog" aria-modal="true" aria-labelledby="dsh-wt_roomManageTitle">
+          <div className="dsh-wt_roomDialog dsh-wt_roomManageDialog" role="dialog" aria-modal={roomDeleteId ? undefined : true} aria-labelledby="dsh-wt_roomManageTitle" aria-hidden={roomDeleteId ? true : undefined} inert={roomDeleteId ? true : undefined}>
             <button type="button" className="dsh-wt_settingsClose" aria-label={t('manage.done')} onClick={() => setRoomManageId(null)}>✕</button>
             <h3 id="dsh-wt_roomManageTitle">{t('rooms.manage')}</h3>
             <label>
@@ -3260,7 +3281,7 @@ function buildCustomLayoutPrompt(req: string): string {
             <div className="dsh-wt_roomDialogActions dsh-wt_roomManageActions">
               <button type="button" onClick={() => copyRoom(room.id)}>{t('rooms.copy')}</button>
               <button type="button" onClick={() => toggleRoomHidden(room.id)}>{room.sidebarVisible ? t('rooms.hide') : t('rooms.show')}</button>
-              <button type="button" className="dsh-wt_roomDanger" onClick={() => setRoomDeleteId(room.id)}>{t('rooms.delete')}</button>
+              <button type="button" className="dsh-wt_roomDanger" onClick={(event) => { roomDeleteReturnFocusRef.current = event.currentTarget; setRoomDeleteId(room.id) }}>{t('rooms.delete')}</button>
             </div>
           </div>
         )
@@ -3268,11 +3289,11 @@ function buildCustomLayoutPrompt(req: string): string {
 
       {roomDeleteId && controlRooms.state.rooms[roomDeleteId] && <div className="dsh-wt_confirmBackdrop" style={{ zIndex: 89 }} onClick={() => setRoomDeleteId(null)} />}
       {roomDeleteId && controlRooms.state.rooms[roomDeleteId] && (
-        <div className="dsh-wt_confirm dsh-wt_roomDeleteConfirm" role="alertdialog" aria-modal="true" aria-labelledby="dsh-wt_roomDeleteTitle">
+        <div ref={roomDeleteDialogRef} tabIndex={-1} className="dsh-wt_confirm dsh-wt_roomDeleteConfirm" role="alertdialog" aria-modal="true" aria-labelledby="dsh-wt_roomDeleteTitle" aria-describedby="dsh-wt_roomDeleteBody">
           <div id="dsh-wt_roomDeleteTitle" className="dsh-wt_confirmTitle">⚠️ {t('rooms.deleteTitle')}</div>
-          <div className="dsh-wt_confirmBody">{t('rooms.deleteBody', { name: controlRooms.state.rooms[roomDeleteId].name })}</div>
+          <div id="dsh-wt_roomDeleteBody" className="dsh-wt_confirmBody">{t('rooms.deleteBody', { name: controlRooms.state.rooms[roomDeleteId].name })}</div>
           <div className="dsh-wt_confirmActions">
-            <button type="button" className="dsh-wt_confirmCancel" onClick={() => setRoomDeleteId(null)}>{t('confirm.cancel')}</button>
+            <button ref={roomDeleteCancelRef} type="button" className="dsh-wt_confirmCancel" onClick={() => setRoomDeleteId(null)}>{t('confirm.cancel')}</button>
             <button type="button" className="dsh-wt_confirmDelete" onClick={confirmDeleteRoom}>{t('rooms.delete')}</button>
           </div>
         </div>

@@ -603,26 +603,58 @@ export function mergeControlRoomSummaries(local: ControlRoomsState, incoming: Co
   return { version: CONTROL_ROOMS_VERSION, order, activeId: activeCandidate && rooms[activeCandidate] ? activeCandidate : null, rooms }
 }
 
+function tombstoneTimestamp(entry: DeletedControlRoom): number {
+  return Math.max(entry.deletedAt, entry.room.updatedAt)
+}
+
+export function mergeControlRoomsTrash(
+  local: ControlRoomsTrashState,
+  incoming: ControlRoomsTrashState,
+): ControlRoomsTrashState {
+  const left = normalizeControlRoomsTrashState(local)
+  const right = normalizeControlRoomsTrashState(incoming)
+  const byRoomId = new Map<string, DeletedControlRoom>()
+  for (const entry of [...left.deleted, ...right.deleted]) {
+    const current = byRoomId.get(entry.room.id)
+    if (!current || tombstoneTimestamp(entry) > tombstoneTimestamp(current)) byRoomId.set(entry.room.id, clone(entry))
+  }
+  const seenAudit = new Set<string>()
+  const audit = [...left.audit, ...right.audit].filter((entry) => {
+    const key = `${entry.actor}\u0000${entry.timestamp}\u0000${entry.action}\u0000${entry.controlRoomId}\u0000${entry.summary}`
+    if (seenAudit.has(key)) return false
+    seenAudit.add(key)
+    return true
+  }).slice(-CONTROL_ROOM_AUDIT_LIMIT)
+  return { version: CONTROL_ROOMS_VERSION, deleted: [...byRoomId.values()], audit }
+}
+
 export function resolveControlRoomStorageEvent(
   local: ControlRoomsState,
   incoming: ControlRoomsState,
   openRoomId: string | null,
-  incomingTrash?: ControlRoomsTrashState,
-): { state: ControlRoomsState; requiresReload: boolean } {
+  localTrash: ControlRoomsTrashState = createEmptyControlRoomsTrashState(),
+  incomingTrash: ControlRoomsTrashState = createEmptyControlRoomsTrashState(),
+): { state: ControlRoomsState; trash: ControlRoomsTrashState; requiresReload: boolean } {
   const normalizedLocal = normalizeControlRoomsState(local)
   const normalizedIncoming = normalizeControlRoomsState(incoming)
-  const deleted = incomingTrash ? normalizeControlRoomsTrashState(incomingTrash).deleted : []
+  let trash = mergeControlRoomsTrash(localTrash, incomingTrash)
+  const deleted = trash.deleted
   const localOpen = openRoomId ? normalizedLocal.rooms[openRoomId] : undefined
   const incomingOpen = openRoomId ? normalizedIncoming.rooms[openRoomId] : undefined
   const openTombstone = openRoomId ? deleted.find((entry) => entry.room.id === openRoomId) : undefined
   const requiresReload = !!localOpen && (
     (!!incomingOpen && incomingOpen.updatedAt > localOpen.updatedAt)
-    || (!!openTombstone && openTombstone.room.updatedAt > localOpen.updatedAt)
+    || (!!openTombstone && tombstoneTimestamp(openTombstone) >= localOpen.updatedAt)
   )
   let state = mergeControlRoomSummaries(normalizedLocal, normalizedIncoming)
   for (const entry of deleted) {
     const current = state.rooms[entry.room.id]
-    if (!current || entry.room.updatedAt <= current.updatedAt || entry.room.id === openRoomId) continue
+    if (!current) continue
+    if (tombstoneTimestamp(entry) < current.updatedAt) {
+      trash = { ...trash, deleted: trash.deleted.filter((item) => item.room.id !== entry.room.id) }
+      continue
+    }
+    if (entry.room.id === openRoomId && localOpen) continue
     const rooms = { ...state.rooms }
     delete rooms[entry.room.id]
     const order = state.order.filter((id) => id !== entry.room.id)
@@ -634,7 +666,7 @@ export function resolveControlRoomStorageEvent(
   if (requiresReload && openRoomId && localOpen) {
     state = { ...state, activeId: openRoomId, rooms: { ...state.rooms, [openRoomId]: localOpen } }
   }
-  return { state, requiresReload }
+  return { state, trash, requiresReload }
 }
 
 export function exportControlRooms(state: ControlRoomsState, exportedAt: number): string {

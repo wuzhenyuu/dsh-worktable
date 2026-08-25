@@ -10,6 +10,7 @@ const { build } = require('../01_content/node_modules/esbuild')
 const repo = path.resolve(__dirname, '..')
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-control-room-integration-'))
 const bundle = path.join(tempDir, 'control-rooms.cjs')
+const modalBundle = path.join(tempDir, 'modal-focus.cjs')
 
 class MemoryStorage {
   constructor() { this.data = new Map() }
@@ -27,7 +28,17 @@ async function main() {
     target: ['node22'],
     logLevel: 'silent',
   })
+  await build({
+    entryPoints: [path.join(repo, '01_content/src/client/modalFocus.ts')],
+    outfile: modalBundle,
+    bundle: true,
+    platform: 'node',
+    format: 'cjs',
+    target: ['node22'],
+    logLevel: 'silent',
+  })
   const d = require(bundle)
+  const modal = require(modalBundle)
   const storage = new MemoryStorage()
   const repository = new d.ControlRoomsStorage(storage)
   let { state, trash } = repository.load()
@@ -75,9 +86,89 @@ async function main() {
   assert.equal(conflict.state.rooms['room-9'].name, localBeforeStorage.rooms['room-9'].name, 'open local work is not silently replaced')
 
   const externalDeletion = d.deleteControlRoom(incoming, d.createEmptyControlRoomsTrashState(), 'room-0', 3_003)
-  const deletionResolved = d.resolveControlRoomStorageEvent(localBeforeStorage, externalDeletion.state, 'room-9', externalDeletion.trash)
+  const deletionResolved = d.resolveControlRoomStorageEvent(
+    localBeforeStorage,
+    externalDeletion.state,
+    'room-9',
+    d.createEmptyControlRoomsTrashState(),
+    externalDeletion.trash,
+  )
   assert.equal(deletionResolved.state.rooms['room-0'], undefined, 'a newer external deletion removes only the room configuration')
   assert.ok(deletionResolved.state.rooms['room-1'], 'external room deletion leaves other room configurations intact')
+
+  const localDeletion = d.deleteControlRoom(localBeforeStorage, d.createEmptyControlRoomsTrashState(), 'room-1', 3_100)
+  const staleIncoming = d.updateControlRoom(localBeforeStorage, 'room-1', { name: 'stale resurrection' }, 3_050)
+  const staleResolved = d.resolveControlRoomStorageEvent(
+    localDeletion.state,
+    staleIncoming,
+    'room-9',
+    localDeletion.trash,
+    d.createEmptyControlRoomsTrashState(),
+  )
+  assert.equal(staleResolved.state.rooms['room-1'], undefined, 'stale external room data cannot resurrect a local deletion')
+  assert.equal(staleResolved.trash.deleted.length, 1, 'local recovery entry survives an accepted stale storage event')
+  assert.equal(staleResolved.trash.deleted[0].room.name, 'Room 1')
+  const reconciliationRepository = new d.ControlRoomsStorage(new MemoryStorage())
+  assert.equal(reconciliationRepository.save(staleResolved.state, staleResolved.trash).ok, true)
+  const reconciliationReload = reconciliationRepository.load(undefined, 3_150)
+  assert.equal(reconciliationReload.state.rooms['room-1'], undefined, 'accepted reconciliation persists the no-resurrection result')
+  assert.equal(reconciliationReload.trash.deleted[0].room.name, 'Room 1', 'accepted reconciliation persists the recovery entry')
+
+  const newerIncomingDeletion = d.deleteControlRoom(localBeforeStorage, d.createEmptyControlRoomsTrashState(), 'room-1', 3_200)
+  const tombstoneResolved = d.resolveControlRoomStorageEvent(
+    localDeletion.state,
+    newerIncomingDeletion.state,
+    'room-9',
+    localDeletion.trash,
+    newerIncomingDeletion.trash,
+  )
+  assert.equal(tombstoneResolved.trash.deleted.length, 1, 'tombstones reconcile per room ID')
+  assert.equal(tombstoneResolved.trash.deleted[0].room.updatedAt, 3_200, 'newest tombstone retains the recovery configuration')
+
+  let activeElement = null
+  let keydown = null
+  const makeFocusable = (name) => ({
+    isConnected: true,
+    name,
+    focus() { activeElement = this },
+  })
+  const first = makeFocusable('first')
+  const last = makeFocusable('last')
+  const returnFocus = makeFocusable('return')
+  const fakeDocument = {
+    get activeElement() { return activeElement },
+    addEventListener(type, listener, capture) { assert.equal(type, 'keydown'); assert.equal(capture, true); keydown = listener },
+    removeEventListener(type, listener, capture) { assert.equal(type, 'keydown'); assert.equal(listener, keydown); assert.equal(capture, true) },
+  }
+  const dialog = {
+    ownerDocument: fakeDocument,
+    querySelectorAll() { return [first, last] },
+    contains(element) { return element === first || element === last },
+  }
+  let escaped = 0
+  const disposeModal = modal.installModalFocusGuard({
+    dialog,
+    initialFocus: first,
+    returnFocus,
+    onEscape: () => { escaped += 1 },
+    schedule: (callback) => callback(),
+  })
+  assert.equal(activeElement, first, 'modal guard moves initial focus into the confirmation')
+  let prevented = 0
+  activeElement = makeFocusable('outside')
+  keydown({ key: 'Tab', shiftKey: false, preventDefault: () => { prevented += 1 }, stopPropagation() {} })
+  assert.equal(activeElement, first, 'Tab from outside is contained inside the modal')
+  activeElement = last
+  keydown({ key: 'Tab', shiftKey: false, preventDefault: () => { prevented += 1 }, stopPropagation() {} })
+  assert.equal(activeElement, first, 'Tab wraps from the last control to the first')
+  activeElement = first
+  keydown({ key: 'Tab', shiftKey: true, preventDefault: () => { prevented += 1 }, stopPropagation() {} })
+  assert.equal(activeElement, last, 'Shift+Tab wraps from the first control to the last')
+  keydown({ key: 'Escape', shiftKey: false, preventDefault: () => { prevented += 1 }, stopPropagation() {} })
+  assert.equal(escaped, 1, 'Escape invokes the modal close path')
+  assert.equal(prevented, 4, 'trapped keys suppress background interaction')
+  disposeModal()
+  assert.equal(activeElement, returnFocus, 'closing the confirmation restores trigger focus')
 
   let deletedRoom0 = null
   for (const roomId of [...state.order]) {
