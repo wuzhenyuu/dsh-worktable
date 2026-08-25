@@ -8238,13 +8238,26 @@ var css = xterm_default + "\n" + [
   ".dsh-wt_console[data-wt-theme=light] .dsh-wt_consoleSweep{background:linear-gradient(115deg,rgba(255,255,255,.1) 0%,rgba(255,255,255,.3) 30%,rgba(255,255,255,.55) 50%,rgba(255,255,255,.3) 70%,rgba(255,255,255,.1) 100%)}",
   "@keyframes consoleSweep{0%{opacity:0;transform:translate(-12%,-12%)}35%{opacity:1}55%{opacity:1}92%,100%{opacity:0;transform:translate(12%,12%)}}",
   ".dsh-wt_console[data-wt-theme=light]{--wt-bg:#eef1f5;--wt-card:#ffffff;--wt-cardHover:#f7f9fb;--wt-border:#d8dee6;--wt-borderHover:#b9c4d2;--wt-grid:rgba(27,31,36,.07);--wt-text:#1c2128;--wt-text2:#57606a;--wt-text3:#8b949e;--wt-chip:rgba(27,31,36,.07);--wt-shadow:0 6px 20px rgba(31,41,55,.10)}",
-  ".dsh-wt_consoleHead{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:12px}",
+  ".dsh-wt_consoleHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}",
+  ".dsh-wt_consoleBindingNotice{display:flex;align-items:center;gap:8px;min-width:0;padding:5px 8px;border:1px solid rgba(210,153,34,.42);border-radius:8px;background:rgba(210,153,34,.1);color:var(--wt-text2);font-size:11px;line-height:16px}",
+  ".dsh-wt_consoleBindingNotice[data-state=missing]{border-color:rgba(248,81,73,.55);background:rgba(248,81,73,.12);color:#ffabab}",
+  ".dsh-wt_consoleBindingNotice span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+  ".dsh-wt_consoleBindingNotice button{flex:none;padding:2px 6px;border:1px solid currentColor;border-radius:6px;background:transparent;color:inherit;font:inherit;cursor:pointer}",
   ".dsh-wt_consoleTitle{font-size:14px;font-weight:700;line-height:20px;color:var(--wt-text)}",
   ".dsh-wt_consoleTheme{display:inline-flex;align-items:center;padding:2px;border:1px solid var(--wt-border);border-radius:999px;background:var(--wt-card)}",
   ".dsh-wt_consoleThemeBtn{flex:none;padding:3px 9px;border:none;border-radius:999px;background:transparent;color:var(--wt-text3);font:inherit;font-size:12px;line-height:18px;cursor:pointer;opacity:.85}",
   ".dsh-wt_consoleThemeBtn:hover{opacity:1;background:var(--wt-chip)}",
   ".dsh-wt_consoleThemeBtnOn{background:var(--wt-chip);color:var(--wt-text);opacity:1}",
   ".dsh-wt_consoleGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:64px;align-content:start;margin-top:clamp(32px,9vh,110px);max-width:856px;margin-left:auto;margin-right:auto}",
+  '.dsh-wt_console[data-wt-columns="1"] .dsh-wt_consoleGrid{max-width:264px}',
+  '.dsh-wt_console[data-wt-columns="2"] .dsh-wt_consoleGrid{max-width:560px}',
+  '.dsh-wt_console[data-wt-columns="4"] .dsh-wt_consoleGrid{max-width:1152px}',
+  ".dsh-wt_console[data-wt-card-size=compact] .dsh-wt_consoleGrid{gap:32px}",
+  ".dsh-wt_console[data-wt-card-size=compact] .dsh-wt_consoleCard{min-height:152px;padding:16px;gap:9px}",
+  ".dsh-wt_console[data-wt-card-size=compact] .dsh-wt_consoleName{font-size:16px;line-height:22px}",
+  ".dsh-wt_console[data-wt-card-size=compact] .dsh-wt_consoleStatus{font-size:18px;line-height:24px}",
+  ".dsh-wt_console[data-wt-card-size=wide] .dsh-wt_consoleGrid{gap:48px}",
+  ".dsh-wt_console[data-wt-card-size=wide] .dsh-wt_consoleCard{min-height:224px;padding:25px}",
   ".dsh-wt_consoleCard{position:relative;display:flex;flex-direction:column;gap:14px;aspect-ratio:1/1;min-height:192px;padding:21px;background:radial-gradient(circle at 12% 0,color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 13%,transparent),transparent 43%),linear-gradient(135deg,rgba(209,227,255,.09),rgba(13,28,54,.58) 38%,rgba(3,10,24,.7));border:1px solid color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 26%,#dbeafe 13%);border-radius:18px;box-shadow:0 0 22px color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 9%,transparent),0 16px 38px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.17);backdrop-filter:blur(24px) saturate(160%);cursor:grab;transition:transform .2s cubic-bezier(.16,1,.3,1),box-shadow .2s ease,border-color .2s ease,opacity .16s ease;overflow:hidden;user-select:none}",
   // 玻璃边缘：四角黑白渐变描边（左上/右下=白，右上/左下=黑），1px 环挖空实现
   '.dsh-wt_consoleCard::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:conic-gradient(from 45deg,rgba(0,0,0,.4) 0deg,rgba(255,255,255,.55) 90deg,rgba(0,0,0,.4) 180deg,rgba(255,255,255,.55) 270deg,rgba(0,0,0,.4) 360deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;pointer-events:none;opacity:.5}',
@@ -8293,7 +8306,105 @@ var css = xterm_default + "\n" + [
   ".dsh-wt_projects .dsh-wt_consoleEntry[data-on=true]{background:linear-gradient(135deg,rgba(109,164,255,.26),rgba(167,130,255,.14));box-shadow:inset 0 1px 0 rgba(255,255,255,.13),0 0 18px rgba(96,150,255,.20)}",
   ".dsh-wt_projects .dsh-wt_consoleEntry .dsh-wt_layoutIcon{font-size:15px}",
   ".dsh-wt_projects .dsh-wt_consoleEntry .dsh-wt_layoutName{font-weight:600;color:var(--dsw-alias-label-primary,#e6e8eb)}",
-  // 控制室强制绑定弹窗：左加入现有 / 右新建对话
+  ".dsh-wt_roomNavigation{display:flex;flex-direction:column;gap:4px;order:0}",
+  ".dsh-wt_roomNavWrap{display:flex;align-items:stretch;min-width:0;border:1px solid color-mix(in srgb,#dbeafe 10%,transparent);border-radius:9px;background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.012));overflow:hidden}",
+  ".dsh-wt_roomNavWrap[data-on=true]{border-color:var(--dsw-alias-state-accent-primary,#4f8ef7);background:var(--dsw-alias-fill-l1,rgba(255,255,255,.05))}",
+  ".dsh-wt_roomNavWrap[data-hidden=true]{opacity:.7}",
+  ".dsh-wt_roomNav{flex:1;min-width:0;height:34px;display:flex;align-items:center;gap:7px;padding:5px 4px 5px 8px;border:0;background:transparent;color:var(--dsw-alias-label-primary,#e6e8eb);font:inherit;text-align:left;cursor:pointer}",
+  ".dsh-wt_roomNav:hover,.dsh-wt_roomMenuBtn:hover{background:var(--dsw-alias-fill-l1,rgba(255,255,255,.05))}",
+  ".dsh-wt_roomNav:focus-visible,.dsh-wt_roomMenuBtn:focus-visible,.dsh-wt_roomSearch:focus-visible,.dsh-wt_roomCreate:focus-visible,.dsh-wt_roomMoreBtn:focus-visible{outline:2px solid var(--dsw-alias-state-accent-primary,#4f8ef7);outline-offset:-2px}",
+  ".dsh-wt_roomIcon{flex:none;width:20px;text-align:center;font-size:15px}",
+  ".dsh-wt_roomName{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}",
+  ".dsh-wt_roomCount,.dsh-wt_roomNeed{flex:none;min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;border-radius:999px;background:var(--dsw-alias-fill-l1,rgba(255,255,255,.07));color:var(--dsw-alias-label-tertiary,#7d8aa5);font-size:10px;line-height:17px;text-align:center}",
+  ".dsh-wt_roomNeed{background:rgba(210,153,34,.18);color:var(--dsw-alias-state-warning,#d29922)}",
+  ".dsh-wt_roomHidden{flex:none;font-size:9px;color:var(--dsw-alias-label-tertiary,#7d8aa5)}",
+  ".dsh-wt_roomMenuBtn{flex:none;width:28px;border:0;border-left:1px solid color-mix(in srgb,#dbeafe 8%,transparent);background:transparent;color:var(--dsw-alias-label-tertiary,#7d8aa5);font-size:10px;cursor:pointer}",
+  ".dsh-wt_roomSearch,.dsh-wt_roomCreate,.dsh-wt_roomMoreBtn{height:30px;padding:4px 8px;border:1px dashed var(--dsw-alias-border-l1,#262b36);border-radius:8px;background:transparent;color:var(--dsh-sidebar-text-link);font:inherit;font-size:11px;text-align:left;cursor:pointer}",
+  ".dsh-wt_roomSearch{display:flex;align-items:center;gap:6px;border-style:solid;color:var(--dsw-alias-label-secondary,#aab6cd)}",
+  ".dsh-wt_roomSearch kbd{margin-left:auto;padding:1px 4px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:4px;color:var(--dsw-alias-label-tertiary,#7d8aa5);font:inherit;font-size:9px;line-height:14px}",
+  ".dsh-wt_roomMoreBtn{border-style:solid;color:var(--dsw-alias-label-secondary,#aab6cd)}",
+  ".dsh-wt_roomMore{display:flex;flex-direction:column;gap:4px;padding:6px;border-left:1px solid var(--dsw-alias-border-l1,#262b36)}",
+  ".dsh-wt_roomTrash{display:flex;flex-direction:column;gap:4px;margin-top:5px;padding-top:6px;border-top:1px solid var(--dsw-alias-border-l1,#262b36)}",
+  ".dsh-wt_roomTrash h4{margin:0;font-size:10px;color:var(--dsw-alias-label-tertiary,#7d8aa5)}",
+  ".dsh-wt_roomTrashRow{display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;gap:5px;font-size:11px;color:var(--dsw-alias-label-secondary,#aab6cd)}",
+  ".dsh-wt_roomTrashRow button{padding:2px 6px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:6px;background:transparent;color:var(--dsh-sidebar-text-link);font:inherit;font-size:10px;cursor:pointer}",
+  ".dsh-wt_roomEmpty{padding:8px;border:1px dashed var(--dsw-alias-border-l1,#262b36);border-radius:8px;color:var(--dsw-alias-label-tertiary,#7d8aa5);font-size:11px;line-height:16px}",
+  ".dsh-wt_roomReload,.dsh-wt_roomError{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 8px;border:1px solid rgba(210,153,34,.42);border-radius:8px;background:rgba(210,153,34,.1);color:var(--dsw-alias-label-secondary,#aab6cd);font-size:10.5px;line-height:15px}",
+  ".dsh-wt_roomReload button{flex:none;padding:3px 6px;border:1px solid currentColor;border-radius:6px;background:transparent;color:inherit;font:inherit;cursor:pointer}",
+  ".dsh-wt_roomError{border-color:rgba(248,81,73,.42);background:rgba(248,81,73,.1);color:#ff9d9d}",
+  ".dsh-wt_roomDialog{position:fixed;z-index:88;left:50%;top:50%;width:min(360px,calc(100vw - 24px));max-height:min(620px,calc(100vh - 24px));overflow:auto;box-sizing:border-box;transform:translate(-50%,-50%);display:flex;flex-direction:column;gap:12px;padding:16px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:12px;background:var(--dsw-alias-bg-base,#10141d);box-shadow:0 18px 55px rgba(0,0,0,.55);color:var(--dsw-alias-label-primary,#e6e8eb)}",
+  ".dsh-wt_roomDialog h3{margin:0;font-size:14px;line-height:20px}",
+  ".dsh-wt_roomDialog>label{display:flex;flex-direction:column;gap:5px;font-size:11px;color:var(--dsw-alias-label-secondary,#aab6cd)}",
+  ".dsh-wt_roomDialog input[type=text],.dsh-wt_roomDialog>label input{box-sizing:border-box;width:100%;padding:6px 8px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:7px;background:var(--dsw-alias-fill-l1,rgba(255,255,255,.03));color:var(--dsw-alias-label-primary,#e6e8eb);font:inherit}",
+  ".dsh-wt_roomLocalSettings{display:grid;grid-template-columns:1fr 1fr;gap:7px}",
+  ".dsh-wt_roomLocalSettings label{display:flex;flex-direction:column;gap:4px;font-size:10.5px;color:var(--dsw-alias-label-secondary,#aab6cd)}",
+  ".dsh-wt_roomLocalSettings select{box-sizing:border-box;width:100%;padding:5px 7px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:7px;background:var(--dsw-alias-fill-l1,rgba(255,255,255,.03));color:var(--dsw-alias-label-primary,#e6e8eb);font:inherit}",
+  ".dsh-wt_roomBindingRow,.dsh-wt_consoleBindingStatus{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 8px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:8px;color:var(--dsw-alias-label-secondary,#aab6cd);font-size:10.5px;line-height:15px}",
+  ".dsh-wt_roomBindingRow[data-state=missing],.dsh-wt_consoleBindingStatus[data-state=missing]{border-color:rgba(248,81,73,.5);background:rgba(248,81,73,.1);color:#ffabab}",
+  ".dsh-wt_roomBindingRow span,.dsh-wt_consoleBindingStatus span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+  ".dsh-wt_roomBindingRow button,.dsh-wt_consoleBindingStatus button{flex:none;padding:3px 7px;border:1px solid currentColor;border-radius:6px;background:transparent;color:inherit;font:inherit;cursor:pointer}",
+  ".dsh-wt_roomDialogActions{display:flex;justify-content:flex-end;gap:7px}",
+  ".dsh-wt_roomDialogActions button{padding:5px 9px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:7px;background:transparent;color:var(--dsw-alias-label-secondary,#aab6cd);font:inherit;font-size:11px;cursor:pointer}",
+  ".dsh-wt_roomDialogActions button:disabled{opacity:.5;cursor:default}",
+  ".dsh-wt_roomMembers{display:flex;flex-direction:column;gap:4px;max-height:260px;overflow:auto;margin:0;padding:9px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:8px}",
+  ".dsh-wt_roomMembers legend{padding:0 4px;font-size:11px;color:var(--dsw-alias-label-secondary,#aab6cd)}",
+  ".dsh-wt_roomMembers label{display:grid;grid-template-columns:auto 20px minmax(0,1fr);align-items:center;gap:5px;font-size:11px;color:var(--dsw-alias-label-primary,#e6e8eb);cursor:pointer}",
+  ".dsh-wt_roomMembers input{accent-color:var(--dsw-alias-state-accent-primary,#4f8ef7)}",
+  ".dsh-wt_roomMembersEmpty{font-size:11px;color:var(--dsw-alias-label-tertiary,#7d8aa5)}",
+  ".dsh-wt_roomData{display:flex;flex-direction:column;gap:7px;margin:0;padding:9px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:8px}",
+  ".dsh-wt_roomData>legend{padding:0 4px;font-size:11px;color:var(--dsw-alias-label-secondary,#aab6cd)}",
+  ".dsh-wt_roomDataActions{display:flex;flex-wrap:wrap;gap:6px}",
+  ".dsh-wt_roomDataActions button{padding:4px 7px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary,#aab6cd);font:inherit;font-size:10.5px;cursor:pointer}",
+  ".dsh-wt_roomDataHint,.dsh-wt_roomDataNotice{font-size:10.5px;line-height:1.45;color:var(--dsw-alias-label-tertiary,#7d8aa5)}",
+  ".dsh-wt_roomDataNotice{color:#85d8a1}.dsh-wt_roomDataNotice[data-error=true]{color:#ffabab}",
+  ".dsh-wt_roomAudit>summary{cursor:pointer;font-size:10.5px;color:var(--dsw-alias-label-secondary,#aab6cd)}",
+  ".dsh-wt_roomAudit ol{display:flex;flex-direction:column;gap:5px;max-height:220px;overflow:auto;margin:7px 0 0;padding:0;list-style:none}",
+  ".dsh-wt_roomAudit li{display:grid;grid-template-columns:auto auto auto minmax(80px,auto) minmax(140px,1fr);align-items:start;gap:5px;padding:5px;border-radius:6px;background:var(--dsw-alias-fill-l1,rgba(255,255,255,.025));font-size:9.5px;color:var(--dsw-alias-label-tertiary,#7d8aa5)}",
+  ".dsh-wt_roomAudit time,.dsh-wt_roomAudit code{white-space:nowrap}.dsh-wt_roomAudit strong{color:var(--dsw-alias-label-secondary,#aab6cd)}",
+  ".dsh-wt_roomManageDialog{width:min(780px,calc(100vw - 24px))}",
+  ".dsh-wt_roomRules{display:flex;flex-direction:column;gap:7px;margin:0;padding:9px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:8px}",
+  ".dsh-wt_roomRules>legend{padding:0 4px;font-size:11px;color:var(--dsw-alias-label-secondary,#aab6cd)}",
+  ".dsh-wt_roomRule{display:flex;flex-direction:column;gap:6px;padding:7px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:7px;background:var(--dsw-alias-fill-l1,rgba(255,255,255,.025));opacity:.66}",
+  ".dsh-wt_roomRule[data-enabled=true]{opacity:1}",
+  ".dsh-wt_roomRuleHead{display:grid;grid-template-columns:minmax(120px,1fr) auto auto auto;align-items:center;gap:6px}",
+  ".dsh-wt_roomRuleHead>label,.dsh-wt_roomConditionExclude{display:flex;align-items:center;gap:3px;white-space:nowrap;font-size:10.5px;color:var(--dsw-alias-label-secondary,#aab6cd)}",
+  ".dsh-wt_roomRule input,.dsh-wt_roomRule select{box-sizing:border-box;min-width:0;padding:4px 6px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:6px;background:var(--dsw-alias-fill-l1,rgba(255,255,255,.03));color:var(--dsw-alias-label-primary,#e6e8eb);font:inherit;font-size:10.5px}",
+  ".dsh-wt_roomRule button,.dsh-wt_roomRuleAdd{padding:4px 7px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary,#aab6cd);font:inherit;font-size:10.5px;cursor:pointer}",
+  ".dsh-wt_roomCondition{display:grid;grid-template-columns:minmax(105px,.9fr) minmax(105px,.9fr) minmax(130px,1.2fr) auto auto;align-items:center;gap:5px}",
+  ".dsh-wt_roomRuleAddCondition{align-self:flex-start}",
+  ".dsh-wt_roomRuleAdd{align-self:flex-start}",
+  ".dsh-wt_roomMemberRow{display:grid;grid-template-columns:20px minmax(100px,1fr) auto auto auto;align-items:center;gap:7px;padding:2px 0;font-size:11px;color:var(--dsw-alias-label-primary,#e6e8eb)}",
+  ".dsh-wt_roomMemberRow>label{display:flex;align-items:center;gap:3px;white-space:nowrap;color:var(--dsw-alias-label-secondary,#aab6cd);cursor:pointer}",
+  "@media(max-width:680px){.dsh-wt_roomRuleHead,.dsh-wt_roomCondition{grid-template-columns:1fr 1fr}.dsh-wt_roomConditionExclude{justify-self:start}.dsh-wt_roomMemberRow{grid-template-columns:20px 1fr}.dsh-wt_roomMemberRow>label{grid-column:auto}}",
+  ".dsh-wt_roomManageActions{justify-content:space-between}",
+  ".dsh-wt_roomDialogActions .dsh-wt_roomDanger{border-color:rgba(248,81,73,.5);color:#ff9d9d}",
+  ".dsh-wt_globalSearchBackdrop{z-index:91}",
+  ".dsh-wt_globalSearch{position:fixed;z-index:92;left:50%;top:14vh;width:min(680px,calc(100vw - 24px));max-height:min(680px,72vh);transform:translateX(-50%);display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:14px;background:var(--dsw-alias-bg-base,#10141d);box-shadow:0 24px 80px rgba(0,0,0,.62);color:var(--dsw-alias-label-primary,#e6e8eb)}",
+  ".dsh-wt_globalSearchHead,.dsh-wt_globalSearchFoot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;color:var(--dsw-alias-label-secondary,#aab6cd);font-size:10.5px}",
+  ".dsh-wt_globalSearchHead{border-bottom:1px solid var(--dsw-alias-border-l1,#262b36);font-size:12px;font-weight:650}",
+  ".dsh-wt_globalSearchShortcut{font-size:9px;font-weight:400;color:var(--dsw-alias-label-tertiary,#7d8aa5)}",
+  ".dsh-wt_globalSearchInputWrap{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;margin:12px;padding:7px 9px;border:1px solid var(--dsw-alias-state-accent-primary,#4f8ef7);border-radius:9px;background:var(--dsw-alias-fill-l1,rgba(255,255,255,.035));box-shadow:0 0 0 2px rgba(79,142,247,.12)}",
+  ".dsh-wt_globalSearchInputWrap>span{display:flex;color:var(--dsw-alias-label-tertiary,#7d8aa5)}",
+  ".dsh-wt_globalSearchInputWrap input{min-width:0;border:0;outline:0;background:transparent;color:var(--dsw-alias-label-primary,#e6e8eb);font:inherit;font-size:13px}",
+  ".dsh-wt_globalSearchInputWrap button{border:0;background:transparent;color:var(--dsw-alias-label-tertiary,#7d8aa5);font:inherit;cursor:pointer}",
+  ".dsh-wt_globalSearchResults{min-height:88px;overflow:auto;padding:0 8px 8px}",
+  ".dsh-wt_globalSearchGroup{display:flex;flex-direction:column;gap:2px}",
+  ".dsh-wt_globalSearchGroup h4{position:sticky;top:0;z-index:1;margin:0;padding:7px 6px 4px;background:var(--dsw-alias-bg-base,#10141d);color:var(--dsw-alias-label-tertiary,#7d8aa5);font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}",
+  ".dsh-wt_globalSearchGroup button{display:grid;grid-template-columns:24px minmax(0,1fr) minmax(70px,auto);align-items:center;gap:8px;width:100%;padding:7px 8px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-primary,#e6e8eb);font:inherit;text-align:left;cursor:pointer}",
+  ".dsh-wt_globalSearchGroup button[data-search-selected=true]{background:var(--dsw-alias-fill-l1,rgba(79,142,247,.16));box-shadow:inset 0 0 0 1px rgba(79,142,247,.32)}",
+  ".dsh-wt_globalSearchIcon{font-size:16px;text-align:center}",
+  ".dsh-wt_globalSearchText{display:flex;min-width:0;flex-direction:column;gap:2px;font-size:11.5px}",
+  ".dsh-wt_globalSearchText>span,.dsh-wt_globalSearchText small,.dsh-wt_globalSearchRoom{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+  ".dsh-wt_globalSearchText small,.dsh-wt_globalSearchRoom{color:var(--dsw-alias-label-tertiary,#7d8aa5);font-size:9.5px}",
+  ".dsh-wt_globalSearchRoom{text-align:right}",
+  ".dsh-wt_globalSearchEmpty{padding:28px 12px;text-align:center;color:var(--dsw-alias-label-tertiary,#7d8aa5);font-size:11px}",
+  ".dsh-wt_globalSearchFoot{border-top:1px solid var(--dsw-alias-border-l1,#262b36);font-size:9.5px}",
+  ".dsh-wt_globalSearchFoot strong{color:var(--dsw-alias-state-warning,#d29922);font-weight:600}",
+  ".dsh-wt_searchLocated{animation:dsh-wt-searchLocate 1.8s ease-out}",
+  "@keyframes dsh-wt-searchLocate{0%,35%{outline:3px solid var(--dsw-alias-state-accent-primary,#4f8ef7);outline-offset:4px;filter:brightness(1.28)}100%{outline:3px solid transparent;outline-offset:8px;filter:none}}",
+  ".dsh-wt_roomDeleteConfirm{z-index:90}",
+  // 控制室管理会话绑定弹窗：左加入现有 / 右新建对话
+  ".dsh-wt_consoleBindingStatus{margin-bottom:10px}",
   ".dsh-wt_consoleBindCols{display:flex;gap:12px}",
   ".dsh-wt_consoleBindCol{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}",
   ".dsh-wt_consoleBindColNew{border-left:1px solid var(--dsw-alias-border-l1,#262b36);padding-left:12px}",
@@ -8480,6 +8591,111 @@ var zh = {
   "console.bindFail": "\u521B\u5EFA\u5931\u8D25\uFF0C\u8BF7\u91CD\u8BD5",
   "console.noSessions": "\u6CA1\u6709\u53EF\u7528\u5BF9\u8BDD",
   "console.addProject": "\u6DFB\u52A0\u9879\u76EE",
+  "rooms.navigation": "\u63A7\u5236\u5BA4\u5BFC\u822A",
+  "rooms.search": "\u5168\u5C40\u641C\u7D22",
+  "rooms.searchPlaceholder": "\u641C\u7D22\u63A7\u5236\u5BA4\u3001\u9879\u76EE\u3001\u5BF9\u8BDD\u6216\u89C4\u5219",
+  "rooms.searchResults": "\u5168\u5C40\u641C\u7D22\u7ED3\u679C",
+  "rooms.searchEmpty": "\u6CA1\u6709\u5339\u914D\u7ED3\u679C",
+  "rooms.searchHint": "\u2191\u2193 \u9009\u62E9 \xB7 Enter \u6253\u5F00 \xB7 Esc \u5173\u95ED",
+  "rooms.searchOverflow": "\u53E6\u6709 {count} \u4E2A\u7ED3\u679C\u672A\u663E\u793A",
+  "rooms.searchKind.room": "\u63A7\u5236\u5BA4",
+  "rooms.searchKind.project": "\u9879\u76EE",
+  "rooms.searchKind.conversation": "\u5BF9\u8BDD",
+  "rooms.searchKind.rule": "\u89C4\u5219",
+  "rooms.create": "\u65B0\u5EFA\u63A7\u5236\u5BA4",
+  "rooms.name": "\u540D\u79F0",
+  "rooms.namePh": "\u8F93\u5165\u63A7\u5236\u5BA4\u540D\u79F0",
+  "rooms.projectCount": "{count} \u4E2A\u9879\u76EE",
+  "rooms.needCount": "{count} \u4E2A\u9879\u76EE\u5F85\u4F60\u51B3\u5B9A",
+  "rooms.navLabel": "{name}\uFF0C{projects} \u4E2A\u9879\u76EE\uFF0C{need} \u4E2A\u5F85\u51B3\u5B9A",
+  "rooms.hidden": "\u5DF2\u9690\u85CF",
+  "rooms.manageRoom": "\u7BA1\u7406\u63A7\u5236\u5BA4\u300C{name}\u300D",
+  "rooms.more": "\u66F4\u591A",
+  "rooms.manage": "\u7BA1\u7406\u63A7\u5236\u5BA4",
+  "rooms.theme": "\u9762\u677F\u4E3B\u9898",
+  "rooms.columns": "\u5361\u7247\u5217\u6570",
+  "rooms.cardSize": "\u5361\u7247\u5927\u5C0F",
+  "rooms.cardCompact": "\u7D27\u51D1",
+  "rooms.cardComfortable": "\u8212\u9002",
+  "rooms.cardWide": "\u5BBD\u5927",
+  "rooms.defaultPane": "\u9ED8\u8BA4\u7A97\u683C",
+  "rooms.paneConversation": "\u5BF9\u8BDD",
+  "rooms.bindingNone": "\u672A\u7ED1\u5B9A\u7BA1\u7406\u5BF9\u8BDD",
+  "rooms.bindingCurrent": "\u7BA1\u7406\u5BF9\u8BDD\uFF1A{name}",
+  "rooms.bindingMissing": "\u7BA1\u7406\u5BF9\u8BDD\u5DF2\u5931\u6548\uFF1A{id}",
+  "rooms.bindingManage": "\u7BA1\u7406\u7ED1\u5B9A",
+  "rooms.members": "\u9879\u76EE\u6210\u5458",
+  "rooms.noProjects": "\u6CA1\u6709\u53EF\u6DFB\u52A0\u7684\u9879\u76EE",
+  "rooms.copy": "\u590D\u5236",
+  "rooms.copySuffix": " \u526F\u672C",
+  "rooms.hide": "\u9690\u85CF",
+  "rooms.show": "\u663E\u793A",
+  "rooms.delete": "\u5220\u9664\u63A7\u5236\u5BA4",
+  "rooms.deleteTitle": "\u5220\u9664\u63A7\u5236\u5BA4",
+  "rooms.deleteBody": "\u786E\u5B9A\u5220\u9664\u300C{name}\u300D\u7684\u914D\u7F6E\uFF1F\u9879\u76EE\u3001\u6587\u4EF6\u3001\u5BF9\u8BDD\u3001Token \u7EDF\u8BA1\u548C\u786C\u4EF6\u6570\u636E\u90FD\u4E0D\u4F1A\u5220\u9664\u3002\u914D\u7F6E\u53EF\u4ECE\u56DE\u6536\u7AD9\u6062\u590D\u3002",
+  "rooms.trash": "\u56DE\u6536\u7AD9",
+  "rooms.restore": "\u6062\u590D",
+  "rooms.empty": "\u8FD8\u6CA1\u6709\u63A7\u5236\u5BA4\u3002\u4F7F\u7528\u201C\u65B0\u5EFA\u63A7\u5236\u5BA4\u201D\u5F00\u59CB\u3002",
+  "rooms.reloadNotice": "\u8FD9\u4E2A\u63A7\u5236\u5BA4\u5DF2\u5728\u53E6\u4E00\u4E2A\u7A97\u53E3\u66F4\u65B0\u3002\u4E3A\u907F\u514D\u8986\u76D6\u5F53\u524D\u5DE5\u4F5C\uFF0C\u8BF7\u91CD\u65B0\u52A0\u8F7D\u540E\u5E94\u7528\u3002",
+  "rooms.reload": "\u91CD\u65B0\u52A0\u8F7D",
+  "rooms.saveFailed": "\u63A7\u5236\u5BA4\u914D\u7F6E\u672A\u80FD\u5199\u5165\u672C\u5730\u5B58\u50A8\uFF1B\u5F53\u524D\u5185\u5B58\u72B6\u6001\u4ECD\u4FDD\u7559\u3002",
+  "rooms.rules": "\u81EA\u52A8\u89C4\u5219",
+  "rooms.ruleAdd": "\u6DFB\u52A0\u89C4\u5219",
+  "rooms.ruleAddCondition": "\u6DFB\u52A0\u6761\u4EF6",
+  "rooms.ruleDefaultName": "\u89C4\u5219 {count}",
+  "rooms.ruleName": "\u89C4\u5219\u540D\u79F0",
+  "rooms.ruleEnabled": "\u542F\u7528",
+  "rooms.ruleMode": "\u5339\u914D\u65B9\u5F0F",
+  "rooms.ruleAll": "\u5168\u90E8\u6761\u4EF6",
+  "rooms.ruleAny": "\u4EFB\u4E00\u6761\u4EF6",
+  "rooms.ruleDelete": "\u5220\u9664\u89C4\u5219",
+  "rooms.ruleConditionDelete": "\u5220\u9664\u6761\u4EF6",
+  "rooms.ruleField": "\u6761\u4EF6\u5B57\u6BB5",
+  "rooms.ruleOperator": "\u6761\u4EF6\u8FD0\u7B97\u7B26",
+  "rooms.ruleValue": "\u6761\u4EF6\u503C",
+  "rooms.ruleValuePh": "\u8F93\u5165\u5339\u914D\u503C",
+  "rooms.ruleListPh": "\u591A\u4E2A\u503C\u7528\u9017\u53F7\u5206\u9694",
+  "rooms.ruleExclude": "\u6392\u9664",
+  "rooms.ruleTrue": "\u662F",
+  "rooms.ruleFalse": "\u5426",
+  "rooms.ruleField.status": "\u9879\u76EE\u72B6\u6001",
+  "rooms.ruleField.name": "\u540D\u79F0\u5173\u952E\u8BCD",
+  "rooms.ruleField.icon": "\u56FE\u6807",
+  "rooms.ruleField.tag": "\u6807\u7B7E",
+  "rooms.ruleField.workspace": "\u5DE5\u4F5C\u533A",
+  "rooms.ruleField.hasBoundSession": "\u5DF2\u7ED1\u5B9A\u5BF9\u8BDD",
+  "rooms.ruleField.subagentCount": "\u5B50\u4EE3\u7406\u6570\u91CF",
+  "rooms.ruleField.lastActiveAt": "\u6700\u8FD1\u6D3B\u8DC3\u65F6\u95F4",
+  "rooms.ruleField.lastCompletedAt": "\u6700\u8FD1\u5B8C\u6210\u65F6\u95F4",
+  "rooms.ruleField.hidden": "\u5DF2\u9690\u85CF",
+  "rooms.ruleField.archived": "\u5DF2\u5F52\u6863",
+  "rooms.ruleOperator.equals": "\u7B49\u4E8E",
+  "rooms.ruleOperator.notEquals": "\u4E0D\u7B49\u4E8E",
+  "rooms.ruleOperator.contains": "\u5305\u542B",
+  "rooms.ruleOperator.notContains": "\u4E0D\u5305\u542B",
+  "rooms.ruleOperator.in": "\u5C5E\u4E8E\u5217\u8868",
+  "rooms.ruleOperator.notIn": "\u4E0D\u5C5E\u4E8E\u5217\u8868",
+  "rooms.ruleOperator.greaterThanOrEqual": "\u5927\u4E8E\u7B49\u4E8E",
+  "rooms.ruleOperator.lessThanOrEqual": "\u5C0F\u4E8E\u7B49\u4E8E",
+  "rooms.ruleOperator.before": "\u65E9\u4E8E",
+  "rooms.ruleOperator.after": "\u665A\u4E8E",
+  "rooms.ruleStatus.idle": "\u7A7A\u95F2",
+  "rooms.ruleStatus.busy": "\u5DE5\u4F5C\u4E2D",
+  "rooms.ruleStatus.need": "\u5F85\u51B3\u5B9A",
+  "rooms.ruleStatus.done": "\u5DF2\u5B8C\u6210",
+  "rooms.memberManual": "\u624B\u52A8",
+  "rooms.memberFixed": "\u56FA\u5B9A",
+  "rooms.memberExcluded": "\u6392\u9664",
+  "rooms.data": "\u914D\u7F6E\u4E0E\u5BA1\u8BA1",
+  "rooms.export": "\u5BFC\u51FA\u63A7\u5236\u5BA4\u914D\u7F6E",
+  "rooms.import": "\u5BFC\u5165\u63A7\u5236\u5BA4\u914D\u7F6E",
+  "rooms.dataIsolation": "\u4EC5\u5BFC\u5165\u63A7\u5236\u5BA4\uFF1B\u4E0D\u4F1A\u4FEE\u6539\u9879\u76EE\u4E3B\u6570\u636E\u3001\u5BF9\u8BDD\u3001\u5168\u5C40\u5916\u89C2\u6216\u786C\u4EF6\u8BBE\u7F6E\u3002",
+  "rooms.imported": "\u63A7\u5236\u5BA4\u914D\u7F6E\u5DF2\u5BFC\u5165\uFF1BID \u51B2\u7A81\u5DF2\u81EA\u52A8\u91CD\u6620\u5C04\u3002",
+  "rooms.importFailed": "\u5BFC\u5165\u5931\u8D25\uFF1A\u8BF7\u9009\u62E9\u6709\u6548\u7684 dsh-control-rooms-v1.json\u3002",
+  "rooms.audit": "\u5BA1\u8BA1\u5386\u53F2\uFF08\u6700\u591A 100 \u6761\uFF09",
+  "rooms.auditUser": "\u7528\u6237",
+  "rooms.auditDeepseek": "DeepSeek",
+  "rooms.auditEmpty": "\u6682\u65E0\u5BA1\u8BA1\u8BB0\u5F55",
   "pane.wip": "\u5F00\u53D1\u4E2D\uFF08\u540E\u7EED\u7248\u672C\u63A5\u5165\uFF09",
   "pane.explorerNoCwd": "\u5F53\u524D\u4F1A\u8BDD\u6CA1\u6709\u5DE5\u4F5C\u76EE\u5F55",
   "pane.openLater": "\u8BE5\u7C7B\u578B\u6682\u4E0D\u652F\u6301\u9884\u89C8",
@@ -8698,6 +8914,111 @@ var en = {
   "console.bindFail": "Creation failed, try again",
   "console.noSessions": "No sessions available",
   "console.addProject": "Add project",
+  "rooms.navigation": "Control room navigation",
+  "rooms.search": "Global search",
+  "rooms.searchPlaceholder": "Search control rooms, projects, conversations, or rules",
+  "rooms.searchResults": "Global search results",
+  "rooms.searchEmpty": "No matching results",
+  "rooms.searchHint": "\u2191\u2193 select \xB7 Enter open \xB7 Esc close",
+  "rooms.searchOverflow": "{count} more results not shown",
+  "rooms.searchKind.room": "Control rooms",
+  "rooms.searchKind.project": "Projects",
+  "rooms.searchKind.conversation": "Conversations",
+  "rooms.searchKind.rule": "Rules",
+  "rooms.create": "Create control room",
+  "rooms.name": "Name",
+  "rooms.namePh": "Enter a control room name",
+  "rooms.projectCount": "{count} projects",
+  "rooms.needCount": "{count} projects need you",
+  "rooms.navLabel": "{name}, {projects} projects, {need} need you",
+  "rooms.hidden": "Hidden",
+  "rooms.manageRoom": 'Manage control room "{name}"',
+  "rooms.more": "More",
+  "rooms.manage": "Manage control room",
+  "rooms.theme": "Panel theme",
+  "rooms.columns": "Card columns",
+  "rooms.cardSize": "Card size",
+  "rooms.cardCompact": "Compact",
+  "rooms.cardComfortable": "Comfortable",
+  "rooms.cardWide": "Wide",
+  "rooms.defaultPane": "Default pane",
+  "rooms.paneConversation": "Conversation",
+  "rooms.bindingNone": "No management conversation bound",
+  "rooms.bindingCurrent": "Management conversation: {name}",
+  "rooms.bindingMissing": "Management conversation is missing: {id}",
+  "rooms.bindingManage": "Manage binding",
+  "rooms.members": "Project membership",
+  "rooms.noProjects": "No projects are available to add",
+  "rooms.copy": "Copy",
+  "rooms.copySuffix": " copy",
+  "rooms.hide": "Hide",
+  "rooms.show": "Show",
+  "rooms.delete": "Delete control room",
+  "rooms.deleteTitle": "Delete control room",
+  "rooms.deleteBody": 'Delete the configuration for "{name}"? Projects, files, conversations, Token statistics, and hardware data are not deleted. The configuration can be restored from Trash.',
+  "rooms.trash": "Trash",
+  "rooms.restore": "Restore",
+  "rooms.empty": "No control rooms yet. Use Create control room to begin.",
+  "rooms.reloadNotice": "This control room changed in another window. Reload to apply it without overwriting your open work.",
+  "rooms.reload": "Reload",
+  "rooms.saveFailed": "The control-room configuration could not be saved locally. The current in-memory state is retained.",
+  "rooms.rules": "Automatic rules",
+  "rooms.ruleAdd": "Add rule",
+  "rooms.ruleAddCondition": "Add condition",
+  "rooms.ruleDefaultName": "Rule {count}",
+  "rooms.ruleName": "Rule name",
+  "rooms.ruleEnabled": "Enabled",
+  "rooms.ruleMode": "Match mode",
+  "rooms.ruleAll": "All conditions",
+  "rooms.ruleAny": "Any condition",
+  "rooms.ruleDelete": "Delete rule",
+  "rooms.ruleConditionDelete": "Delete condition",
+  "rooms.ruleField": "Condition field",
+  "rooms.ruleOperator": "Condition operator",
+  "rooms.ruleValue": "Condition value",
+  "rooms.ruleValuePh": "Enter a match value",
+  "rooms.ruleListPh": "Separate values with commas",
+  "rooms.ruleExclude": "Exclude",
+  "rooms.ruleTrue": "Yes",
+  "rooms.ruleFalse": "No",
+  "rooms.ruleField.status": "Project status",
+  "rooms.ruleField.name": "Name keyword",
+  "rooms.ruleField.icon": "Icon",
+  "rooms.ruleField.tag": "Tag",
+  "rooms.ruleField.workspace": "Workspace",
+  "rooms.ruleField.hasBoundSession": "Has bound conversation",
+  "rooms.ruleField.subagentCount": "Child-agent count",
+  "rooms.ruleField.lastActiveAt": "Last active",
+  "rooms.ruleField.lastCompletedAt": "Last completed",
+  "rooms.ruleField.hidden": "Hidden",
+  "rooms.ruleField.archived": "Archived",
+  "rooms.ruleOperator.equals": "Equals",
+  "rooms.ruleOperator.notEquals": "Does not equal",
+  "rooms.ruleOperator.contains": "Contains",
+  "rooms.ruleOperator.notContains": "Does not contain",
+  "rooms.ruleOperator.in": "Is in list",
+  "rooms.ruleOperator.notIn": "Is not in list",
+  "rooms.ruleOperator.greaterThanOrEqual": "At least",
+  "rooms.ruleOperator.lessThanOrEqual": "At most",
+  "rooms.ruleOperator.before": "Before",
+  "rooms.ruleOperator.after": "After",
+  "rooms.ruleStatus.idle": "Idle",
+  "rooms.ruleStatus.busy": "Busy",
+  "rooms.ruleStatus.need": "Needs decision",
+  "rooms.ruleStatus.done": "Completed",
+  "rooms.memberManual": "Manual",
+  "rooms.memberFixed": "Fixed",
+  "rooms.memberExcluded": "Excluded",
+  "rooms.data": "Configuration and audit",
+  "rooms.export": "Export control-room configuration",
+  "rooms.import": "Import control-room configuration",
+  "rooms.dataIsolation": "Imports control rooms only; project master data, conversations, global appearance, and hardware settings are unchanged.",
+  "rooms.imported": "Control-room configuration imported; ID collisions were remapped.",
+  "rooms.importFailed": "Import failed: choose a valid dsh-control-rooms-v1.json file.",
+  "rooms.audit": "Audit history (latest 100)",
+  "rooms.auditUser": "User",
+  "rooms.auditDeepseek": "DeepSeek",
+  "rooms.auditEmpty": "No audit entries yet",
   "pane.wip": "Coming in a later version",
   "pane.explorerNoCwd": "No working directory for the current session",
   "pane.openLater": "Preview not supported for this type",
@@ -16595,7 +16916,7 @@ core_default.registerLanguage("json", json);
 var clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
 var DIVIDER = 4;
 var BAR_H = 26;
-var PERSIST_KEY = "dsh.worktable.split.v2";
+var SPLIT_PERSIST_KEY = "dsh.worktable.split.v2";
 var BUILTIN_ICONS = {
   browser: "\u{1F310}",
   anim: "\u{1F3AC}",
@@ -16671,7 +16992,7 @@ function findConversationRoot() {
 }
 function loadSaved(layoutId) {
   try {
-    const raw = localStorage.getItem(PERSIST_KEY);
+    const raw = localStorage.getItem(SPLIT_PERSIST_KEY);
     if (!raw) return null;
     const s = JSON.parse(raw)?.[layoutId];
     if (!s || typeof s !== "object") return null;
@@ -16689,10 +17010,10 @@ function loadSaved(layoutId) {
 }
 function persistSaved(layoutId, s) {
   try {
-    const raw = localStorage.getItem(PERSIST_KEY);
+    const raw = localStorage.getItem(SPLIT_PERSIST_KEY);
     const all = raw ? JSON.parse(raw) : {};
     all[layoutId] = s;
-    localStorage.setItem(PERSIST_KEY, JSON.stringify(all));
+    localStorage.setItem(SPLIT_PERSIST_KEY, JSON.stringify(all));
   } catch {
   }
 }
@@ -17407,6 +17728,7 @@ function ConsolePane() {
   void now;
   const env = splitEnv?.console;
   const cards = env ? env.getCards() : [];
+  const room = env?.getRoom?.() ?? null;
   const resolvedTheme = (() => {
     if (themeMode !== "system") return themeMode;
     try {
@@ -17440,101 +17762,126 @@ function ConsolePane() {
     if (c.self) env.onJump(c.id);
     else env.onOpen(c.id);
   };
-  return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-wt_console", "data-wt-theme": resolvedTheme, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "dsh-wt_consoleHead", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "dsh-wt_consoleTheme", role: "group", "aria-label": T("console.themeLabel"), children: themeOpts.map((o) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-      "button",
-      {
-        type: "button",
-        className: "dsh-wt_consoleThemeBtn" + (themeMode === o.mode ? " dsh-wt_consoleThemeBtnOn" : ""),
-        title: T(o.key),
-        "aria-label": T(o.key),
-        onClick: () => setTheme(o.mode),
-        children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { "aria-hidden": true, children: o.icon })
-      },
-      o.mode
-    )) }) }),
-    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-wt_consoleGrid", children: [
-      cards.map((c) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
-        "div",
-        {
-          role: !c.self || c.bound ? "button" : void 0,
-          tabIndex: !c.self || c.bound ? 0 : -1,
-          draggable: !c.self,
-          "aria-grabbed": !c.self ? dragId === c.id : void 0,
-          className: "dsh-wt_consoleCard" + (c.self ? " dsh-wt_consoleCardSelf" : "") + (c.status === "busy" ? " dsh-wt_consoleCard-busy" : "") + (c.glow && c.status === "done" ? " dsh-wt_consoleCard-glowDone" : "") + (c.glow && c.status === "need" ? " dsh-wt_consoleCard-glowNeed" : "") + (dragId === c.id ? " dsh-wt_consoleCardDragging" : "") + (dragOverId === c.id ? " dsh-wt_consoleCardDropTarget" : ""),
-          title: c.name,
-          onClick: () => openCard(c),
-          onKeyDown: (e) => {
-            if (e.key !== "Enter" && e.key !== " ") return;
-            e.preventDefault();
-            openCard(c);
-          },
-          onDragStart: (e) => {
-            if (c.self) {
-              e.preventDefault();
-              return;
-            }
-            suppressClickRef.current = true;
-            setDragId(c.id);
-            setDragOverId(null);
-            e.dataTransfer.effectAllowed = "move";
-            e.dataTransfer.setData("text/plain", c.id);
-          },
-          onDragOver: (e) => {
-            if (!dragId || c.self || dragId === c.id) return;
-            e.preventDefault();
-            e.dataTransfer.dropEffect = "move";
-            setDragOverId(c.id);
-          },
-          onDragLeave: (e) => {
-            if (!e.currentTarget.contains(e.relatedTarget)) setDragOverId((id) => id === c.id ? null : id);
-          },
-          onDrop: (e) => {
-            e.preventDefault();
-            const sourceId = dragId || e.dataTransfer.getData("text/plain");
-            if (sourceId && sourceId !== c.id && !c.self) env?.onReorder(sourceId, c.id);
-            setDragOverId(null);
-          },
-          onDragEnd: () => {
-            setDragId(null);
-            setDragOverId(null);
-            window.setTimeout(() => {
-              suppressClickRef.current = false;
-            }, 0);
-          },
-          children: [
-            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-wt_consoleCardHead", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_consoleIcon", "aria-hidden": true, children: c.icon }),
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_consoleName", children: c.name })
-            ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "dsh-wt_consoleDivider", "aria-hidden": true }),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-wt_consoleStatusRow", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_consoleStatus dsh-wt_consoleStatus-" + c.status, children: statusLabel[c.status] }),
-              c.runtimeMs != null && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_consoleRuntime", children: fmtDur(c.runtimeMs) })
-            ] }),
-            c.status === "busy" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_consoleSweep", "aria-hidden": true }),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "dsh-wt_consolePreview" + (c.preview ? "" : " dsh-wt_consolePreviewNone"), title: c.preview, children: c.preview || (c.bound ? T("console.noPreview") : T("console.unboundShort")) })
-          ]
-        },
-        c.id
-      )),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
-        "div",
-        {
-          role: "button",
-          tabIndex: 0,
-          className: "dsh-wt_consoleCard dsh-wt_consoleAdd",
-          title: T("console.addProject"),
-          onClick: () => env?.onAdd?.(),
-          children: [
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_consoleAddPlus", "aria-hidden": true, children: "\uFF0B" }),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_consoleAddLabel", children: T("console.addProject") })
-          ]
-        }
-      )
-    ] }),
-    cards.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "dsh-wt_consoleEmpty", children: T("console.empty") })
-  ] });
+  return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+    "div",
+    {
+      className: "dsh-wt_console",
+      "data-wt-theme": resolvedTheme,
+      "data-wt-columns": room?.cardLayout.columns ?? 3,
+      "data-wt-card-size": room?.cardLayout.cardSize ?? "comfortable",
+      "data-wt-default-pane": room?.defaultPane ?? "console",
+      "data-wt-sidebar-visible": room?.sidebarVisible !== false ? "true" : "false",
+      children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-wt_consoleHead", children: [
+          room && room.bindingState !== "valid" && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-wt_consoleBindingNotice", "data-state": room.bindingState, role: room.bindingState === "missing" ? "alert" : "status", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: room.bindingState === "missing" ? T("rooms.bindingMissing", { id: room.boundSessionId ?? "" }) : T("rooms.bindingNone") }),
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", { type: "button", onClick: () => env?.onManageBinding?.(), children: T("rooms.bindingManage") })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "dsh-wt_consoleTheme", role: "group", "aria-label": T("console.themeLabel"), children: themeOpts.map((o) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+            "button",
+            {
+              type: "button",
+              className: "dsh-wt_consoleThemeBtn" + (themeMode === o.mode ? " dsh-wt_consoleThemeBtnOn" : ""),
+              title: T(o.key),
+              "aria-label": T(o.key),
+              onClick: () => setTheme(o.mode),
+              children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { "aria-hidden": true, children: o.icon })
+            },
+            o.mode
+          )) })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+          "div",
+          {
+            className: "dsh-wt_consoleGrid",
+            style: { gridTemplateColumns: `repeat(${room?.cardLayout.columns ?? 3}, minmax(0, 1fr))` },
+            children: [
+              cards.map((c) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+                "div",
+                {
+                  "data-wt-console-project-id": c.id,
+                  role: !c.self || c.bound ? "button" : void 0,
+                  tabIndex: !c.self || c.bound ? 0 : -1,
+                  draggable: !c.self,
+                  "aria-grabbed": !c.self ? dragId === c.id : void 0,
+                  className: "dsh-wt_consoleCard" + (c.self ? " dsh-wt_consoleCardSelf" : "") + (c.status === "busy" ? " dsh-wt_consoleCard-busy" : "") + (c.glow && c.status === "done" ? " dsh-wt_consoleCard-glowDone" : "") + (c.glow && c.status === "need" ? " dsh-wt_consoleCard-glowNeed" : "") + (dragId === c.id ? " dsh-wt_consoleCardDragging" : "") + (dragOverId === c.id ? " dsh-wt_consoleCardDropTarget" : ""),
+                  title: c.name,
+                  onClick: () => openCard(c),
+                  onKeyDown: (e) => {
+                    if (e.key !== "Enter" && e.key !== " ") return;
+                    e.preventDefault();
+                    openCard(c);
+                  },
+                  onDragStart: (e) => {
+                    if (c.self) {
+                      e.preventDefault();
+                      return;
+                    }
+                    suppressClickRef.current = true;
+                    setDragId(c.id);
+                    setDragOverId(null);
+                    e.dataTransfer.effectAllowed = "move";
+                    e.dataTransfer.setData("text/plain", c.id);
+                  },
+                  onDragOver: (e) => {
+                    if (!dragId || c.self || dragId === c.id) return;
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                    setDragOverId(c.id);
+                  },
+                  onDragLeave: (e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget)) setDragOverId((id) => id === c.id ? null : id);
+                  },
+                  onDrop: (e) => {
+                    e.preventDefault();
+                    const sourceId = dragId || e.dataTransfer.getData("text/plain");
+                    if (sourceId && sourceId !== c.id && !c.self) env?.onReorder(sourceId, c.id);
+                    setDragOverId(null);
+                  },
+                  onDragEnd: () => {
+                    setDragId(null);
+                    setDragOverId(null);
+                    window.setTimeout(() => {
+                      suppressClickRef.current = false;
+                    }, 0);
+                  },
+                  children: [
+                    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-wt_consoleCardHead", children: [
+                      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_consoleIcon", "aria-hidden": true, children: c.icon }),
+                      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_consoleName", children: c.name })
+                    ] }),
+                    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "dsh-wt_consoleDivider", "aria-hidden": true }),
+                    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-wt_consoleStatusRow", children: [
+                      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_consoleStatus dsh-wt_consoleStatus-" + c.status, children: statusLabel[c.status] }),
+                      c.runtimeMs != null && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_consoleRuntime", children: fmtDur(c.runtimeMs) })
+                    ] }),
+                    c.status === "busy" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_consoleSweep", "aria-hidden": true }),
+                    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "dsh-wt_consolePreview" + (c.preview ? "" : " dsh-wt_consolePreviewNone"), title: c.preview, children: c.preview || (c.bound ? T("console.noPreview") : T("console.unboundShort")) })
+                  ]
+                },
+                c.id
+              )),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+                "div",
+                {
+                  role: "button",
+                  tabIndex: 0,
+                  className: "dsh-wt_consoleCard dsh-wt_consoleAdd",
+                  title: T("console.addProject"),
+                  onClick: () => env?.onAdd?.(),
+                  children: [
+                    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_consoleAddPlus", "aria-hidden": true, children: "\uFF0B" }),
+                    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_consoleAddLabel", children: T("console.addProject") })
+                  ]
+                }
+              )
+            ]
+          }
+        ),
+        cards.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "dsh-wt_consoleEmpty", children: T("console.empty") })
+      ]
+    }
+  );
 }
 function FolderIcon() {
   return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("svg", { className: "dsh-wt_treeIcon", width: "13", height: "13", viewBox: "0 0 16 16", fill: "none", xmlns: "http://www.w3.org/2000/svg", "aria-hidden": true, children: [
@@ -17985,7 +18332,7 @@ function CustomPane(props) {
   const [newGroupName, setNewGroupName] = (0, import_react.useState)("");
   const [busy, setBusy] = (0, import_react.useState)(false);
   const [done, setDone] = (0, import_react.useState)(false);
-  const [fail, setFail] = (0, import_react.useState)("");
+  const [fail2, setFail] = (0, import_react.useState)("");
   const [bindNote, setBindNote] = (0, import_react.useState)("none");
   (0, import_react.useEffect)(() => {
     const list2 = custom?.getProjects?.() ?? [];
@@ -18159,10 +18506,10 @@ function CustomPane(props) {
         children: busy ? "\u2026" : mode === "new" ? T("custom.send") : T("custom.sendToSession")
       }
     ),
-    fail && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", { className: "dsh-wt_customFail", children: [
+    fail2 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", { className: "dsh-wt_customFail", children: [
       T("custom.fail"),
       "\uFF1A",
-      fail
+      fail2
     ] })
   ] }) });
 }
@@ -18386,7 +18733,7 @@ function WorkspaceLayer(props) {
   );
   return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
     /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-wt_splitBar", style: { position: "fixed", left: g.left, top: barTop, width: hasLeft || chatFull ? contentW : hasTop ? colW : contentW, zIndex: 70 }, children: [
-      spec.id !== "wt-console" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_splitTitle", children: spec.title }),
+      spec.id !== "wt-console" && !spec.id.startsWith("wt-console:") && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_splitTitle", children: spec.title }),
       !hasLeft && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
         "button",
         {
@@ -18530,7 +18877,7 @@ function SplitWorkspace() {
   }) });
 }
 try {
-  window.__dshWorktable = { splitStore };
+  window.__dshWorktable = { ...window.__dshWorktable ?? {}, splitStore };
 } catch {
 }
 
@@ -18923,6 +19270,1675 @@ function installAppearance(ctx, t) {
   }, AppearanceSection), "dsh-worktable: appearance settings");
 }
 
+// src/client/modalFocus.ts
+var FOCUSABLE_SELECTOR = [
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  "a[href]",
+  '[tabindex]:not([tabindex="-1"])'
+].join(",");
+function installModalFocusGuard(options) {
+  const { dialog, initialFocus, returnFocus, onEscape } = options;
+  const ownerDocument = dialog.ownerDocument;
+  const schedule = options.schedule ?? ((callback) => window.requestAnimationFrame(callback));
+  let active = true;
+  const focusable = () => Array.from(dialog.querySelectorAll(FOCUSABLE_SELECTOR));
+  const onKeyDown = (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      onEscape();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const items = focusable();
+    if (items.length === 0) {
+      event.preventDefault();
+      dialog.focus();
+      return;
+    }
+    const first = items[0];
+    const last = items[items.length - 1];
+    const current = ownerDocument.activeElement;
+    if (!dialog.contains(current)) {
+      event.preventDefault();
+      first.focus();
+    } else if (event.shiftKey && current === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && current === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+  ownerDocument.addEventListener("keydown", onKeyDown, true);
+  schedule(() => {
+    if (active && initialFocus.isConnected) initialFocus.focus();
+  });
+  return () => {
+    active = false;
+    ownerDocument.removeEventListener("keydown", onKeyDown, true);
+    schedule(() => {
+      if (returnFocus?.isConnected) returnFocus.focus();
+    });
+  };
+}
+
+// src/client/controlRooms.ts
+var CONTROL_ROOMS_KEY = "dsh.worktable.controlRooms.v1";
+var CONTROL_ROOMS_TRASH_KEY = "dsh.worktable.controlRooms.trash.v1";
+var CONTROL_ROOMS_MIGRATION_BACKUP_KEY = "dsh.worktable.controlRooms.migrationBackup.v1";
+var LEGACY_PROJECTS_KEY = "dsh.worktable.projects.v1";
+var LEGACY_VIEW_KEY = "dsh.worktable.view.v1";
+var CONTROL_ROOMS_EXPORT_FORMAT = "dsh-control-rooms-v1.json";
+var CONTROL_ROOMS_VERSION = 1;
+var CONTROL_ROOM_TRASH_TTL_MS = 30 * 24 * 60 * 60 * 1e3;
+var CONTROL_ROOM_AUDIT_LIMIT = 100;
+var UnknownControlRoomsVersionError = class extends Error {
+  version;
+  constructor(version) {
+    super(`Unsupported control-room storage version: ${String(version)}`);
+    this.name = "UnknownControlRoomsVersionError";
+    this.version = version;
+  }
+};
+var EMPTY_FILTERS = {
+  statuses: ["idle", "busy", "need", "done"],
+  showHidden: false,
+  showArchived: false
+};
+var DEFAULT_CARD_LAYOUT = { columns: 2, cardSize: "comfortable" };
+var isRecord = (value) => !!value && typeof value === "object" && !Array.isArray(value);
+var uniqueStrings = (value) => {
+  if (!Array.isArray(value)) return [];
+  const seen = /* @__PURE__ */ new Set();
+  const result = [];
+  for (const item of value) {
+    if (typeof item === "string" && item && !seen.has(item)) {
+      seen.add(item);
+      result.push(item);
+    }
+  }
+  return result;
+};
+var clone = (value) => JSON.parse(JSON.stringify(value));
+var normalizedTheme = (value) => value === "dark" || value === "light" || value === "system" ? value : "system";
+var normalizedPane = (value) => value === "conversation" || value === "files" || value === "terminal" || value === "console" ? value : "console";
+var normalizedStatus = (value) => value === "idle" || value === "busy" || value === "need" || value === "done";
+var BOOLEAN_FIELDS = ["hasBoundSession", "hidden", "archived"];
+var NUMBER_FIELDS = ["subagentCount"];
+var TIME_FIELDS = ["lastActiveAt", "lastCompletedAt"];
+var BOOLEAN_OPERATORS = ["equals", "notEquals"];
+var NUMBER_OPERATORS = ["equals", "notEquals", "greaterThanOrEqual", "lessThanOrEqual"];
+var TIME_OPERATORS = ["before", "after", "greaterThanOrEqual", "lessThanOrEqual"];
+var TEXT_OPERATORS = ["equals", "notEquals", "contains", "notContains", "in", "notIn"];
+var CONDITION_FIELDS = [
+  "status",
+  "name",
+  "icon",
+  "tag",
+  "workspace",
+  "hasBoundSession",
+  "subagentCount",
+  "lastActiveAt",
+  "lastCompletedAt",
+  "hidden",
+  "archived"
+];
+var CONDITION_STATUSES = ["idle", "busy", "need", "done"];
+function isControlRoomConditionCompatible(condition) {
+  if (!CONDITION_FIELDS.includes(condition.field)) return false;
+  if (BOOLEAN_FIELDS.includes(condition.field)) {
+    return typeof condition.value === "boolean" && BOOLEAN_OPERATORS.includes(condition.operator);
+  }
+  if (NUMBER_FIELDS.includes(condition.field)) {
+    return typeof condition.value === "number" && Number.isFinite(condition.value) && NUMBER_OPERATORS.includes(condition.operator);
+  }
+  if (TIME_FIELDS.includes(condition.field)) {
+    return typeof condition.value === "number" && Number.isFinite(condition.value) && TIME_OPERATORS.includes(condition.operator);
+  }
+  if (!TEXT_OPERATORS.includes(condition.operator)) return false;
+  if (condition.field === "status") {
+    if (condition.operator === "in" || condition.operator === "notIn") {
+      return Array.isArray(condition.value) && condition.value.length > 0 && condition.value.every((value) => CONDITION_STATUSES.includes(value));
+    }
+    return typeof condition.value === "string" && CONDITION_STATUSES.includes(condition.value);
+  }
+  if (condition.operator === "in" || condition.operator === "notIn") {
+    return Array.isArray(condition.value);
+  }
+  return typeof condition.value === "string";
+}
+function normalizeCondition(value, index) {
+  if (!isRecord(value)) return null;
+  const operators = [
+    "equals",
+    "notEquals",
+    "contains",
+    "notContains",
+    "in",
+    "notIn",
+    "greaterThanOrEqual",
+    "lessThanOrEqual",
+    "before",
+    "after"
+  ];
+  if (!CONDITION_FIELDS.includes(value.field)) return null;
+  if (!operators.includes(value.operator)) return null;
+  const rawValue = value.value;
+  const validValue = typeof rawValue === "string" || typeof rawValue === "number" || typeof rawValue === "boolean" || Array.isArray(rawValue) && rawValue.every((item) => typeof item === "string");
+  if (!validValue) return null;
+  const condition = {
+    id: typeof value.id === "string" && value.id ? value.id : `condition-${index + 1}`,
+    field: value.field,
+    operator: value.operator,
+    value: clone(rawValue),
+    ...value.exclude === true ? { exclude: true } : {}
+  };
+  return isControlRoomConditionCompatible(condition) ? condition : null;
+}
+function normalizeRule(value, index) {
+  if (!isRecord(value)) return null;
+  const rawConditions = Array.isArray(value.conditions) ? value.conditions : [];
+  const conditions = rawConditions.map((condition, conditionIndex) => normalizeCondition(condition, conditionIndex)).filter((condition) => !!condition);
+  return {
+    id: typeof value.id === "string" && value.id ? value.id : `rule-${index + 1}`,
+    ...typeof value.name === "string" && value.name.trim() ? { name: value.name.trim() } : {},
+    enabled: value.enabled !== false && (value.mode === "all" || value.mode === "any") && conditions.length > 0 && conditions.length === rawConditions.length,
+    mode: value.mode === "any" ? "any" : "all",
+    conditions
+  };
+}
+function createEmptyControlRoomsState() {
+  return { version: CONTROL_ROOMS_VERSION, order: [], activeId: null, rooms: {} };
+}
+function createEmptyControlRoomsTrashState() {
+  return { version: CONTROL_ROOMS_VERSION, deleted: [], audit: [] };
+}
+function normalizeControlRoom(value, fallbackId = "room") {
+  const room = isRecord(value) ? value : {};
+  const id = typeof room.id === "string" && room.id ? room.id : fallbackId;
+  const createdAt = typeof room.createdAt === "number" && Number.isFinite(room.createdAt) ? room.createdAt : 0;
+  const updatedAt = typeof room.updatedAt === "number" && Number.isFinite(room.updatedAt) ? room.updatedAt : createdAt;
+  const projectIds = uniqueStrings(room.projectIds);
+  const fixedProjectIds = uniqueStrings(room.fixedProjectIds);
+  const excludedProjectIds = uniqueStrings(room.excludedProjectIds);
+  const orderable = /* @__PURE__ */ new Set([...projectIds, ...fixedProjectIds]);
+  const projectOrder = uniqueStrings(room.projectOrder).filter((projectId) => orderable.has(projectId));
+  for (const projectId of [...projectIds, ...fixedProjectIds]) {
+    if (!projectOrder.includes(projectId)) projectOrder.push(projectId);
+  }
+  const rawRules = Array.isArray(room.rules) ? room.rules : [];
+  const rules = rawRules.map((rule, index) => normalizeRule(rule, index)).filter((rule) => !!rule);
+  const rawCardLayout = isRecord(room.cardLayout) ? room.cardLayout : {};
+  const columns = rawCardLayout.columns === 1 || rawCardLayout.columns === 2 || rawCardLayout.columns === 3 || rawCardLayout.columns === 4 ? rawCardLayout.columns : DEFAULT_CARD_LAYOUT.columns;
+  const cardSize = rawCardLayout.cardSize === "compact" || rawCardLayout.cardSize === "comfortable" || rawCardLayout.cardSize === "wide" ? rawCardLayout.cardSize : DEFAULT_CARD_LAYOUT.cardSize;
+  const rawFilters = isRecord(room.filters) ? room.filters : {};
+  const statuses = uniqueStrings(rawFilters.statuses).filter(normalizedStatus);
+  return {
+    id,
+    name: typeof room.name === "string" && room.name.trim() ? room.name : "\u65B0\u63A7\u5236\u5BA4",
+    icon: typeof room.icon === "string" && room.icon ? room.icon : "\u{1F5A5}\uFE0F",
+    description: typeof room.description === "string" ? room.description : "",
+    projectIds,
+    projectOrder,
+    fixedProjectIds,
+    excludedProjectIds,
+    boundSessionId: typeof room.boundSessionId === "string" && room.boundSessionId ? room.boundSessionId : null,
+    rules,
+    layoutId: `wt-console:${id}`,
+    themeMode: normalizedTheme(room.themeMode),
+    cardLayout: { columns, cardSize },
+    filters: {
+      statuses: statuses.length ? statuses : [...EMPTY_FILTERS.statuses],
+      showHidden: rawFilters.showHidden === true,
+      showArchived: rawFilters.showArchived === true
+    },
+    defaultPane: normalizedPane(room.defaultPane),
+    sidebarVisible: room.sidebarVisible !== false,
+    createdAt,
+    updatedAt,
+    lastOpenedAt: typeof room.lastOpenedAt === "number" && Number.isFinite(room.lastOpenedAt) ? room.lastOpenedAt : createdAt,
+    deletedAt: typeof room.deletedAt === "number" && Number.isFinite(room.deletedAt) ? room.deletedAt : null
+  };
+}
+function normalizeControlRoomsState(value) {
+  if (!isRecord(value)) return createEmptyControlRoomsState();
+  if (value.version !== CONTROL_ROOMS_VERSION) throw new UnknownControlRoomsVersionError(value.version);
+  const rawRooms = isRecord(value.rooms) ? value.rooms : {};
+  const rooms = {};
+  for (const [key, rawRoom] of Object.entries(rawRooms)) {
+    const room = normalizeControlRoom(rawRoom, key);
+    rooms[key] = room.id === key ? room : { ...room, id: key, layoutId: room.layoutId === `wt-console:${room.id}` ? `wt-console:${key}` : room.layoutId };
+  }
+  const order = uniqueStrings(value.order).filter((id) => !!rooms[id]);
+  for (const id of Object.keys(rooms)) if (!order.includes(id)) order.push(id);
+  const activeId = typeof value.activeId === "string" && rooms[value.activeId] ? value.activeId : null;
+  return { version: CONTROL_ROOMS_VERSION, order, activeId, rooms };
+}
+function normalizeControlRoomsTrashState(value) {
+  if (!isRecord(value)) return createEmptyControlRoomsTrashState();
+  if (value.version !== CONTROL_ROOMS_VERSION) throw new UnknownControlRoomsVersionError(value.version);
+  const deleted = (Array.isArray(value.deleted) ? value.deleted : []).flatMap((item) => {
+    if (!isRecord(item) || typeof item.deletedAt !== "number" || typeof item.expiresAt !== "number") return [];
+    return [{ room: normalizeControlRoom(item.room), deletedAt: item.deletedAt, expiresAt: item.expiresAt }];
+  });
+  const audit = (Array.isArray(value.audit) ? value.audit : []).flatMap((item) => {
+    if (!isRecord(item) || item.actor !== "user" && item.actor !== "deepseek" || typeof item.timestamp !== "number" || typeof item.action !== "string" || typeof item.controlRoomId !== "string" || typeof item.summary !== "string") return [];
+    return [{
+      actor: item.actor,
+      timestamp: item.timestamp,
+      action: item.action,
+      controlRoomId: item.controlRoomId,
+      summary: item.summary
+    }];
+  }).slice(-CONTROL_ROOM_AUDIT_LIMIT);
+  return { version: CONTROL_ROOMS_VERSION, deleted, audit };
+}
+function roomFromInput(input, id, now) {
+  return normalizeControlRoom({
+    name: "\u65B0\u63A7\u5236\u5BA4",
+    icon: "\u{1F5A5}\uFE0F",
+    description: "",
+    projectIds: [],
+    projectOrder: [],
+    fixedProjectIds: [],
+    excludedProjectIds: [],
+    boundSessionId: null,
+    rules: [],
+    layoutId: `wt-console:${id}`,
+    themeMode: "system",
+    cardLayout: DEFAULT_CARD_LAYOUT,
+    filters: EMPTY_FILTERS,
+    defaultPane: "console",
+    sidebarVisible: true,
+    ...input,
+    id,
+    createdAt: now,
+    updatedAt: now,
+    lastOpenedAt: now,
+    deletedAt: null
+  }, id);
+}
+function createControlRoom(state, input, options) {
+  const normalized = normalizeControlRoomsState(state);
+  const id = options.id || input.id;
+  if (!id) throw new Error("A deterministic control-room id is required");
+  if (normalized.rooms[id]) throw new Error(`Control room already exists: ${id}`);
+  const room = roomFromInput(input, id, options.now);
+  return {
+    ...normalized,
+    order: [...normalized.order, id],
+    activeId: normalized.activeId ?? id,
+    rooms: { ...normalized.rooms, [id]: room }
+  };
+}
+function updateControlRoom(state, roomId, patch, now) {
+  const normalized = normalizeControlRoomsState(state);
+  const current = normalized.rooms[roomId];
+  if (!current) return normalized;
+  const room = normalizeControlRoom({ ...current, ...patch, id: roomId, createdAt: current.createdAt, updatedAt: now, deletedAt: null }, roomId);
+  return { ...normalized, rooms: { ...normalized.rooms, [roomId]: room } };
+}
+function selectControlRoom(state, roomId, now) {
+  const normalized = normalizeControlRoomsState(state);
+  const room = normalized.rooms[roomId];
+  if (!room) return normalized;
+  const selected = updateControlRoom(normalized, roomId, { lastOpenedAt: now }, now);
+  return { ...selected, activeId: roomId };
+}
+function selectControlRoomNavigation(state, needRoomIds) {
+  const normalized = normalizeControlRoomsState(state);
+  const visibleIds = normalized.order.filter((id) => normalized.rooms[id]?.sidebarVisible !== false);
+  if (normalized.order.length <= 8) return { primaryIds: visibleIds, moreIds: [] };
+  const orderIndex = new Map(normalized.order.map((id, index) => [id, index]));
+  const recentIds = [...visibleIds].sort((a, b) => {
+    const recency = normalized.rooms[b].lastOpenedAt - normalized.rooms[a].lastOpenedAt;
+    return recency || (orderIndex.get(a) ?? 0) - (orderIndex.get(b) ?? 0);
+  }).slice(0, 6);
+  const primary = new Set(recentIds);
+  if (normalized.activeId && normalized.rooms[normalized.activeId]) primary.add(normalized.activeId);
+  for (const id of needRoomIds) if (normalized.rooms[id]) primary.add(id);
+  const requiredIds = normalized.order.filter((id) => primary.has(id) && !recentIds.includes(id));
+  return {
+    primaryIds: [...recentIds, ...requiredIds],
+    moreIds: visibleIds.filter((id) => !primary.has(id))
+  };
+}
+function copyControlRoom(state, sourceId, options) {
+  const source = normalizeControlRoomsState(state).rooms[sourceId];
+  if (!source) return normalizeControlRoomsState(state);
+  const { createdAt: _createdAt, updatedAt: _updatedAt, lastOpenedAt: _lastOpenedAt, deletedAt: _deletedAt, ...copyable } = clone(source);
+  return createControlRoom(state, {
+    ...copyable,
+    id: options.id,
+    name: options.name ?? `${source.name} \u526F\u672C`,
+    boundSessionId: null,
+    layoutId: `wt-console:${options.id}`
+  }, options);
+}
+function deleteControlRoom(state, trash, roomId, now) {
+  const normalized = normalizeControlRoomsState(state);
+  const room = normalized.rooms[roomId];
+  if (!room) return { state: normalized, trash: normalizeControlRoomsTrashState(trash), deleted: null };
+  const deleted = {
+    room: { ...clone(room), deletedAt: now, updatedAt: now },
+    deletedAt: now,
+    expiresAt: now + CONTROL_ROOM_TRASH_TTL_MS
+  };
+  const rooms = { ...normalized.rooms };
+  delete rooms[roomId];
+  const order = normalized.order.filter((id) => id !== roomId);
+  return {
+    state: { ...normalized, rooms, order, activeId: normalized.activeId === roomId ? order[0] ?? null : normalized.activeId },
+    trash: {
+      ...normalizeControlRoomsTrashState(trash),
+      deleted: [...normalizeControlRoomsTrashState(trash).deleted.filter((item) => item.room.id !== roomId), deleted]
+    },
+    deleted
+  };
+}
+function collisionId(baseId, occupied) {
+  let suffix = 2;
+  let candidate = `${baseId}-${suffix}`;
+  while (occupied.has(candidate)) candidate = `${baseId}-${++suffix}`;
+  return candidate;
+}
+function restoreControlRoom(state, trash, roomId, now) {
+  const normalized = normalizeControlRoomsState(state);
+  const normalizedTrash = normalizeControlRoomsTrashState(trash);
+  const entry = normalizedTrash.deleted.find((item) => item.room.id === roomId);
+  if (!entry || entry.expiresAt <= now) return { state: normalized, trash: expireDeletedControlRooms(normalizedTrash, now), restoredId: null };
+  const occupied = new Set(Object.keys(normalized.rooms));
+  const restoredId = occupied.has(roomId) ? collisionId(roomId, occupied) : roomId;
+  const room = normalizeControlRoom({
+    ...clone(entry.room),
+    id: restoredId,
+    layoutId: restoredId === roomId ? entry.room.layoutId : `wt-console:${restoredId}`,
+    deletedAt: null,
+    updatedAt: now
+  }, restoredId);
+  return {
+    state: {
+      ...normalized,
+      order: [...normalized.order, restoredId],
+      activeId: normalized.activeId ?? restoredId,
+      rooms: { ...normalized.rooms, [restoredId]: room }
+    },
+    trash: { ...normalizedTrash, deleted: normalizedTrash.deleted.filter((item) => item !== entry && item.room.id !== roomId) },
+    restoredId
+  };
+}
+function expireDeletedControlRooms(trash, now) {
+  const normalized = normalizeControlRoomsTrashState(trash);
+  return { ...normalized, deleted: normalized.deleted.filter((entry) => entry.expiresAt > now) };
+}
+function addProjectToRoom(state, roomId, projectId, now) {
+  const room = normalizeControlRoomsState(state).rooms[roomId];
+  if (!room || !projectId || room.projectIds.includes(projectId)) return normalizeControlRoomsState(state);
+  return updateControlRoom(state, roomId, {
+    projectIds: [...room.projectIds, projectId],
+    projectOrder: room.projectOrder.includes(projectId) ? room.projectOrder : [...room.projectOrder, projectId]
+  }, now);
+}
+function removeProjectFromRoom(state, roomId, projectId, now) {
+  const room = normalizeControlRoomsState(state).rooms[roomId];
+  if (!room) return normalizeControlRoomsState(state);
+  return updateControlRoom(state, roomId, {
+    projectIds: room.projectIds.filter((id) => id !== projectId),
+    projectOrder: room.projectOrder.filter((id) => id !== projectId),
+    fixedProjectIds: room.fixedProjectIds.filter((id) => id !== projectId),
+    excludedProjectIds: room.excludedProjectIds.filter((id) => id !== projectId)
+  }, now);
+}
+function reorderProjectsInRoom(state, roomId, requestedOrder, now) {
+  const room = normalizeControlRoomsState(state).rooms[roomId];
+  if (!room) return normalizeControlRoomsState(state);
+  const available = /* @__PURE__ */ new Set([...room.projectIds, ...room.fixedProjectIds]);
+  const order = uniqueStrings(requestedOrder).filter((id) => available.has(id));
+  for (const id of room.projectOrder) if (available.has(id) && !order.includes(id)) order.push(id);
+  return updateControlRoom(state, roomId, { projectOrder: order }, now);
+}
+function setProjectFixed(state, roomId, projectId, fixed, now) {
+  const room = normalizeControlRoomsState(state).rooms[roomId];
+  if (!room || !projectId) return normalizeControlRoomsState(state);
+  const fixedProjectIds = fixed ? uniqueStrings([...room.fixedProjectIds, projectId]) : room.fixedProjectIds.filter((id) => id !== projectId);
+  const projectOrder = fixed && !room.projectOrder.includes(projectId) ? [...room.projectOrder, projectId] : room.projectOrder;
+  return updateControlRoom(state, roomId, { fixedProjectIds, projectOrder }, now);
+}
+function setProjectExcluded(state, roomId, projectId, excluded, now) {
+  const room = normalizeControlRoomsState(state).rooms[roomId];
+  if (!room || !projectId) return normalizeControlRoomsState(state);
+  const excludedProjectIds = excluded ? uniqueStrings([...room.excludedProjectIds, projectId]) : room.excludedProjectIds.filter((id) => id !== projectId);
+  return updateControlRoom(state, roomId, { excludedProjectIds }, now);
+}
+function appendControlRoomAudit(audit, entry) {
+  return [...audit, clone(entry)].slice(-CONTROL_ROOM_AUDIT_LIMIT);
+}
+function mergeControlRoomSummaries(local, incoming) {
+  const left = normalizeControlRoomsState(local);
+  const right = normalizeControlRoomsState(incoming);
+  const rooms = { ...left.rooms };
+  for (const [id, room] of Object.entries(right.rooms)) {
+    const current = rooms[id];
+    if (!current || room.updatedAt > current.updatedAt) rooms[id] = clone(room);
+  }
+  const order = uniqueStrings([...right.order, ...left.order]).filter((id) => !!rooms[id]);
+  const activeCandidate = right.activeId && rooms[right.activeId] ? right.activeId : left.activeId;
+  return { version: CONTROL_ROOMS_VERSION, order, activeId: activeCandidate && rooms[activeCandidate] ? activeCandidate : null, rooms };
+}
+function tombstoneTimestamp(entry) {
+  return Math.max(entry.deletedAt, entry.room.updatedAt);
+}
+function mergeControlRoomsTrash(local, incoming) {
+  const left = normalizeControlRoomsTrashState(local);
+  const right = normalizeControlRoomsTrashState(incoming);
+  const byRoomId = /* @__PURE__ */ new Map();
+  for (const entry of [...left.deleted, ...right.deleted]) {
+    const current = byRoomId.get(entry.room.id);
+    if (!current || tombstoneTimestamp(entry) > tombstoneTimestamp(current)) byRoomId.set(entry.room.id, clone(entry));
+  }
+  const seenAudit = /* @__PURE__ */ new Set();
+  const audit = [...left.audit, ...right.audit].filter((entry) => {
+    const key = `${entry.actor}\0${entry.timestamp}\0${entry.action}\0${entry.controlRoomId}\0${entry.summary}`;
+    if (seenAudit.has(key)) return false;
+    seenAudit.add(key);
+    return true;
+  }).slice(-CONTROL_ROOM_AUDIT_LIMIT);
+  return { version: CONTROL_ROOMS_VERSION, deleted: [...byRoomId.values()], audit };
+}
+function resolveControlRoomStorageEvent(local, incoming, openRoomId, localTrash = createEmptyControlRoomsTrashState(), incomingTrash = createEmptyControlRoomsTrashState()) {
+  const normalizedLocal = normalizeControlRoomsState(local);
+  const normalizedIncoming = normalizeControlRoomsState(incoming);
+  let trash = mergeControlRoomsTrash(localTrash, incomingTrash);
+  const deleted = trash.deleted;
+  const localOpen = openRoomId ? normalizedLocal.rooms[openRoomId] : void 0;
+  const incomingOpen = openRoomId ? normalizedIncoming.rooms[openRoomId] : void 0;
+  const openTombstone = openRoomId ? deleted.find((entry) => entry.room.id === openRoomId) : void 0;
+  const requiresReload = !!localOpen && (!!incomingOpen && incomingOpen.updatedAt > localOpen.updatedAt || !!openTombstone && tombstoneTimestamp(openTombstone) >= localOpen.updatedAt);
+  let state = mergeControlRoomSummaries(normalizedLocal, normalizedIncoming);
+  for (const entry of deleted) {
+    const current = state.rooms[entry.room.id];
+    if (!current) continue;
+    if (tombstoneTimestamp(entry) < current.updatedAt) {
+      trash = { ...trash, deleted: trash.deleted.filter((item) => item.room.id !== entry.room.id) };
+      continue;
+    }
+    if (entry.room.id === openRoomId && localOpen) continue;
+    const rooms = { ...state.rooms };
+    delete rooms[entry.room.id];
+    const order = state.order.filter((id) => id !== entry.room.id);
+    state = { ...state, rooms, order, activeId: state.activeId === entry.room.id ? order[0] ?? null : state.activeId };
+  }
+  if (normalizedLocal.activeId && state.rooms[normalizedLocal.activeId]) {
+    state = { ...state, activeId: normalizedLocal.activeId };
+  }
+  if (requiresReload && openRoomId && localOpen) {
+    state = { ...state, activeId: openRoomId, rooms: { ...state.rooms, [openRoomId]: localOpen } };
+  }
+  return { state, trash, requiresReload };
+}
+function exportControlRooms(state, exportedAt) {
+  const payload = {
+    format: CONTROL_ROOMS_EXPORT_FORMAT,
+    version: CONTROL_ROOMS_VERSION,
+    exportedAt,
+    state: normalizeControlRoomsState(state)
+  };
+  return JSON.stringify(payload, null, 2);
+}
+function importControlRooms(current, serialized, now) {
+  const parsed = JSON.parse(serialized);
+  if (!isRecord(parsed) || parsed.format !== CONTROL_ROOMS_EXPORT_FORMAT) throw new Error("Invalid control-room import format");
+  if (parsed.version !== CONTROL_ROOMS_VERSION) throw new UnknownControlRoomsVersionError(parsed.version);
+  const imported = normalizeControlRoomsState(parsed.state);
+  const base2 = normalizeControlRoomsState(current);
+  const occupied = new Set(Object.keys(base2.rooms));
+  const idMap = {};
+  for (const sourceId of imported.order) {
+    const targetId = occupied.has(sourceId) ? collisionId(sourceId, occupied) : sourceId;
+    idMap[sourceId] = targetId;
+    occupied.add(targetId);
+  }
+  const rooms = { ...base2.rooms };
+  const appendedOrder = [];
+  for (const sourceId of imported.order) {
+    const source = imported.rooms[sourceId];
+    const targetId = idMap[sourceId];
+    rooms[targetId] = normalizeControlRoom({
+      ...clone(source),
+      id: targetId,
+      layoutId: targetId === sourceId ? source.layoutId : `wt-console:${targetId}`,
+      updatedAt: now,
+      deletedAt: null
+    }, targetId);
+    appendedOrder.push(targetId);
+  }
+  return {
+    state: { ...base2, order: [...base2.order, ...appendedOrder], rooms },
+    idMap
+  };
+}
+function parseStored(storage, key) {
+  const raw = storage.getItem(key);
+  return raw == null ? null : JSON.parse(raw);
+}
+function createLegacyMigration(input, now) {
+  const projectIds = uniqueStrings(input.projectIds);
+  const projectOrder = uniqueStrings(input.projectOrder ?? input.projectIds).filter((id) => projectIds.includes(id));
+  for (const id of projectIds) if (!projectOrder.includes(id)) projectOrder.push(id);
+  const legacy = {
+    projectIds,
+    projectOrder,
+    boundSessionId: typeof input.boundSessionId === "string" && input.boundSessionId ? input.boundSessionId : null,
+    layoutId: input.layoutId || "wt-console:room-default",
+    themeMode: normalizedTheme(input.themeMode)
+  };
+  const state = createControlRoom(createEmptyControlRoomsState(), {
+    id: "room-default",
+    name: "\u603B\u89C8",
+    projectIds,
+    projectOrder,
+    boundSessionId: legacy.boundSessionId,
+    // New split persistence is keyed by this ID; the old view remains in the raw backup.
+    layoutId: "wt-console:room-default",
+    themeMode: legacy.themeMode
+  }, { id: "room-default", now });
+  return {
+    state,
+    backup: {
+      version: CONTROL_ROOMS_VERSION,
+      createdAt: now,
+      rawProjects: input.rawProjects,
+      rawView: input.rawView,
+      legacy
+    }
+  };
+}
+var ControlRoomsStorage = class {
+  constructor(storage) {
+    this.storage = storage;
+  }
+  lastGoodState = null;
+  lastGoodTrash = null;
+  lastWriteError = null;
+  load(legacyInput, now = Date.now()) {
+    const storedState = parseStored(this.storage, CONTROL_ROOMS_KEY);
+    if (storedState != null) {
+      const state = normalizeControlRoomsState(storedState);
+      const storedTrash = parseStored(this.storage, CONTROL_ROOMS_TRASH_KEY);
+      const trash2 = expireDeletedControlRooms(storedTrash == null ? createEmptyControlRoomsTrashState() : normalizeControlRoomsTrashState(storedTrash), now);
+      this.lastGoodState = state;
+      this.lastGoodTrash = trash2;
+      return { state: clone(state), trash: clone(trash2), migrated: false };
+    }
+    if (!legacyInput) {
+      const state = createEmptyControlRoomsState();
+      const trash2 = createEmptyControlRoomsTrashState();
+      this.lastGoodState = state;
+      this.lastGoodTrash = trash2;
+      return { state: clone(state), trash: clone(trash2), migrated: false };
+    }
+    const migration = createLegacyMigration(legacyInput, now);
+    const trash = createEmptyControlRoomsTrashState();
+    const existingBackup = this.readMigrationBackup();
+    if (!existingBackup) {
+      this.storage.setItem(CONTROL_ROOMS_MIGRATION_BACKUP_KEY, JSON.stringify(migration.backup));
+    }
+    this.storage.setItem(CONTROL_ROOMS_TRASH_KEY, JSON.stringify(trash));
+    this.storage.setItem(CONTROL_ROOMS_KEY, JSON.stringify(migration.state));
+    this.lastGoodState = migration.state;
+    this.lastGoodTrash = trash;
+    return { state: clone(migration.state), trash: clone(trash), migrated: true };
+  }
+  save(state, trash) {
+    const nextState = normalizeControlRoomsState(state);
+    const nextTrash = normalizeControlRoomsTrashState(trash);
+    this.lastGoodState = nextState;
+    this.lastGoodTrash = nextTrash;
+    try {
+      this.storage.setItem(CONTROL_ROOMS_KEY, JSON.stringify(nextState));
+      this.storage.setItem(CONTROL_ROOMS_TRASH_KEY, JSON.stringify(nextTrash));
+      this.lastWriteError = null;
+      return { ok: true, error: null };
+    } catch (error2) {
+      this.lastWriteError = error2;
+      return { ok: false, error: error2 };
+    }
+  }
+  getLastGood() {
+    if (!this.lastGoodState || !this.lastGoodTrash) return null;
+    return { state: clone(this.lastGoodState), trash: clone(this.lastGoodTrash) };
+  }
+  getLastWriteError() {
+    return this.lastWriteError;
+  }
+  readMigrationBackup() {
+    const parsed = parseStored(this.storage, CONTROL_ROOMS_MIGRATION_BACKUP_KEY);
+    if (parsed == null) return null;
+    if (!isRecord(parsed) || parsed.version !== CONTROL_ROOMS_VERSION) {
+      throw new UnknownControlRoomsVersionError(isRecord(parsed) ? parsed.version : void 0);
+    }
+    if (!isRecord(parsed.legacy)) throw new Error("Invalid control-room migration backup");
+    return clone(parsed);
+  }
+  /** Restore only raw legacy keys. New-format room data is intentionally retained for a later retry. */
+  restoreLegacyBackup() {
+    const backup = this.readMigrationBackup();
+    if (!backup) return false;
+    if (backup.rawProjects != null) this.storage.setItem(LEGACY_PROJECTS_KEY, backup.rawProjects);
+    if (backup.rawView != null) this.storage.setItem(LEGACY_VIEW_KEY, backup.rawView);
+    return true;
+  }
+};
+
+// src/client/controlRoomCommands.ts
+var CONTROL_ROOM_COMMAND_OPERATIONS = [
+  "control_room.list",
+  "control_room.get",
+  "control_room.create",
+  "control_room.update",
+  "control_room.copy",
+  "control_room.add_projects",
+  "control_room.remove_projects",
+  "control_room.reorder_projects",
+  "control_room.set_rule",
+  "control_room.bind_session",
+  "control_room.open",
+  "control_room.archive",
+  "control_room.restore",
+  "control_room.search"
+];
+var TARGET_ACTIONS = new Set(CONTROL_ROOM_COMMAND_OPERATIONS.filter((action) => action !== "control_room.list" && action !== "control_room.create" && action !== "control_room.search"));
+var UNSUPPORTED_DESTRUCTIVE_ACTIONS = /* @__PURE__ */ new Set([
+  "control_room.empty_trash",
+  "control_room.update_many",
+  "control_room.remove_project_from_all_rooms",
+  "control_room.delete_project_master_data"
+]);
+var UPDATE_KEYS = /* @__PURE__ */ new Set([
+  "name",
+  "icon",
+  "description",
+  "themeMode",
+  "cardLayout",
+  "filters",
+  "defaultPane",
+  "sidebarVisible"
+]);
+var CREATE_KEYS = /* @__PURE__ */ new Set([
+  ...UPDATE_KEYS,
+  "projectIds",
+  "projectOrder",
+  "fixedProjectIds",
+  "excludedProjectIds",
+  "boundSessionId",
+  "rules"
+]);
+var CARD_LAYOUT_KEYS = /* @__PURE__ */ new Set(["columns", "cardSize"]);
+var FILTER_KEYS = /* @__PURE__ */ new Set(["statuses", "showHidden", "showArchived"]);
+var RULE_KEYS = /* @__PURE__ */ new Set(["id", "name", "enabled", "mode", "conditions"]);
+var CONDITION_KEYS = /* @__PURE__ */ new Set(["id", "field", "operator", "value", "exclude"]);
+var THEME_MODES = /* @__PURE__ */ new Set(["dark", "light", "system"]);
+var CARD_SIZES = /* @__PURE__ */ new Set(["compact", "comfortable", "wide"]);
+var FILTER_STATUSES = /* @__PURE__ */ new Set(["idle", "busy", "need", "done"]);
+var DEFAULT_PANES = /* @__PURE__ */ new Set(["console", "conversation", "files", "terminal"]);
+var isRecord2 = (value) => !!value && typeof value === "object" && !Array.isArray(value);
+var clone2 = (value) => JSON.parse(JSON.stringify(value));
+function fail(action, code2, message, confirmation) {
+  return {
+    ok: false,
+    action: typeof action === "string" ? action : "",
+    error: { code: code2, message },
+    ...confirmation ? { confirmation } : {}
+  };
+}
+function success(action, changed, controlRoomId, data) {
+  return {
+    ok: true,
+    action,
+    changed,
+    ...controlRoomId ? { controlRoomId } : {},
+    ...data === void 0 ? {} : { data: clone2(data) }
+  };
+}
+function exactId(value) {
+  return typeof value === "string" && value.trim() === value && value.length > 0;
+}
+function uniqueIds(value) {
+  if (!Array.isArray(value) || value.some((item) => !exactId(item))) return null;
+  if (new Set(value).size !== value.length) return null;
+  return [...value];
+}
+function hasOnlyKeys(value, allowed) {
+  return Object.keys(value).every((key) => allowed.has(key));
+}
+function hasOwn(value, key) {
+  return Object.prototype.hasOwnProperty.call(value, key);
+}
+function validCardLayout(value) {
+  return isRecord2(value) && hasOnlyKeys(value, CARD_LAYOUT_KEYS) && Object.keys(value).length === CARD_LAYOUT_KEYS.size && (value.columns === 1 || value.columns === 2 || value.columns === 3 || value.columns === 4) && typeof value.cardSize === "string" && CARD_SIZES.has(value.cardSize);
+}
+function validFilters(value) {
+  if (!isRecord2(value) || !hasOnlyKeys(value, FILTER_KEYS) || Object.keys(value).length !== FILTER_KEYS.size || typeof value.showHidden !== "boolean" || typeof value.showArchived !== "boolean" || !Array.isArray(value.statuses) || value.statuses.length === 0 || value.statuses.some((status) => typeof status !== "string" || !FILTER_STATUSES.has(status))) return false;
+  return new Set(value.statuses).size === value.statuses.length;
+}
+function validPresentationField(key, value) {
+  if (key === "name") return typeof value === "string" && value.trim().length > 0;
+  if (key === "icon") return typeof value === "string" && value.length > 0;
+  if (key === "description") return typeof value === "string";
+  if (key === "themeMode") return typeof value === "string" && THEME_MODES.has(value);
+  if (key === "cardLayout") return validCardLayout(value);
+  if (key === "filters") return validFilters(value);
+  if (key === "defaultPane") return typeof value === "string" && DEFAULT_PANES.has(value);
+  if (key === "sidebarVisible") return typeof value === "boolean";
+  return false;
+}
+function validConditionValue(value) {
+  return typeof value === "string" || typeof value === "boolean" || typeof value === "number" && Number.isFinite(value) || Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+function validRule(value) {
+  if (!isRecord2(value) || !hasOnlyKeys(value, RULE_KEYS) || !exactId(value.id) || hasOwn(value, "name") && (typeof value.name !== "string" || !exactId(value.name)) || value.mode !== "all" && value.mode !== "any" || typeof value.enabled !== "boolean" || !Array.isArray(value.conditions) || value.conditions.length === 0) return false;
+  const conditionIds = /* @__PURE__ */ new Set();
+  for (const condition of value.conditions) {
+    if (!isRecord2(condition) || !hasOnlyKeys(condition, CONDITION_KEYS) || !exactId(condition.id) || conditionIds.has(condition.id) || typeof condition.field !== "string" || typeof condition.operator !== "string" || !hasOwn(condition, "value") || !validConditionValue(condition.value) || hasOwn(condition, "exclude") && typeof condition.exclude !== "boolean" || !isControlRoomConditionCompatible(condition)) return false;
+    conditionIds.add(condition.id);
+  }
+  return true;
+}
+function validRules(value) {
+  if (!Array.isArray(value)) return false;
+  const ruleIds = /* @__PURE__ */ new Set();
+  for (const rule of value) {
+    if (!validRule(rule) || ruleIds.has(rule.id)) return false;
+    ruleIds.add(rule.id);
+  }
+  return true;
+}
+function safeUpdatePatch(value) {
+  if (!isRecord2(value) || Object.keys(value).length === 0 || !hasOnlyKeys(value, UPDATE_KEYS) || Object.entries(value).some(([key, field]) => !validPresentationField(key, field))) return null;
+  return clone2(value);
+}
+function safeCreateInput(value) {
+  if (value === void 0) return {};
+  if (!isRecord2(value) || !hasOnlyKeys(value, CREATE_KEYS)) return null;
+  for (const [key, field] of Object.entries(value)) {
+    if (UPDATE_KEYS.has(key) && !validPresentationField(key, field)) return null;
+  }
+  const projectIds = hasOwn(value, "projectIds") ? uniqueIds(value.projectIds) : [];
+  const fixedProjectIds = hasOwn(value, "fixedProjectIds") ? uniqueIds(value.fixedProjectIds) : [];
+  const excludedProjectIds = hasOwn(value, "excludedProjectIds") ? uniqueIds(value.excludedProjectIds) : [];
+  const projectOrder = hasOwn(value, "projectOrder") ? uniqueIds(value.projectOrder) : null;
+  if (!projectIds || !fixedProjectIds || !excludedProjectIds || hasOwn(value, "projectOrder") && !projectOrder) return null;
+  if (projectOrder) {
+    const orderable = /* @__PURE__ */ new Set([...projectIds, ...fixedProjectIds]);
+    if (projectOrder.length !== orderable.size || projectOrder.some((projectId) => !orderable.has(projectId))) return null;
+  }
+  if (hasOwn(value, "boundSessionId") && value.boundSessionId !== null && !exactId(value.boundSessionId)) return null;
+  if (hasOwn(value, "rules") && !validRules(value.rules)) return null;
+  return clone2(value);
+}
+function fnv1a(value) {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+function confirmationFor(action, controlRoomIds, summary, fingerprint) {
+  const serialized = JSON.stringify({ action, controlRoomIds, fingerprint });
+  return {
+    token: `confirm:${action}:${fnv1a(serialized)}`,
+    action,
+    controlRoomIds: [...controlRoomIds],
+    summary
+  };
+}
+function confirmationMissing(request, confirmation) {
+  return request.confirmationToken === confirmation.token ? null : fail(request.action, "CONFIRMATION_REQUIRED", "Replay this exact action with the returned confirmation token.", confirmation);
+}
+function withAudit(current, state, now, action, controlRoomId, summary, trash = current.trash) {
+  return {
+    state,
+    trash: {
+      ...trash,
+      audit: appendControlRoomAudit(trash.audit, {
+        actor: "deepseek",
+        timestamp: now,
+        action,
+        controlRoomId,
+        summary
+      })
+    }
+  };
+}
+function roomResult(room) {
+  return normalizeControlRoom(room, room.id);
+}
+function importControlRoomsWithAudit(current, serialized, now, actor) {
+  const imported = importControlRooms(current.state, serialized, now);
+  let audit = current.trash.audit;
+  for (const controlRoomId of Object.values(imported.idMap)) {
+    audit = appendControlRoomAudit(audit, {
+      actor,
+      timestamp: now,
+      action: "import",
+      controlRoomId,
+      summary: "Imported control-room configuration"
+    });
+  }
+  return {
+    snapshot: { state: imported.state, trash: { ...current.trash, audit } },
+    idMap: imported.idMap
+  };
+}
+function createControlRoomCommandBridge(adapter) {
+  const consumedConfirmationTokens = /* @__PURE__ */ new Set();
+  const consumedConfirmationFailure = (request) => {
+    const token = request.confirmationToken;
+    return typeof token === "string" && consumedConfirmationTokens.has(token) ? fail(request.action, "CONFIRMATION_REQUIRED", "This confirmation token was already consumed by a successful mutation.") : null;
+  };
+  const unexpectedConfirmationFailure = (request) => request.confirmationToken === void 0 ? null : fail(request.action, "CONFIRMATION_REQUIRED", "No confirmation token is valid for the current room state and payload.");
+  const consumeConfirmation = (request) => {
+    if (typeof request.confirmationToken === "string") consumedConfirmationTokens.add(request.confirmationToken);
+  };
+  const execute = (unknownRequest) => {
+    if (!isRecord2(unknownRequest) || typeof unknownRequest.action !== "string") {
+      return fail("", "INVALID_REQUEST", "A typed control-room command request is required.");
+    }
+    const request = unknownRequest;
+    const action = request.action;
+    if (UNSUPPORTED_DESTRUCTIVE_ACTIONS.has(action)) {
+      return fail(action, "UNSUPPORTED_DESTRUCTIVE_OPERATION", `${action} is intentionally unavailable from the in-client bridge.`);
+    }
+    if (!CONTROL_ROOM_COMMAND_OPERATIONS.includes(action)) {
+      return fail(action, "UNKNOWN_OPERATION", `Unknown control-room operation: ${action}`);
+    }
+    if ((TARGET_ACTIONS.has(action) || action === "control_room.create") && !exactId(request.controlRoomId)) {
+      return fail(action, "EXACT_CONTROL_ROOM_ID_REQUIRED", "Provide one exact controlRoomId; names and multiple IDs are not accepted.");
+    }
+    const typedAction = action;
+    const before = adapter.snapshot();
+    const controlRoomId = exactId(request.controlRoomId) ? request.controlRoomId : void 0;
+    if (typedAction === "control_room.list") {
+      return success(typedAction, false, void 0, {
+        activeId: before.state.activeId,
+        rooms: before.state.order.flatMap((id) => before.state.rooms[id] ? [roomResult(before.state.rooms[id])] : []),
+        archived: before.trash.deleted.map((entry) => ({
+          controlRoomId: entry.room.id,
+          name: entry.room.name,
+          deletedAt: entry.deletedAt,
+          expiresAt: entry.expiresAt
+        }))
+      });
+    }
+    if (typedAction === "control_room.search") {
+      if (typeof request.query !== "string" || request.limit !== void 0 && (!Number.isInteger(request.limit) || request.limit < 1)) {
+        return fail(action, "INVALID_REQUEST", "search requires a string query and an optional positive integer limit.");
+      }
+      return success(typedAction, false, void 0, adapter.search(request.query, request.limit));
+    }
+    if (typedAction === "control_room.restore") {
+      const archived = before.trash.deleted.find((entry) => entry.room.id === controlRoomId);
+      if (!archived) return fail(action, "CONTROL_ROOM_NOT_FOUND", `Archived control room not found: ${controlRoomId}`);
+      const now = adapter.now();
+      const restored = restoreControlRoom(before.state, before.trash, controlRoomId, now);
+      const restoredId = restored.restoredId;
+      if (!restoredId) return fail(action, "COMMAND_FAILED", `Control room could not be restored: ${controlRoomId}`);
+      adapter.commit((current) => withAudit(current, restored.state, now, "restore", restoredId, "Restored archived control-room configuration", restored.trash));
+      adapter.afterRestore?.(archived.room.layoutId, restoredId);
+      return success(typedAction, true, restoredId, { restoredFromControlRoomId: controlRoomId });
+    }
+    if (typedAction === "control_room.create") {
+      if (before.state.rooms[controlRoomId]) return fail(action, "CONTROL_ROOM_ALREADY_EXISTS", `Control room already exists: ${controlRoomId}`);
+      const input = safeCreateInput(request.room);
+      if (!input) return fail(action, "INVALID_REQUEST", "create contains unsupported control-room fields.");
+      const now = adapter.now();
+      const next = adapter.commit((current) => withAudit(
+        current,
+        createControlRoom(current.state, input, { id: controlRoomId, now }),
+        now,
+        "create",
+        controlRoomId,
+        "Created control room"
+      ));
+      return success(typedAction, true, controlRoomId, roomResult(next.state.rooms[controlRoomId]));
+    }
+    const room = before.state.rooms[controlRoomId];
+    if (!room) return fail(action, "CONTROL_ROOM_NOT_FOUND", `Control room not found: ${controlRoomId}`);
+    try {
+      if (typedAction === "control_room.get") return success(typedAction, false, controlRoomId, roomResult(room));
+      if (typedAction === "control_room.update") {
+        const patch = safeUpdatePatch(request.patch);
+        if (!patch) return fail(action, "INVALID_REQUEST", "update requires at least one supported presentation field.");
+        const now = adapter.now();
+        const fields = Object.keys(patch);
+        const next = adapter.commit((current) => withAudit(
+          current,
+          updateControlRoom(current.state, controlRoomId, patch, now),
+          now,
+          "update",
+          controlRoomId,
+          `Updated control-room fields: ${fields.join(", ")}`
+        ));
+        return success(typedAction, true, controlRoomId, roomResult(next.state.rooms[controlRoomId]));
+      }
+      if (typedAction === "control_room.copy") {
+        if (!exactId(request.newControlRoomId)) return fail(action, "EXACT_CONTROL_ROOM_ID_REQUIRED", "copy requires one exact newControlRoomId.");
+        if (before.state.rooms[request.newControlRoomId]) return fail(action, "CONTROL_ROOM_ALREADY_EXISTS", `Control room already exists: ${request.newControlRoomId}`);
+        if (request.name !== void 0 && (typeof request.name !== "string" || request.name.trim().length === 0)) {
+          return fail(action, "INVALID_REQUEST", "copy name must be a non-blank string.");
+        }
+        const now = adapter.now();
+        const copiedId = request.newControlRoomId;
+        const next = adapter.commit((current) => withAudit(
+          current,
+          copyControlRoom(current.state, controlRoomId, { id: copiedId, now, ...typeof request.name === "string" ? { name: request.name } : {} }),
+          now,
+          "copy",
+          copiedId,
+          `Copied control room from ${controlRoomId}`
+        ));
+        adapter.afterCopy?.(controlRoomId, copiedId);
+        return success(typedAction, true, copiedId, roomResult(next.state.rooms[copiedId]));
+      }
+      if (typedAction === "control_room.add_projects") {
+        const projectIds = uniqueIds(request.projectIds);
+        if (!projectIds || projectIds.length === 0) return fail(action, "INVALID_REQUEST", "add_projects requires one or more exact project IDs.");
+        const known = new Set(adapter.knownProjectIds());
+        const missing = projectIds.find((id) => !known.has(id));
+        if (missing) return fail(action, "PROJECT_NOT_FOUND", `Project master record not found: ${missing}`);
+        const added = projectIds.filter((id) => !room.projectIds.includes(id));
+        if (added.length === 0) return success(typedAction, false, controlRoomId, roomResult(room));
+        const now = adapter.now();
+        const next = adapter.commit((current) => {
+          let state = current.state;
+          for (const projectId of added) state = addProjectToRoom(state, controlRoomId, projectId, now);
+          return withAudit(current, state, now, "add_projects", controlRoomId, `Added ${added.length} project reference(s)`);
+        });
+        return success(typedAction, true, controlRoomId, roomResult(next.state.rooms[controlRoomId]));
+      }
+      if (typedAction === "control_room.remove_projects") {
+        const replayed = consumedConfirmationFailure(request);
+        if (replayed) return replayed;
+        const requestedIds = uniqueIds(request.projectIds);
+        if (!requestedIds || requestedIds.length === 0) return fail(action, "INVALID_REQUEST", "remove_projects requires one or more exact project IDs.");
+        const removed = requestedIds.filter((id) => room.projectIds.includes(id) || room.fixedProjectIds.includes(id) || room.excludedProjectIds.includes(id));
+        const requiresConfirmation = removed.length >= 5;
+        if (removed.length === 0) {
+          const unexpected = unexpectedConfirmationFailure(request);
+          if (unexpected) return unexpected;
+          return success(typedAction, false, controlRoomId, roomResult(room));
+        }
+        if (requiresConfirmation) {
+          const confirmation = confirmationFor(typedAction, [controlRoomId], `Remove ${removed.length} project references from ${controlRoomId}`, {
+            updatedAt: room.updatedAt,
+            projectIds: requestedIds
+          });
+          const blocked = confirmationMissing(request, confirmation);
+          if (blocked) return blocked;
+        } else {
+          const unexpected = unexpectedConfirmationFailure(request);
+          if (unexpected) return unexpected;
+        }
+        const now = adapter.now();
+        const next = adapter.commit((current) => {
+          let state = current.state;
+          for (const projectId of removed) state = removeProjectFromRoom(state, controlRoomId, projectId, now);
+          return withAudit(current, state, now, "remove_projects", controlRoomId, `Removed ${removed.length} project reference(s)`);
+        });
+        if (requiresConfirmation) consumeConfirmation(request);
+        return success(typedAction, true, controlRoomId, roomResult(next.state.rooms[controlRoomId]));
+      }
+      if (typedAction === "control_room.reorder_projects") {
+        const projectIds = uniqueIds(request.projectIds);
+        if (!projectIds) return fail(action, "INVALID_REQUEST", "reorder_projects requires an array of exact project IDs.");
+        const now = adapter.now();
+        const next = adapter.commit((current) => withAudit(
+          current,
+          reorderProjectsInRoom(current.state, controlRoomId, projectIds, now),
+          now,
+          "reorder_projects",
+          controlRoomId,
+          `Reordered ${projectIds.length} project reference(s)`
+        ));
+        return success(typedAction, true, controlRoomId, roomResult(next.state.rooms[controlRoomId]));
+      }
+      if (typedAction === "control_room.set_rule") {
+        if (request.mode === "replace_all") {
+          const replayed = consumedConfirmationFailure(request);
+          if (replayed) return replayed;
+          if (!validRules(request.rules)) return fail(action, "INVALID_RULE", "replace_all requires valid control-room rules with unique IDs.");
+          const confirmation = confirmationFor(typedAction, [controlRoomId], `Replace all rules in ${controlRoomId}`, {
+            updatedAt: room.updatedAt,
+            rules: request.rules
+          });
+          const blocked = confirmationMissing(request, confirmation);
+          if (blocked) return blocked;
+          const now = adapter.now();
+          const next = adapter.commit((current) => withAudit(
+            current,
+            updateControlRoom(current.state, controlRoomId, { rules: clone2(request.rules) }, now),
+            now,
+            "set_rule",
+            controlRoomId,
+            `Replaced all rules (${request.rules.length})`
+          ));
+          consumeConfirmation(request);
+          return success(typedAction, true, controlRoomId, roomResult(next.state.rooms[controlRoomId]));
+        }
+        if (request.mode === "remove") {
+          if (!exactId(request.ruleId)) return fail(action, "INVALID_RULE", "remove requires one exact ruleId.");
+          if (!room.rules.some((rule) => rule.id === request.ruleId)) return fail(action, "INVALID_RULE", `Rule not found: ${request.ruleId}`);
+          const now = adapter.now();
+          const rules = room.rules.filter((rule) => rule.id !== request.ruleId);
+          const next = adapter.commit((current) => withAudit(
+            current,
+            updateControlRoom(current.state, controlRoomId, { rules }, now),
+            now,
+            "set_rule",
+            controlRoomId,
+            `Removed rule ${request.ruleId}`
+          ));
+          return success(typedAction, true, controlRoomId, roomResult(next.state.rooms[controlRoomId]));
+        }
+        if (request.mode === "upsert") {
+          if (!validRule(request.rule)) return fail(action, "INVALID_RULE", "upsert requires one valid rule.");
+          const exists = room.rules.some((rule) => rule.id === request.rule.id);
+          const rules = exists ? room.rules.map((rule) => rule.id === request.rule.id ? clone2(request.rule) : rule) : [...room.rules, clone2(request.rule)];
+          const now = adapter.now();
+          const next = adapter.commit((current) => withAudit(
+            current,
+            updateControlRoom(current.state, controlRoomId, { rules }, now),
+            now,
+            "set_rule",
+            controlRoomId,
+            `${exists ? "Updated" : "Added"} rule ${request.rule.id}`
+          ));
+          return success(typedAction, true, controlRoomId, roomResult(next.state.rooms[controlRoomId]));
+        }
+        return fail(action, "INVALID_RULE", "set_rule mode must be upsert, remove, or replace_all.");
+      }
+      if (typedAction === "control_room.bind_session") {
+        const replayed = consumedConfirmationFailure(request);
+        if (replayed) return replayed;
+        if (request.sessionId !== null && !exactId(request.sessionId)) return fail(action, "INVALID_REQUEST", "sessionId must be one exact ID or null.");
+        const requiresConfirmation = request.sessionId === null && !!room.boundSessionId && adapter.isSessionRunning(room.boundSessionId);
+        if (request.sessionId === room.boundSessionId) {
+          const unexpected = unexpectedConfirmationFailure(request);
+          if (unexpected) return unexpected;
+          return success(typedAction, false, controlRoomId, roomResult(room));
+        }
+        if (requiresConfirmation) {
+          const confirmation = confirmationFor(typedAction, [controlRoomId], `Unbind running management session ${room.boundSessionId}`, {
+            updatedAt: room.updatedAt,
+            boundSessionId: room.boundSessionId
+          });
+          const blocked = confirmationMissing(request, confirmation);
+          if (blocked) return blocked;
+        } else {
+          const unexpected = unexpectedConfirmationFailure(request);
+          if (unexpected) return unexpected;
+        }
+        const now = adapter.now();
+        const next = adapter.commit((current) => withAudit(
+          current,
+          updateControlRoom(current.state, controlRoomId, { boundSessionId: request.sessionId }, now),
+          now,
+          "bind_session",
+          controlRoomId,
+          request.sessionId ? `Bound management session ${request.sessionId}` : "Unbound management session"
+        ));
+        if (requiresConfirmation) consumeConfirmation(request);
+        return success(typedAction, true, controlRoomId, roomResult(next.state.rooms[controlRoomId]));
+      }
+      if (typedAction === "control_room.open") {
+        adapter.open(controlRoomId);
+        const now = adapter.now();
+        adapter.commit((current) => withAudit(current, current.state, now, "open", controlRoomId, "Opened control room"));
+        return success(typedAction, true, controlRoomId, roomResult(adapter.snapshot().state.rooms[controlRoomId]));
+      }
+      if (typedAction === "control_room.archive") {
+        const replayed = consumedConfirmationFailure(request);
+        if (replayed) return replayed;
+        const confirmation = confirmationFor(typedAction, [controlRoomId], `Archive ${controlRoomId}; only its reversible room configuration moves to Trash`, {
+          updatedAt: room.updatedAt,
+          projectIds: room.projectIds,
+          boundSessionId: room.boundSessionId
+        });
+        const blocked = confirmationMissing(request, confirmation);
+        if (blocked) return blocked;
+        const now = adapter.now();
+        adapter.commit((current) => {
+          const archived = deleteControlRoom(current.state, current.trash, controlRoomId, now);
+          return withAudit(
+            current,
+            archived.state,
+            now,
+            "archive",
+            controlRoomId,
+            "Archived control-room configuration; project, file, and session data were not deleted",
+            archived.trash
+          );
+        });
+        consumeConfirmation(request);
+        adapter.afterArchive?.(controlRoomId, room.layoutId);
+        return success(typedAction, true, controlRoomId, {
+          reversible: true,
+          deletesProjectMasterData: false,
+          deletesFiles: false,
+          deletesSessions: false
+        });
+      }
+    } catch (error2) {
+      return fail(action, "COMMAND_FAILED", error2 instanceof Error ? error2.message : String(error2));
+    }
+    return fail(action, "UNKNOWN_OPERATION", `Unknown control-room operation: ${action}`);
+  };
+  return {
+    surface: "in-client-local-storage-fallback",
+    operations: CONTROL_ROOM_COMMAND_OPERATIONS,
+    execute
+  };
+}
+
+// src/client/controlRoomRuntime.ts
+function controlRoomLayoutId(roomId) {
+  return `wt-console:${roomId}`;
+}
+function effectiveControlRoomProjectIds(room, candidateIds, ruleMatchedIds = []) {
+  const candidates = candidateIds ? new Set(candidateIds) : null;
+  const excluded = new Set(room.excludedProjectIds);
+  const members = new Set([...room.projectIds, ...room.fixedProjectIds, ...ruleMatchedIds].filter((id) => !excluded.has(id)));
+  const result = [];
+  const append = (id) => {
+    if (!members.has(id) || excluded.has(id) || result.includes(id)) return;
+    if (candidates && !candidates.has(id)) return;
+    result.push(id);
+  };
+  room.projectOrder.forEach(append);
+  room.projectIds.forEach(append);
+  room.fixedProjectIds.forEach(append);
+  ruleMatchedIds.forEach(append);
+  candidateIds?.forEach(append);
+  return result;
+}
+function controlRoomBindingState(room, knownSessionIds2) {
+  if (!room.boundSessionId) return "unbound";
+  return knownSessionIds2.has(room.boundSessionId) ? "valid" : "missing";
+}
+function specHasLockedConsole(spec) {
+  const panes = spec ? [...spec.left ? [spec.left] : [], ...spec.top ?? [], ...spec.main ?? []] : [];
+  return panes.some((pane) => pane.tabs?.some((tab) => tab.content?.kind === "builtin" && tab.content.type === "console"));
+}
+function copyControlRoomLayoutView(views, sourceLayoutId, targetLayoutId) {
+  const source = views[sourceLayoutId];
+  if (!source || sourceLayoutId === targetLayoutId) return views;
+  const copy = JSON.parse(JSON.stringify(source));
+  copy.id = targetLayoutId;
+  return { ...views, [targetLayoutId]: copy };
+}
+function copyControlRoomSplitGeometry(geometry, sourceLayoutId, targetLayoutId) {
+  const source = geometry[sourceLayoutId];
+  if (source == null || sourceLayoutId === targetLayoutId) return geometry;
+  return {
+    ...geometry,
+    [targetLayoutId]: JSON.parse(JSON.stringify(source))
+  };
+}
+function copyControlRoomSplitGeometryInStorage(storage, storageKey, sourceLayoutId, targetLayoutId) {
+  try {
+    const raw = storage.getItem(storageKey);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return false;
+    const current = parsed;
+    if (current[sourceLayoutId] == null) return false;
+    const next = copyControlRoomSplitGeometry(current, sourceLayoutId, targetLayoutId);
+    storage.setItem(storageKey, JSON.stringify(next));
+    return true;
+  } catch {
+    return false;
+  }
+}
+function reconcileNeedAckTransitions(seen, current) {
+  const next = { ...seen };
+  const clearSessionIds = [];
+  for (const [sessionId, needNow] of Object.entries(current)) {
+    if (seen[sessionId] !== void 0 && seen[sessionId] !== needNow) clearSessionIds.push(sessionId);
+    next[sessionId] = needNow;
+  }
+  return { seen: next, clearSessionIds };
+}
+function autoBindControlRoomSession(state, activeLayoutId, sessionId, now) {
+  if (!activeLayoutId || !sessionId) return { state, result: "none", roomId: null };
+  const room = Object.values(state.rooms).find((candidate) => candidate.layoutId === activeLayoutId);
+  if (!room) return { state, result: "none", roomId: null };
+  if (room.boundSessionId) return { state, result: "kept", roomId: room.id };
+  return {
+    state: updateControlRoom(state, room.id, { boundSessionId: sessionId }, now),
+    result: "auto",
+    roomId: room.id
+  };
+}
+function deleteControlRoomAndPlanNextOpen(state, trash, roomId, openLayoutId, now) {
+  const room = state.rooms[roomId];
+  const result = deleteControlRoom(state, trash, roomId, now);
+  const closeOpenLayout = Boolean(result.deleted && room && room.layoutId === openLayoutId);
+  return {
+    state: result.state,
+    trash: result.trash,
+    closeOpenLayout,
+    openRoomId: closeOpenLayout ? result.state.activeId : null
+  };
+}
+function defaultTabs(room, labels) {
+  const tabs = [{
+    id: "control-room",
+    title: labels("pane"),
+    content: { kind: "builtin", type: "console" }
+  }];
+  if (room.defaultPane === "files") {
+    tabs.push({ id: "control-room-files", title: labels("files"), content: { kind: "builtin", type: "explorer" } });
+  } else if (room.defaultPane === "terminal") {
+    tabs.push({ id: "control-room-terminal", title: labels("terminal"), content: { kind: "builtin", type: "terminal" } });
+  }
+  return { tabs, active: tabs.length - 1 };
+}
+function buildControlRoomSpec(room, labels) {
+  const initial = defaultTabs(room, labels);
+  return {
+    id: controlRoomLayoutId(room.id),
+    title: room.name || labels("title"),
+    icon: room.icon,
+    top: null,
+    main: [{
+      id: "control-room",
+      title: labels("pane"),
+      min: 240,
+      tabs: initial.tabs,
+      active: initial.active
+    }],
+    chatWidth: { default: 340, min: 280, max: 600 },
+    topHeight: { default: 200, min: 120, max: 480 },
+    chatSide: "right"
+  };
+}
+function prepareControlRoomOpen(state, roomId, views, knownSessionIds2, now, labels, legacySaved) {
+  const room = state.rooms[roomId];
+  if (!room) throw new Error(`Unknown control room: ${roomId}`);
+  const layoutId = controlRoomLayoutId(roomId);
+  const normalizedRoom = room.layoutId === layoutId ? room : { ...room, layoutId };
+  const saved = views[layoutId];
+  const exactReusable = specHasLockedConsole(saved) ? saved.id === layoutId ? saved : { ...saved, id: layoutId } : null;
+  const reusable = exactReusable ?? (!saved && specHasLockedConsole(legacySaved) ? { ...legacySaved, id: layoutId } : null);
+  const selected = selectControlRoom(
+    normalizedRoom === room ? state : { ...state, rooms: { ...state.rooms, [roomId]: normalizedRoom } },
+    roomId,
+    now
+  );
+  const selectedRoom = selected.rooms[roomId];
+  return {
+    state: selected,
+    room: selectedRoom,
+    spec: reusable ?? buildControlRoomSpec(selectedRoom, labels),
+    boundSessionId: selectedRoom.boundSessionId,
+    bindingState: controlRoomBindingState(selectedRoom, knownSessionIds2),
+    createdSpec: !exactReusable || exactReusable !== saved
+  };
+}
+
+// src/client/controlRoomRules.ts
+var folded = (value) => String(value ?? "").trim().toLocaleLowerCase();
+var same = (left, right) => {
+  if (typeof left === "string" || typeof right === "string") return folded(left) === folded(right);
+  return left === right;
+};
+function conditionActual(condition, facts) {
+  switch (condition.field) {
+    case "tag":
+      return facts.tags;
+    case "hasBoundSession":
+      return facts.hasBoundSession;
+    case "subagentCount":
+      return facts.subagentCount;
+    case "lastActiveAt":
+      return facts.lastActiveAt;
+    case "lastCompletedAt":
+      return facts.lastCompletedAt;
+    case "hidden":
+      return facts.hidden;
+    case "archived":
+      return facts.archived;
+    default:
+      return facts[condition.field];
+  }
+}
+function includesValue(actual, expected) {
+  const needle = folded(expected);
+  if (Array.isArray(actual)) return actual.some((item) => folded(item) === needle);
+  return folded(actual).includes(needle);
+}
+function evaluateControlRoomCondition(condition, facts) {
+  if (!isControlRoomConditionCompatible(condition)) return false;
+  const actual = conditionActual(condition, facts);
+  const expected = condition.value;
+  switch (condition.operator) {
+    case "equals":
+      return Array.isArray(actual) ? actual.some((item) => same(item, expected)) : same(actual, expected);
+    case "notEquals":
+      return Array.isArray(actual) ? actual.every((item) => !same(item, expected)) : !same(actual, expected);
+    case "contains":
+      return includesValue(actual, expected);
+    case "notContains":
+      return !includesValue(actual, expected);
+    case "in":
+      return expected.some((item) => Array.isArray(actual) ? actual.some((value) => same(value, item)) : same(actual, item));
+    case "notIn":
+      return !expected.some((item) => Array.isArray(actual) ? actual.some((value) => same(value, item)) : same(actual, item));
+    case "greaterThanOrEqual":
+      return Number(actual) >= Number(expected);
+    case "lessThanOrEqual":
+      return Number(actual) <= Number(expected);
+    case "before":
+      return Number(actual) < Number(expected);
+    case "after":
+      return Number(actual) > Number(expected);
+  }
+}
+function evaluateControlRoomRule(rule, facts) {
+  if (!rule || rule.enabled !== true || rule.mode !== "all" && rule.mode !== "any" || !Array.isArray(rule.conditions) || rule.conditions.length === 0) {
+    return { matched: false, disabled: true };
+  }
+  if (rule.conditions.some((condition) => !condition || !isControlRoomConditionCompatible(condition))) {
+    return { matched: false, disabled: true };
+  }
+  const excluded = rule.conditions.filter((condition) => condition.exclude === true);
+  if (excluded.some((condition) => evaluateControlRoomCondition(condition, facts))) {
+    return { matched: false, disabled: false };
+  }
+  const included = rule.conditions.filter((condition) => condition.exclude !== true);
+  const matched = included.length === 0 ? true : rule.mode === "all" ? included.every((condition) => evaluateControlRoomCondition(condition, facts)) : included.some((condition) => evaluateControlRoomCondition(condition, facts));
+  return { matched, disabled: false };
+}
+function matchingControlRoomProjectIds(rules, projects) {
+  if (!Array.isArray(rules) || rules.length === 0) return [];
+  return projects.filter((project) => rules.some((rule) => evaluateControlRoomRule(rule, project).matched)).map((project) => project.id);
+}
+var finiteMax = (...values) => Math.max(
+  0,
+  ...values.filter((value) => typeof value === "number" && Number.isFinite(value))
+);
+var childSessionIds = (snapshot, sessionId) => {
+  const children = /* @__PURE__ */ new Set();
+  const byId = snapshot?.byId ?? {};
+  for (const [childId, entry] of Object.entries(byId)) {
+    if (entry?.parentId === sessionId) children.add(childId);
+  }
+  const raw = (snapshot?.subagentsByParent ?? {})[sessionId];
+  const items = Array.isArray(raw) ? raw : raw?.entries ?? raw?.items ?? raw?.children ?? [];
+  if (Array.isArray(items)) items.forEach((item) => {
+    const childId = item?.sessionId ?? item?.id;
+    if (typeof childId === "string" && childId) children.add(childId);
+  });
+  return children;
+};
+var sessionNeedsAttention = (entry) => entry?.pendingInteraction != null;
+function refreshControlRoomRuleState(input) {
+  const snapshot = input.sessionSnapshot;
+  const byId = snapshot?.byId ?? {};
+  const facts = input.projects.map((project) => {
+    const sessionId = project.boundSessionId ?? null;
+    const entry = sessionId ? byId[sessionId] : null;
+    const children = sessionId ? childSessionIds(snapshot, sessionId) : /* @__PURE__ */ new Set();
+    let needsAttention = sessionNeedsAttention(entry) || !!sessionId && input.pendingSessionIds?.has(sessionId) === true;
+    if (!needsAttention) {
+      for (const childId of children) {
+        if (sessionNeedsAttention(byId[childId]) || input.pendingSessionIds?.has(childId) === true) {
+          needsAttention = true;
+          break;
+        }
+      }
+    }
+    const status = needsAttention ? "need" : entry?.completed === true ? "done" : entry?.running === true ? "busy" : "idle";
+    const sessionTags = Array.isArray(entry?.tags) ? entry.tags.filter((tag) => typeof tag === "string" && !!tag) : [];
+    return {
+      id: project.id,
+      status,
+      name: project.name,
+      icon: project.icon,
+      tags: [.../* @__PURE__ */ new Set([...project.tags ?? [], ...sessionTags])],
+      workspace: project.workspace ?? entry?.workspaceId ?? entry?.workspace ?? entry?.cwd ?? "",
+      hasBoundSession: !!sessionId,
+      subagentCount: children.size,
+      lastActiveAt: finiteMax(project.lastActiveAt, entry?.lastActiveAt, entry?.lastActivityAt, entry?.lastMessageAt, entry?.updatedAt),
+      lastCompletedAt: finiteMax(project.lastCompletedAt, entry?.lastCompletedAt, entry?.completedAt, entry?.completed === true ? entry?.updatedAt : void 0),
+      hidden: project.hidden === true,
+      archived: project.archived === true || entry?.archived === true || entry?.status === "archived"
+    };
+  });
+  const candidateIds = input.projects.map((project) => project.id);
+  const factById = new Map(facts.map((fact) => [fact.id, fact]));
+  const matchesByRoom = {};
+  const summariesByRoom = {};
+  for (const room of input.rooms) {
+    const matches = matchingControlRoomProjectIds(room.rules, facts);
+    const memberIds = effectiveControlRoomProjectIds(room, candidateIds, matches);
+    matchesByRoom[room.id] = matches;
+    summariesByRoom[room.id] = {
+      memberIds,
+      needCount: memberIds.filter((projectId) => factById.get(projectId)?.status === "need").length
+    };
+  }
+  const openRoom = input.activeRoomId ? input.rooms.find((room) => room.id === input.activeRoomId) : null;
+  const openSummary = openRoom ? summariesByRoom[openRoom.id] : null;
+  const openRoomFingerprint = openRoom && openSummary ? JSON.stringify({
+    roomId: openRoom.id,
+    rules: openRoom.rules,
+    members: openSummary.memberIds,
+    facts: openSummary.memberIds.map((projectId) => factById.get(projectId))
+  }) : "";
+  return { facts, matchesByRoom, summariesByRoom, openRoomFingerprint };
+}
+function notifyOpenControlRoomRuleRefresh(previous, current, notify) {
+  if (previous && previous.openRoomFingerprint !== current.openRoomFingerprint) notify();
+  return current;
+}
+
+// src/client/controlRoomSearch.ts
+var folded2 = (value) => String(value ?? "").normalize("NFKC").trim().toLowerCase();
+var tokensOf = (query) => folded2(query).split(/\s+/u).filter(Boolean);
+function textualRelevance(title, details, query) {
+  const normalizedTitle = folded2(title);
+  const normalizedDetails = details.map(folded2).filter(Boolean);
+  const tokens = tokensOf(query);
+  if (tokens.length === 0) return 1;
+  let score = normalizedTitle === folded2(query) ? 500 : 0;
+  for (const token of tokens) {
+    let tokenScore = 0;
+    if (normalizedTitle === token) tokenScore = 1200;
+    else if (normalizedTitle.startsWith(token)) tokenScore = 900;
+    else if (normalizedTitle.includes(token)) tokenScore = 700;
+    for (const detail of normalizedDetails) {
+      if (detail === token) tokenScore = Math.max(tokenScore, 500);
+      else if (detail.includes(token)) tokenScore = Math.max(tokenScore, 350);
+    }
+    if (tokenScore === 0) return 0;
+    score += tokenScore;
+  }
+  return score;
+}
+function preferredRoomId(roomIds, currentRoomId, roomById) {
+  if (currentRoomId && roomIds.includes(currentRoomId)) return currentRoomId;
+  return [...roomIds].sort((left, right) => {
+    const recent = (roomById.get(right)?.lastOpenedAt ?? 0) - (roomById.get(left)?.lastOpenedAt ?? 0);
+    if (recent) return recent;
+    const need = (roomById.get(right)?.needCount ?? 0) - (roomById.get(left)?.needCount ?? 0);
+    return need || left.localeCompare(right);
+  })[0] ?? "";
+}
+function conditionKeywords(rule) {
+  return rule.conditions.flatMap((condition) => [
+    condition.field,
+    condition.operator,
+    Array.isArray(condition.value) ? condition.value.join(" ") : String(condition.value),
+    condition.exclude === true ? "exclude" : ""
+  ]);
+}
+function searchControlRooms(input, query) {
+  const roomById = new Map(input.rooms.map((room) => [room.id, room]));
+  const ownersByProject = /* @__PURE__ */ new Map();
+  for (const room of input.rooms) {
+    for (const projectId of room.effectiveProjectIds) {
+      const owners = ownersByProject.get(projectId) ?? [];
+      if (!owners.includes(room.id)) owners.push(room.id);
+      ownersByProject.set(projectId, owners);
+    }
+  }
+  let stableOrder = 0;
+  const candidates = [];
+  const seenRoomIds = /* @__PURE__ */ new Set();
+  for (const room of input.rooms) {
+    if (seenRoomIds.has(room.id)) continue;
+    seenRoomIds.add(room.id);
+    candidates.push({
+      kind: "room",
+      targetId: room.id,
+      title: room.name,
+      subtitle: room.description,
+      icon: room.icon,
+      roomIds: [room.id],
+      roomId: room.id,
+      relevance: 0,
+      searchTitle: room.name,
+      searchDetails: [room.description],
+      recentAt: room.lastOpenedAt,
+      need: room.needCount > 0,
+      current: room.id === input.currentRoomId,
+      stableOrder: stableOrder++
+    });
+  }
+  const seenProjectIds = /* @__PURE__ */ new Set();
+  for (const project of input.projects) {
+    if (seenProjectIds.has(project.id)) continue;
+    seenProjectIds.add(project.id);
+    const roomIds = ownersByProject.get(project.id) ?? [];
+    if (roomIds.length === 0) continue;
+    const roomId = preferredRoomId(roomIds, input.currentRoomId, roomById);
+    candidates.push({
+      kind: "project",
+      targetId: project.id,
+      title: project.name,
+      subtitle: [project.tags.join(" \xB7 "), project.workspace].filter(Boolean).join(" \u2014 "),
+      icon: project.icon,
+      roomIds: [...roomIds],
+      roomId,
+      relevance: 0,
+      searchTitle: project.name,
+      searchDetails: [...project.tags, project.workspace],
+      recentAt: Math.max(project.lastUsedAt, ...roomIds.map((id) => roomById.get(id)?.lastOpenedAt ?? 0)),
+      need: project.status === "need" || roomIds.some((id) => (roomById.get(id)?.needCount ?? 0) > 0),
+      current: !!input.currentRoomId && roomIds.includes(input.currentRoomId),
+      stableOrder: stableOrder++
+    });
+  }
+  const conversations = /* @__PURE__ */ new Map();
+  for (const room of input.rooms) {
+    if (!room.boundSessionId) continue;
+    const current = conversations.get(room.boundSessionId) ?? { title: room.boundSessionTitle || room.boundSessionId, roomIds: [] };
+    if (!current.roomIds.includes(room.id)) current.roomIds.push(room.id);
+    if (room.boundSessionTitle) current.title = room.boundSessionTitle;
+    conversations.set(room.boundSessionId, current);
+  }
+  for (const [sessionId, conversation] of conversations) {
+    const roomId = preferredRoomId(conversation.roomIds, input.currentRoomId, roomById);
+    candidates.push({
+      kind: "conversation",
+      targetId: sessionId,
+      title: conversation.title,
+      subtitle: conversation.roomIds.map((id) => roomById.get(id)?.name ?? id).join(" \xB7 "),
+      icon: "\u{1F4AC}",
+      roomIds: [...conversation.roomIds],
+      roomId,
+      relevance: 0,
+      searchTitle: conversation.title,
+      searchDetails: [sessionId, ...conversation.roomIds.map((id) => roomById.get(id)?.name ?? id)],
+      recentAt: Math.max(...conversation.roomIds.map((id) => roomById.get(id)?.lastOpenedAt ?? 0)),
+      need: conversation.roomIds.some((id) => (roomById.get(id)?.needCount ?? 0) > 0),
+      current: !!input.currentRoomId && conversation.roomIds.includes(input.currentRoomId),
+      stableOrder: stableOrder++
+    });
+  }
+  const seenRuleIds = /* @__PURE__ */ new Set();
+  for (const room of input.rooms) {
+    room.rules.forEach((rule, index) => {
+      const semanticId = `${room.id}\0${rule.id}`;
+      if (seenRuleIds.has(semanticId)) return;
+      seenRuleIds.add(semanticId);
+      const title = rule.name?.trim() || `Rule ${index + 1}`;
+      candidates.push({
+        kind: "rule",
+        targetId: rule.id,
+        title,
+        subtitle: room.name,
+        icon: "\u2699\uFE0F",
+        roomIds: [room.id],
+        roomId: room.id,
+        relevance: 0,
+        searchTitle: title,
+        searchDetails: [room.name, ...conditionKeywords(rule)],
+        recentAt: room.lastOpenedAt,
+        need: room.needCount > 0,
+        current: room.id === input.currentRoomId,
+        stableOrder: stableOrder++
+      });
+    });
+  }
+  const ranked = candidates.map((candidate) => ({ ...candidate, relevance: textualRelevance(candidate.searchTitle, candidate.searchDetails, query) })).filter((candidate) => candidate.relevance > 0).sort((left, right) => {
+    const relevance = right.relevance - left.relevance;
+    if (relevance) return relevance;
+    if (left.current !== right.current) return left.current ? -1 : 1;
+    const recent = right.recentAt - left.recentAt;
+    if (recent) return recent;
+    if (left.need !== right.need) return left.need ? -1 : 1;
+    return left.stableOrder - right.stableOrder;
+  });
+  const limit = Math.min(50, Math.max(0, input.limit ?? 50));
+  const results = ranked.slice(0, limit).map(({ searchTitle: _searchTitle, searchDetails: _searchDetails, recentAt: _recentAt, need: _need, current: _current, stableOrder: _stableOrder, ...result }) => result);
+  return { results, total: ranked.length, overflow: Math.max(0, ranked.length - results.length) };
+}
+function describeControlRoomSearchNavigation(result) {
+  switch (result.kind) {
+    case "room":
+      return { kind: "open-room", roomId: result.roomId };
+    case "project":
+      return { kind: "open-project", roomId: result.roomId, projectId: result.targetId };
+    case "conversation":
+      return { kind: "open-conversation", roomId: result.roomId, sessionId: result.targetId };
+    case "rule":
+      return { kind: "open-rule", roomId: result.roomId, ruleId: result.targetId };
+  }
+}
+function executeControlRoomSearchNavigation(descriptor, actions) {
+  switch (descriptor.kind) {
+    case "open-room":
+      actions.openControlRoom(descriptor.roomId);
+      return;
+    case "open-project":
+      actions.openProjectInRoom(descriptor.roomId, descriptor.projectId);
+      return;
+    case "open-conversation":
+      actions.openControlRoom(descriptor.roomId);
+      return;
+    case "open-rule":
+      actions.openRuleEditor(descriptor.roomId, descriptor.ruleId);
+      return;
+  }
+}
+
 // src/client/index.tsx
 var import_jsx_runtime3 = require("react/jsx-runtime");
 var LOCAL_VERSION = false ? "dev" : "0.2.2";
@@ -18959,7 +20975,44 @@ async function copyText(text2) {
   }
   return false;
 }
-var PERSIST_KEY2 = "dsh.worktable.view.v1";
+var RULE_FIELDS = [
+  "status",
+  "name",
+  "icon",
+  "tag",
+  "workspace",
+  "hasBoundSession",
+  "subagentCount",
+  "lastActiveAt",
+  "lastCompletedAt",
+  "hidden",
+  "archived"
+];
+var RULE_TEXT_OPERATORS = ["equals", "notEquals", "contains", "notContains", "in", "notIn"];
+var RULE_BOOLEAN_OPERATORS = ["equals", "notEquals"];
+var RULE_NUMBER_OPERATORS = ["equals", "notEquals", "greaterThanOrEqual", "lessThanOrEqual"];
+var RULE_TIME_OPERATORS = ["before", "after", "greaterThanOrEqual", "lessThanOrEqual"];
+var ruleOperatorsFor = (field) => {
+  if (field === "hasBoundSession" || field === "hidden" || field === "archived") return RULE_BOOLEAN_OPERATORS;
+  if (field === "subagentCount") return RULE_NUMBER_OPERATORS;
+  if (field === "lastActiveAt" || field === "lastCompletedAt") return RULE_TIME_OPERATORS;
+  return RULE_TEXT_OPERATORS;
+};
+var defaultRuleConditionValue = (field) => {
+  if (field === "hasBoundSession" || field === "hidden" || field === "archived") return true;
+  if (field === "subagentCount") return 1;
+  if (field === "lastActiveAt" || field === "lastCompletedAt") return Date.now();
+  if (field === "status") return "busy";
+  return "";
+};
+var dateTimeInputValue = (value) => {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return "";
+  const date = new Date(value);
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 6e4);
+  return local.toISOString().slice(0, 16);
+};
+var SEARCH_KIND_ORDER = ["room", "project", "conversation", "rule"];
+var PERSIST_KEY = "dsh.worktable.view.v1";
 var PROJECTS_KEY = "dsh.worktable.projects.v1";
 var MIN_TOP = 56;
 var SNAP_PX = 32;
@@ -19125,7 +21178,7 @@ var DEFAULT_PROJECTS = {
 };
 function loadView() {
   try {
-    const raw = localStorage.getItem(PERSIST_KEY2);
+    const raw = localStorage.getItem(PERSIST_KEY);
     if (!raw) return { ...DEFAULT_VIEW };
     const p = JSON.parse(raw);
     const orderBy = p.sortMigratedV2 === true ? p.orderBy === "recent" ? "recent" : "manual" : "manual";
@@ -19250,8 +21303,8 @@ async function ensureSessionModel(sessionId) {
         if (cRes?.result?.ok) {
           const cval = cRes.result.value;
           if (cval?.routable === true && cval?.current?.provider && cval?.current?.model) {
-            const same = val?.current?.provider === cval.current.provider && val?.current?.model === cval.current.model;
-            if (!same) {
+            const same2 = val?.current?.provider === cval.current.provider && val?.current?.model === cval.current.model;
+            if (!same2) {
               target = { provider: cval.current.provider, model: cval.current.model };
               effort = typeof cval.current.reasoningEffort === "string" ? cval.current.reasoningEffort : void 0;
             }
@@ -19297,27 +21350,6 @@ async function ensureSessionModel(sessionId) {
 }
 var CONSOLE_ID = "wt-console";
 var CONSOLE_ICON = "\u{1F5A5}\uFE0F";
-function specHasConsoleTab(spec) {
-  return !!spec?.main?.[0]?.tabs?.some((t) => t.content?.kind === "builtin" && t.content.type === "console");
-}
-function buildConsoleSpec(t) {
-  return {
-    id: CONSOLE_ID,
-    title: t("console.name"),
-    icon: CONSOLE_ICON,
-    top: null,
-    main: [{
-      id: "console",
-      title: "\u63A7\u5236\u5BA4",
-      min: 240,
-      tabs: [{ id: "c1", title: "\u63A7\u5236\u5BA4", content: { kind: "builtin", type: "console" } }],
-      active: 0
-    }],
-    chatWidth: { default: 340, min: 280, max: 600 },
-    topHeight: { default: 200, min: 120, max: 480 },
-    chatSide: "right"
-  };
-}
 var consoleListeners = /* @__PURE__ */ new Set();
 var notifyConsole = () => consoleListeners.forEach((l) => {
   try {
@@ -19485,6 +21517,19 @@ async function fetchSessionGroups() {
   } catch {
     return { groups: [], current: "" };
   }
+}
+function knownSessionIds() {
+  const ids = /* @__PURE__ */ new Set();
+  try {
+    const snap = sessionBridge?.list?.getSnapshot?.();
+    if (Array.isArray(snap?.ids)) snap.ids.forEach((id) => {
+      if (typeof id === "string") ids.add(id);
+    });
+    for (const id of Object.keys(snap?.byId ?? {})) ids.add(id);
+  } catch {
+  }
+  for (const id of Object.keys(sessionsSnapshotStore.snapshot?.byId ?? {})) ids.add(id);
+  return ids;
 }
 var bindTipEl = null;
 function showBindTip(btn) {
@@ -19840,6 +21885,59 @@ function WorktableSection(props) {
   const [view, setView] = (0, import_react3.useState)(loadView);
   const [notifyTick, setNotifyTick] = (0, import_react3.useState)(0);
   const [projects, setProjects] = (0, import_react3.useState)(loadProjects);
+  const controlRoomsStorageRef = (0, import_react3.useRef)(null);
+  if (!controlRoomsStorageRef.current) controlRoomsStorageRef.current = new ControlRoomsStorage(localStorage);
+  const initialControlRoomsRef = (0, import_react3.useRef)(null);
+  if (!initialControlRoomsRef.current) {
+    const legacyProjectIds = [...new Set([
+      ...projects.order,
+      ...projects.layouts.map((layout) => layout.id),
+      ...registryStore.ids
+    ].filter((id) => id !== CONSOLE_ID && !projects.removed.includes(id)))];
+    let rawProjects = null;
+    let rawView = null;
+    try {
+      rawProjects = localStorage.getItem(PROJECTS_KEY);
+    } catch {
+    }
+    try {
+      rawView = localStorage.getItem(PERSIST_KEY);
+    } catch {
+    }
+    const loaded = controlRoomsStorageRef.current.load({
+      projectIds: legacyProjectIds,
+      projectOrder: projects.order.filter((id) => legacyProjectIds.includes(id)),
+      boundSessionId: projects.bindings[CONSOLE_ID] ?? null,
+      layoutId: CONSOLE_ID,
+      themeMode: view.consoleTheme ?? "system",
+      rawProjects,
+      rawView
+    });
+    initialControlRoomsRef.current = { state: loaded.state, trash: loaded.trash };
+  }
+  const [controlRooms, setControlRooms] = (0, import_react3.useState)(() => initialControlRoomsRef.current);
+  const controlRoomsRef = (0, import_react3.useRef)(controlRooms);
+  const currentRoomRef = (0, import_react3.useRef)(
+    controlRooms.state.activeId ? controlRooms.state.rooms[controlRooms.state.activeId] ?? null : null
+  );
+  controlRoomsRef.current = controlRooms;
+  currentRoomRef.current = controlRooms.state.activeId ? controlRooms.state.rooms[controlRooms.state.activeId] ?? null : null;
+  const roomRuleMatchesRef = (0, import_react3.useRef)({});
+  const roomRuleRefreshRef = (0, import_react3.useRef)(null);
+  const [roomCreateOpen, setRoomCreateOpen] = (0, import_react3.useState)(false);
+  const [roomCreateName, setRoomCreateName] = (0, import_react3.useState)("");
+  const [roomManageId, setRoomManageId] = (0, import_react3.useState)(null);
+  const [roomMoreOpen, setRoomMoreOpen] = (0, import_react3.useState)(false);
+  const [roomDeleteId, setRoomDeleteId] = (0, import_react3.useState)(null);
+  const roomDeleteDialogRef = (0, import_react3.useRef)(null);
+  const roomDeleteCancelRef = (0, import_react3.useRef)(null);
+  const roomDeleteReturnFocusRef = (0, import_react3.useRef)(null);
+  const searchDialogRef = (0, import_react3.useRef)(null);
+  const searchInputRef = (0, import_react3.useRef)(null);
+  const searchReturnFocusRef = (0, import_react3.useRef)(null);
+  const [searchSelection, setSearchSelection] = (0, import_react3.useState)(0);
+  const [roomReloadNotice, setRoomReloadNotice] = (0, import_react3.useState)(false);
+  const [roomSaveFailed, setRoomSaveFailed] = (0, import_react3.useState)(false);
   const [metas, setMetas] = (0, import_react3.useState)({});
   const [registeredIds, setRegisteredIds] = (0, import_react3.useState)(() => [...registryStore.ids]);
   const [addOpen, setAddOpen] = (0, import_react3.useState)(false);
@@ -19933,6 +22031,65 @@ function WorktableSection(props) {
   const [consoleName, setConsoleName] = (0, import_react3.useState)("");
   const [consoleErr, setConsoleErr] = (0, import_react3.useState)(false);
   const [consoleBusy, setConsoleBusy] = (0, import_react3.useState)(false);
+  const roomImportInputRef = (0, import_react3.useRef)(null);
+  const [roomDataNotice, setRoomDataNotice] = (0, import_react3.useState)(null);
+  const commitControlRooms = (mutate) => {
+    const next = mutate(controlRoomsRef.current);
+    const saved = controlRoomsStorageRef.current.save(next.state, next.trash);
+    setRoomSaveFailed(!saved.ok);
+    controlRoomsRef.current = next;
+    currentRoomRef.current = next.state.activeId ? next.state.rooms[next.state.activeId] ?? null : null;
+    setControlRooms(next);
+    notifyConsole();
+    return next;
+  };
+  const commitUserControlRooms = (controlRoomId, action, summary, mutate) => {
+    const now = Date.now();
+    return commitControlRooms((current) => {
+      const next = mutate(current, now);
+      return {
+        ...next,
+        trash: {
+          ...next.trash,
+          audit: appendControlRoomAudit(next.trash.audit, { actor: "user", timestamp: now, action, controlRoomId, summary })
+        }
+      };
+    });
+  };
+  (0, import_react3.useEffect)(() => {
+    const onStorage = (event) => {
+      if (event.storageArea !== localStorage || event.key !== CONTROL_ROOMS_KEY && event.key !== CONTROL_ROOMS_TRASH_KEY) return;
+      let loaded;
+      try {
+        loaded = controlRoomsStorageRef.current.load();
+      } catch {
+        return;
+      }
+      const local = controlRoomsRef.current;
+      const resolved = resolveControlRoomStorageEvent(local.state, loaded.state, local.state.activeId, local.trash, loaded.trash);
+      if (resolved.requiresReload) setRoomReloadNotice(true);
+      const next = { state: resolved.state, trash: resolved.trash };
+      if (!resolved.requiresReload) {
+        const saved = controlRoomsStorageRef.current.save(next.state, next.trash);
+        setRoomSaveFailed(!saved.ok);
+      }
+      controlRoomsRef.current = next;
+      currentRoomRef.current = next.state.activeId ? next.state.rooms[next.state.activeId] ?? null : null;
+      setControlRooms(next);
+      notifyConsole();
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+  (0, import_react3.useEffect)(() => {
+    if (!roomDeleteId || !roomDeleteDialogRef.current || !roomDeleteCancelRef.current) return;
+    return installModalFocusGuard({
+      dialog: roomDeleteDialogRef.current,
+      initialFocus: roomDeleteCancelRef.current,
+      returnFocus: roomDeleteReturnFocusRef.current,
+      onEscape: () => setRoomDeleteId(null)
+    });
+  }, [roomDeleteId]);
   const [customOpen, setCustomOpen] = (0, import_react3.useState)(false);
   const [customLayoutText, setCustomLayoutText] = (0, import_react3.useState)("");
   const [copiedToast, setCopiedToast] = (0, import_react3.useState)(null);
@@ -20022,8 +22179,8 @@ function WorktableSection(props) {
       return null;
     };
     const ackMap = loadNotifyAck();
-    const make = (id, name, icon, self2) => {
-      const sid = pr.projects.bindings[id];
+    const make = (id, name, icon, self2, explicitSid) => {
+      const sid = explicitSid === void 0 ? pr.projects.bindings[id] : explicitSid ?? void 0;
       const status = statusOf(sid);
       const glow = !!sid && (status === "done" && ackMap[sid] !== "done" || status === "need" && ackMap[sid] !== "need");
       return {
@@ -20039,12 +22196,11 @@ function WorktableSection(props) {
         glow
       };
     };
+    const room = currentRoomRef.current;
     const cards = [];
-    cards.push(make(CONSOLE_ID, t("console.name"), CONSOLE_ICON, true));
+    cards.push(make(CONSOLE_ID, room?.name ?? t("console.name"), room?.icon ?? CONSOLE_ICON, true, room?.boundSessionId));
     const ids = [...pr.aliveRegisteredIds, ...pr.projects.layouts.map((l) => l.id)];
-    const known = new Set(ids);
-    const stored = pr.projects.order.filter((id) => known.has(id));
-    const ordered = [...stored, ...ids.filter((id) => !stored.includes(id))].filter((id) => id !== CONSOLE_ID);
+    const ordered = room ? effectiveControlRoomProjectIds(room, ids, roomRuleMatchesRef.current[room.id] ?? []).filter((id) => id !== CONSOLE_ID) : [];
     for (const id of ordered) {
       const meta = pr.metas[id];
       const layout = pr.projects.layouts.find((l) => l.id === id);
@@ -20105,6 +22261,13 @@ function WorktableSection(props) {
         autoBind: (sessionId) => {
           const pid = splitStore.active && splitStore.spec ? splitStore.spec.id : null;
           if (!pid || typeof sessionId !== "string" || !sessionId) return "none";
+          if (pid.startsWith("wt-console:")) {
+            const outcome = autoBindControlRoomSession(controlRoomsRef.current.state, pid, sessionId, Date.now());
+            if (outcome.result === "auto") {
+              commitUserControlRooms(outcome.roomId, "bind_session", `Automatically bound management session ${sessionId}`, (current) => ({ ...current, state: outcome.state }));
+            }
+            return outcome.result;
+          }
           const already = projectsRef.current.projects.bindings[pid];
           if (already) return "kept";
           persistProjects((prev) => prev.bindings[pid] ? prev : { ...prev, bindings: { ...prev.bindings, [pid]: sessionId } });
@@ -20120,8 +22283,30 @@ function WorktableSection(props) {
           };
         },
         getCards: () => getConsoleCards(),
-        getTheme: () => viewRef.current.consoleTheme ?? "system",
-        setTheme: (th) => persistView({ consoleTheme: th }),
+        getRoom: () => {
+          const room = currentRoomRef.current;
+          if (!room) return null;
+          const bindingState = controlRoomBindingState(room, knownSessionIds());
+          return {
+            id: room.id,
+            name: room.name,
+            cardLayout: room.cardLayout,
+            defaultPane: room.defaultPane,
+            sidebarVisible: room.sidebarVisible,
+            boundSessionId: room.boundSessionId,
+            bindingState,
+            bindingTitle: room.boundSessionId ? boundSessionTitle(room.boundSessionId) : ""
+          };
+        },
+        getTheme: () => currentRoomRef.current?.themeMode ?? viewRef.current.consoleTheme ?? "system",
+        setTheme: (th) => {
+          const roomId = currentRoomRef.current?.id;
+          if (!roomId) return;
+          commitUserControlRooms(roomId, "update", "Updated control-room theme", (current, now) => ({
+            ...current,
+            state: updateControlRoom(current.state, roomId, { themeMode: th }, now)
+          }));
+        },
         onAck: (id) => {
           ackRef.current?.(id);
           setNotifyTick((t2) => t2 + 1);
@@ -20135,20 +22320,25 @@ function WorktableSection(props) {
           sweepPreviews();
         },
         onAdd: () => openAddPanel(),
+        onManageBinding: () => {
+          const roomId = currentRoomRef.current?.id;
+          if (roomId) actionsRef.current?.manageRoomBinding(roomId);
+        },
         onReorder: (id, targetId) => {
           if (!id || !targetId || id === CONSOLE_ID || targetId === CONSOLE_ID || id === targetId) return;
-          persistProjects((prev) => {
-            const pr = projectsRef.current;
-            const ids = [...pr.aliveRegisteredIds, ...prev.layouts.map((l) => l.id)].filter((x) => x !== CONSOLE_ID);
-            const known = new Set(ids);
-            const stored = prev.order.filter((x) => known.has(x));
-            const order = [...stored, ...ids.filter((x) => !stored.includes(x))];
+          const roomId = currentRoomRef.current?.id;
+          if (!roomId) return;
+          commitUserControlRooms(roomId, "reorder_projects", `Reordered project ${id}`, (current, now) => {
+            const room = current.state.rooms[roomId];
+            if (!room) return current;
+            const candidates = [...projectsRef.current.aliveRegisteredIds, ...projectsRef.current.projects.layouts.map((layout) => layout.id)];
+            const order = effectiveControlRoomProjectIds(room, candidates, roomRuleMatchesRef.current[roomId] ?? []);
             const from = order.indexOf(id);
             const to = order.indexOf(targetId);
-            if (from < 0 || to < 0) return prev;
+            if (from < 0 || to < 0) return current;
             order.splice(from, 1);
             order.splice(to, 0, id);
-            return { ...prev, order };
+            return { ...current, state: reorderProjectsInRoom(current.state, roomId, order, now) };
           });
         },
         onOpen: (id) => {
@@ -20168,7 +22358,14 @@ function WorktableSection(props) {
           }
         },
         onJump: (id) => {
-          const sid = projectsRef.current.projects.bindings[id];
+          if (id === CONSOLE_ID) {
+            const room = currentRoomRef.current;
+            if (room && controlRoomBindingState(room, knownSessionIds()) !== "valid") {
+              actionsRef.current?.manageRoomBinding(room.id);
+              return;
+            }
+          }
+          const sid = id === CONSOLE_ID ? currentRoomRef.current?.boundSessionId : projectsRef.current.projects.bindings[id];
           if (!sid) return;
           markPluginSessionOpen(sid);
           try {
@@ -20196,7 +22393,7 @@ function WorktableSection(props) {
     setView((prev) => {
       const next = { ...prev, ...patch };
       try {
-        localStorage.setItem(PERSIST_KEY2, JSON.stringify({ ...next, sortMigratedV2: true }));
+        localStorage.setItem(PERSIST_KEY, JSON.stringify({ ...next, sortMigratedV2: true }));
       } catch {
       }
       return next;
@@ -20212,13 +22409,6 @@ function WorktableSection(props) {
       return next;
     });
   };
-  (0, import_react3.useEffect)(() => {
-    const saved = projects.views[CONSOLE_ID];
-    if (!specHasConsoleTab(saved)) {
-      const spec = buildConsoleSpec((k) => t(k));
-      persistProjects((prev) => ({ ...prev, views: { ...prev.views, [CONSOLE_ID]: spec } }));
-    }
-  }, [projects.views[CONSOLE_ID]]);
   (0, import_react3.useEffect)(() => {
     const sync = () => setRegisteredIds([...registryStore.ids]);
     registryStore.listeners.add(sync);
@@ -20317,8 +22507,18 @@ function WorktableSection(props) {
     if (!meta || typeof meta.id !== "string" || !meta.id) return;
     setMetas((prev) => {
       const cur = prev[meta.id];
-      if (cur && cur.name === meta.name && cur.icon === meta.icon) return prev;
-      return { ...prev, [meta.id]: { id: meta.id, name: typeof meta.name === "string" ? meta.name : meta.id, icon: meta.icon } };
+      const next = {
+        id: meta.id,
+        name: typeof meta.name === "string" ? meta.name : meta.id,
+        icon: meta.icon,
+        tags: Array.isArray(meta.tags) ? meta.tags.filter((tag) => typeof tag === "string" && !!tag) : void 0,
+        workspace: typeof meta.workspace === "string" ? meta.workspace : void 0,
+        archived: meta.archived === true,
+        lastActiveAt: typeof meta.lastActiveAt === "number" && Number.isFinite(meta.lastActiveAt) ? meta.lastActiveAt : void 0,
+        lastCompletedAt: typeof meta.lastCompletedAt === "number" && Number.isFinite(meta.lastCompletedAt) ? meta.lastCompletedAt : void 0
+      };
+      if (cur && JSON.stringify(cur) === JSON.stringify(next)) return prev;
+      return { ...prev, [meta.id]: next };
     });
   }, []);
   const engineIdsRef = (0, import_react3.useRef)(/* @__PURE__ */ new Set());
@@ -20425,25 +22625,37 @@ function WorktableSection(props) {
       }
     }
   }, [projects.views]);
-  const openConsole = (0, import_react3.useCallback)((explicitBound) => {
-    const saved = projects.views[CONSOLE_ID];
-    const broken = !specHasConsoleTab(saved);
-    const spec = broken ? buildConsoleSpec((k) => t(k)) : saved;
-    if (broken) persistProjects((prev) => ({ ...prev, views: { ...prev.views, [CONSOLE_ID]: spec } }));
-    engineIdsRef.current.add(CONSOLE_ID);
-    splitStore.open(spec);
-    if (splitStore.active && splitStore.spec?.id === CONSOLE_ID) {
+  const openControlRoom = (0, import_react3.useCallback)((controlRoomId) => {
+    const current = controlRoomsRef.current;
+    const room = current.state.rooms[controlRoomId];
+    if (!room) return;
+    const prepared = prepareControlRoomOpen(
+      current.state,
+      controlRoomId,
+      projectsRef.current.projects.views,
+      knownSessionIds(),
+      Date.now(),
+      (key) => key === "files" ? t("pane.explorer") : key === "terminal" ? t("pane.terminal") : t("console.name"),
+      controlRoomId === "room-default" ? projectsRef.current.projects.views[CONSOLE_ID] : void 0
+    );
+    commitControlRooms((snapshot) => ({ ...snapshot, state: prepared.state }));
+    if (prepared.createdSpec) {
+      persistProjects((prev) => ({ ...prev, views: { ...prev.views, [prepared.spec.id]: prepared.spec } }));
+    }
+    engineIdsRef.current.add(prepared.spec.id);
+    splitStore.open(prepared.spec);
+    if (splitStore.active && splitStore.spec?.id === prepared.spec.id) {
       let prev = null;
       try {
         prev = sessionBridge?.list?.getSnapshot?.()?.current ?? null;
       } catch {
       }
       projectAttachRef.sessionId = prev;
-      const bound = explicitBound !== void 0 ? explicitBound : projectsRef.current.projects.bindings[CONSOLE_ID];
-      projectAttachRef.attached = bound ?? prev;
-      if (bound) {
+      projectAttachRef.attached = prepared.bindingState === "valid" ? prepared.boundSessionId : prev;
+      if (prepared.bindingState === "valid" && prepared.boundSessionId) {
+        markPluginSessionOpen(prepared.boundSessionId);
         try {
-          sessionBridge?.sessions?.open?.(bound);
+          sessionBridge?.sessions?.open?.(prepared.boundSessionId);
         } catch {
         }
       }
@@ -20457,24 +22669,35 @@ function WorktableSection(props) {
       } catch {
       }
     }
-  }, [projects.views, t]);
-  const clickConsoleCard = (anchor) => {
-    if (projectsRef.current.projects.bindings[CONSOLE_ID]) {
-      openConsole();
-      return;
-    }
-    const r = anchor.getBoundingClientRect();
+  }, [t]);
+  const manageRoomBinding = (roomId, anchor) => {
+    if (!controlRoomsRef.current.state.rooms[roomId]) return;
+    const r = anchor?.getBoundingClientRect();
     setConsoleBind({
-      x: clamp3(Math.round(r.right + 8), 8, window.innerWidth - 640),
-      y: clamp3(Math.round(r.top), 8, window.innerHeight - 460)
+      roomId,
+      x: r ? clamp3(Math.round(r.right + 8), 8, window.innerWidth - 640) : clamp3(Math.round((window.innerWidth - 560) / 2), 8, window.innerWidth - 568),
+      y: r ? clamp3(Math.round(r.top), 8, window.innerHeight - 460) : clamp3(Math.round((window.innerHeight - 420) / 2), 8, window.innerHeight - 428)
     });
     setConsoleGroups([]);
     fetchSessionGroups().then((res) => setConsoleGroups(res.groups)).catch(() => setConsoleGroups([]));
   };
-  const bindConsoleExisting = (sid) => {
-    persistProjects((prev) => ({ ...prev, bindings: { ...prev.bindings, [CONSOLE_ID]: sid } }));
+  const bindControlRoomExisting = (sid) => {
+    const roomId = consoleBind?.roomId;
+    if (!roomId) return;
+    commitUserControlRooms(roomId, "bind_session", `Bound management session ${sid}`, (current, now) => ({
+      ...current,
+      state: updateControlRoom(current.state, roomId, { boundSessionId: sid }, now)
+    }));
     setConsoleBind(null);
-    openConsole(sid);
+    openControlRoom(roomId);
+  };
+  const clearControlRoomBinding = () => {
+    const roomId = consoleBind?.roomId;
+    if (!roomId) return;
+    commitUserControlRooms(roomId, "bind_session", "Unbound management session", (current, now) => ({
+      ...current,
+      state: updateControlRoom(current.state, roomId, { boundSessionId: null }, now)
+    }));
   };
   const bindConsoleNew = async () => {
     const b = sessionBridge;
@@ -20510,24 +22733,27 @@ function WorktableSection(props) {
         workspaceId = view2?.workspaceId ?? view2?.id ?? null;
         if (!workspaceId) throw new Error("workspace create failed");
       }
-      const folder = projectsRef.current.projects.folders[CONSOLE_ID] ?? null;
       let createOpts = {};
       if (workspaceId) createOpts = { workspaceId };
-      else if (folder) createOpts = { cwd: folder };
       const sessionId = await b.sessions.create(createOpts);
       await ensureSessionPreset(sessionId);
       await ensureSessionModel(sessionId);
       markPluginSessionOpen(sessionId);
-      persistProjects((prev) => ({ ...prev, bindings: { ...prev.bindings, [CONSOLE_ID]: sessionId } }));
+      const roomId = consoleBind?.roomId;
+      if (!roomId) throw new Error("control room closed");
+      commitUserControlRooms(roomId, "bind_session", `Bound new management session ${sessionId}`, (current, now) => ({
+        ...current,
+        state: updateControlRoom(current.state, roomId, { boundSessionId: sessionId }, now)
+      }));
       setConsoleBind(null);
-      openConsole(sessionId);
+      openControlRoom(roomId);
     } catch {
       setConsoleErr(true);
     } finally {
       setConsoleBusy(false);
     }
   };
-  actionsRef.current = { openSplit, openConsole };
+  actionsRef.current = { openSplit, openControlRoom, manageRoomBinding };
   const openBindPick = (0, import_react3.useCallback)((id, anchor) => {
     const r = anchor.getBoundingClientRect();
     const x = clamp3(Math.round(r.right + 8), 8, window.innerWidth - 300);
@@ -20601,7 +22827,7 @@ function WorktableSection(props) {
     const l = () => {
       setNotifyTick((t2) => t2 + 1);
       notifyConsole();
-      if (splitStore.active && splitStore.spec?.id === CONSOLE_ID) schedulePreviewSweep();
+      if (splitStore.active && splitStore.spec?.id.startsWith("wt-console:")) schedulePreviewSweep();
     };
     sessionsSnapshotStore.listeners.add(l);
     return () => {
@@ -20722,8 +22948,12 @@ function WorktableSection(props) {
     const map2 = {};
     const byId = sessionsSnapshotStore.snapshot?.byId ?? {};
     const ack = loadNotifyAck();
-    const seen = notifyStateSeenRef.current;
-    for (const [pid, sid] of Object.entries(projects.bindings)) {
+    const trackedSessionIds = new Set(Object.values(projects.bindings));
+    for (const room of Object.values(controlRooms.state.rooms)) {
+      if (room.boundSessionId) trackedSessionIds.add(room.boundSessionId);
+    }
+    const needBySession = {};
+    for (const sid of trackedSessionIds) {
       const e = byId[sid];
       if (!e) continue;
       let needNow = sessionNotifyState(e) === "need";
@@ -20743,10 +22973,18 @@ function WorktableSection(props) {
         } catch {
         }
       }
-      if (needNow !== seen[sid]) {
-        if (seen[sid] !== void 0) clearNotifyAck(sid);
-        seen[sid] = needNow;
-      }
+      needBySession[sid] = needNow;
+    }
+    const transitions = reconcileNeedAckTransitions(notifyStateSeenRef.current, needBySession);
+    notifyStateSeenRef.current = transitions.seen;
+    for (const sid of transitions.clearSessionIds) {
+      clearNotifyAck(sid);
+      delete ack[sid];
+    }
+    for (const [pid, sid] of Object.entries(projects.bindings)) {
+      const e = byId[sid];
+      if (!e) continue;
+      const needNow = needBySession[sid] ?? false;
       if (needNow) {
         if (ack[sid] !== "need") map2[pid] = "need";
         continue;
@@ -20758,9 +22996,9 @@ function WorktableSection(props) {
       if (e.running === true) map2[pid] = "busy";
     }
     return map2;
-  }, [projects.bindings, notifyTick, collectKids]);
+  }, [projects.bindings, controlRooms.state, notifyTick, collectKids]);
   const ackProjectNotify = (projectId) => {
-    const sid = projectsRef.current.projects.bindings[projectId];
+    const sid = projectId === CONSOLE_ID ? currentRoomRef.current?.boundSessionId : projectsRef.current.projects.bindings[projectId];
     if (!sid) return;
     const byId = sessionsSnapshotStore.snapshot?.byId ?? {};
     let needNow = sessionNotifyState(byId[sid]) === "need";
@@ -20790,7 +23028,13 @@ function WorktableSection(props) {
     [registeredIds, projects.removed]
   );
   projectsRef.current = { projects, metas, aliveRegisteredIds };
-  projectBindingsRef.current = projects.bindings;
+  projectBindingsRef.current = {
+    ...projects.bindings,
+    ...Object.fromEntries(controlRooms.state.order.flatMap((roomId) => {
+      const room = controlRooms.state.rooms[roomId];
+      return room?.boundSessionId ? [[room.layoutId, room.boundSessionId]] : [];
+    }))
+  };
   const allIds = (0, import_react3.useMemo)(() => [...aliveRegisteredIds, ...layoutIds], [aliveRegisteredIds, layoutIds]);
   const effectiveOrder = (0, import_react3.useMemo)(() => {
     const known = new Set(allIds);
@@ -20805,6 +23049,428 @@ function WorktableSection(props) {
     }
     return list2;
   }, [allIds, projects.order, projects.lastUsed, view.orderBy]);
+  const ruleProjectInputs = (0, import_react3.useMemo)(() => allIds.map((id) => {
+    const meta = metas[id];
+    const layout = projects.layouts.find((item) => item.id === id);
+    return {
+      id,
+      name: projects.nameOverrides[id] ?? meta?.name ?? layout?.title ?? id,
+      icon: projects.iconOverrides[id] ?? meta?.icon ?? layout?.icon ?? "\u{1F4E6}",
+      tags: meta?.tags,
+      workspace: meta?.workspace ?? projects.folders[id],
+      boundSessionId: projects.bindings[id] ?? null,
+      lastActiveAt: Math.max(meta?.lastActiveAt ?? 0, projects.lastUsed[id] ?? 0),
+      lastCompletedAt: meta?.lastCompletedAt,
+      hidden: projects.hidden.includes(id),
+      archived: meta?.archived === true
+    };
+  }), [allIds, metas, projects.bindings, projects.folders, projects.hidden, projects.iconOverrides, projects.lastUsed, projects.layouts, projects.nameOverrides]);
+  const rulePendingSessionIds = (0, import_react3.useMemo)(() => {
+    const pending = /* @__PURE__ */ new Set();
+    for (const sessionId of Object.values(projects.bindings)) {
+      try {
+        const face = sessionBridge?.sessions?.binding?.(sessionId)?.session?.getSnapshot?.();
+        if (Array.isArray(face?.pending) && face.pending.length > 0) pending.add(sessionId);
+      } catch {
+      }
+    }
+    return pending;
+  }, [projects.bindings, notifyTick]);
+  const roomRuleRefresh = (0, import_react3.useMemo)(() => refreshControlRoomRuleState({
+    rooms: controlRooms.state.order.map((roomId) => controlRooms.state.rooms[roomId]).filter((room) => !!room),
+    activeRoomId: controlRooms.state.activeId,
+    projects: ruleProjectInputs,
+    sessionSnapshot: sessionsSnapshotStore.snapshot,
+    pendingSessionIds: rulePendingSessionIds
+  }), [controlRooms.state, ruleProjectInputs, rulePendingSessionIds, notifyTick]);
+  const roomRuleMatches = roomRuleRefresh.matchesByRoom;
+  roomRuleMatchesRef.current = roomRuleMatches;
+  (0, import_react3.useEffect)(() => {
+    roomRuleRefreshRef.current = notifyOpenControlRoomRuleRefresh(roomRuleRefreshRef.current, roomRuleRefresh, notifyConsole);
+  }, [roomRuleRefresh]);
+  const needRoomIds = (0, import_react3.useMemo)(() => {
+    const ids = /* @__PURE__ */ new Set();
+    for (const roomId of controlRooms.state.order) {
+      if ((roomRuleRefresh.summariesByRoom[roomId]?.needCount ?? 0) > 0) ids.add(roomId);
+    }
+    return ids;
+  }, [controlRooms.state.order, roomRuleRefresh]);
+  const roomNavigation = (0, import_react3.useMemo)(
+    () => selectControlRoomNavigation(controlRooms.state, needRoomIds),
+    [controlRooms.state, needRoomIds]
+  );
+  const roomMoreIds = (0, import_react3.useMemo)(() => {
+    const primary = new Set(roomNavigation.primaryIds);
+    return controlRooms.state.order.filter((id) => !primary.has(id));
+  }, [controlRooms.state.order, roomNavigation.primaryIds]);
+  const roomProjectOptions = (0, import_react3.useMemo)(() => allIds.map((id) => {
+    const layout = projects.layouts.find((item) => item.id === id);
+    return {
+      id,
+      name: projects.nameOverrides[id] ?? metas[id]?.name ?? layout?.title ?? id,
+      icon: projects.iconOverrides[id] ?? metas[id]?.icon ?? layout?.icon ?? "\u{1F4E6}"
+    };
+  }), [allIds, projects.layouts, projects.nameOverrides, projects.iconOverrides, metas]);
+  const buildControlRoomSearchResponse = (query2, limit) => {
+    const factsById = new Map(roomRuleRefresh.facts.map((fact) => [fact.id, fact]));
+    const knownSessions = knownSessionIds();
+    return searchControlRooms({
+      currentRoomId: controlRooms.state.activeId,
+      rooms: controlRooms.state.order.flatMap((roomId) => {
+        const room = controlRooms.state.rooms[roomId];
+        if (!room) return [];
+        const validBoundSession = controlRoomBindingState(room, knownSessions) === "valid" ? room.boundSessionId : null;
+        return [{
+          id: room.id,
+          name: room.name,
+          icon: room.icon,
+          description: room.description,
+          effectiveProjectIds: roomRuleRefresh.summariesByRoom[room.id]?.memberIds ?? [],
+          boundSessionId: validBoundSession,
+          boundSessionTitle: validBoundSession ? boundSessionTitle(validBoundSession) : "",
+          rules: room.rules,
+          lastOpenedAt: room.lastOpenedAt,
+          needCount: roomRuleRefresh.summariesByRoom[room.id]?.needCount ?? 0
+        }];
+      }),
+      projects: ruleProjectInputs.map((project) => ({
+        id: project.id,
+        name: project.name,
+        icon: project.icon,
+        tags: project.tags ?? [],
+        workspace: project.workspace ?? "",
+        lastUsedAt: projects.lastUsed[project.id] ?? project.lastActiveAt ?? 0,
+        status: factsById.get(project.id)?.status ?? "idle"
+      })),
+      ...limit === void 0 ? {} : { limit }
+    }, query2);
+  };
+  const roomSearchResponse = (0, import_react3.useMemo)(() => {
+    return buildControlRoomSearchResponse(view.query);
+  }, [controlRooms.state, projects.lastUsed, roomRuleRefresh, ruleProjectInputs, view.query, notifyTick]);
+  const groupedSearchResults = (0, import_react3.useMemo)(
+    () => SEARCH_KIND_ORDER.flatMap((kind) => roomSearchResponse.results.filter((result) => result.kind === kind)),
+    [roomSearchResponse.results]
+  );
+  (0, import_react3.useEffect)(() => {
+    setSearchSelection((selection) => Math.min(Math.max(0, selection), Math.max(0, groupedSearchResults.length - 1)));
+  }, [groupedSearchResults.length, view.query]);
+  (0, import_react3.useEffect)(() => {
+    if (!view.searchOpen) return;
+    const selected = searchDialogRef.current?.querySelector('[data-search-selected="true"]');
+    selected?.scrollIntoView({ block: "nearest" });
+  }, [searchSelection, view.searchOpen, groupedSearchResults]);
+  const createRoomId = () => {
+    const base2 = "room-" + Date.now().toString(36);
+    let id = base2;
+    let suffix = 2;
+    while (controlRoomsRef.current.state.rooms[id]) id = `${base2}-${suffix++}`;
+    return id;
+  };
+  const createNamedRoom = (rawName) => {
+    const name = rawName.trim();
+    if (!name) return;
+    const id = createRoomId();
+    commitUserControlRooms(id, "create", "Created control room", (current, now) => {
+      const created = createControlRoom(current.state, { name }, { id, now });
+      return { ...current, state: selectControlRoom(created, id, now) };
+    });
+  };
+  const closeGlobalSearch = () => persistView({ searchOpen: false, query: "" });
+  const openGlobalSearch = (returnFocus) => {
+    searchReturnFocusRef.current = returnFocus ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    setSearchSelection(0);
+    setAddOpen(false);
+    setViewOptionsOpen(false);
+    setRoomMoreOpen(false);
+    setRoomCreateOpen(false);
+    setRoomManageId(null);
+    persistView({ searchOpen: true, query: "" });
+  };
+  (0, import_react3.useEffect)(() => {
+    if (!view.searchOpen || !searchDialogRef.current || !searchInputRef.current) return;
+    return installModalFocusGuard({
+      dialog: searchDialogRef.current,
+      initialFocus: searchInputRef.current,
+      returnFocus: searchReturnFocusRef.current,
+      onEscape: closeGlobalSearch
+    });
+  }, [view.searchOpen]);
+  (0, import_react3.useEffect)(() => {
+    const onShortcut = (event) => {
+      const key = event.key.toLocaleLowerCase();
+      const matches = (event.ctrlKey || event.metaKey) && (key === "k" || event.shiftKey && key === "p");
+      if (!matches || roomDeleteId) return;
+      event.preventDefault();
+      if (view.searchOpen) searchInputRef.current?.focus();
+      else openGlobalSearch();
+    };
+    document.addEventListener("keydown", onShortcut);
+    return () => document.removeEventListener("keydown", onShortcut);
+  }, [roomDeleteId, view.searchOpen]);
+  const createRoomFromDialog = () => {
+    if (!roomCreateName.trim()) return;
+    createNamedRoom(roomCreateName);
+    setRoomCreateName("");
+    setRoomCreateOpen(false);
+  };
+  const selectRoomFromNavigation = (roomId, anchor) => {
+    setRoomMoreOpen(false);
+    void anchor;
+    openControlRoom(roomId);
+  };
+  const renameRoom = (roomId, name) => {
+    if (!name.trim()) return;
+    commitUserControlRooms(roomId, "update", "Renamed control room", (current, now) => ({
+      ...current,
+      state: updateControlRoom(current.state, roomId, { name: name.trim() }, now)
+    }));
+  };
+  const copyRoom = (roomId) => {
+    const source = controlRoomsRef.current.state.rooms[roomId];
+    if (!source) return;
+    const id = createRoomId();
+    commitUserControlRooms(id, "copy", `Copied control room from ${roomId}`, (current, now) => ({
+      ...current,
+      state: copyControlRoom(current.state, roomId, { id, now, name: source.name + t("rooms.copySuffix") })
+    }));
+    setRoomManageId(id);
+  };
+  const toggleRoomHidden = (roomId) => {
+    const room = controlRoomsRef.current.state.rooms[roomId];
+    if (!room) return;
+    commitUserControlRooms(roomId, "update", room.sidebarVisible ? "Hid control room from navigation" : "Showed control room in navigation", (current, now) => ({
+      ...current,
+      state: updateControlRoom(current.state, roomId, { sidebarVisible: !room.sidebarVisible }, now)
+    }));
+  };
+  const updateRoomPresentation = (roomId, patch) => {
+    commitUserControlRooms(roomId, "update", `Updated control-room fields: ${Object.keys(patch).join(", ")}`, (current, now) => ({
+      ...current,
+      state: updateControlRoom(current.state, roomId, patch, now)
+    }));
+  };
+  const confirmDeleteRoom = () => {
+    if (!roomDeleteId) return;
+    const openLayoutId = splitStore.active ? splitStore.spec?.id ?? null : null;
+    const now = Date.now();
+    const transition = deleteControlRoomAndPlanNextOpen(
+      controlRoomsRef.current.state,
+      controlRoomsRef.current.trash,
+      roomDeleteId,
+      openLayoutId,
+      now
+    );
+    commitControlRooms(() => ({
+      state: transition.state,
+      trash: {
+        ...transition.trash,
+        audit: appendControlRoomAudit(transition.trash.audit, {
+          actor: "user",
+          timestamp: now,
+          action: "archive",
+          controlRoomId: roomDeleteId,
+          summary: "Archived control-room configuration; project, file, and session data were not deleted"
+        })
+      }
+    }));
+    if (transition.closeOpenLayout) {
+      splitStore.close();
+      if (transition.openRoomId) openControlRoom(transition.openRoomId);
+    }
+    if (roomManageId === roomDeleteId) setRoomManageId(null);
+    setRoomDeleteId(null);
+    window.requestAnimationFrame(() => {
+      document.querySelector('.dsh-wt_roomNav[aria-current="page"],.dsh-wt_roomCreate')?.focus();
+    });
+  };
+  const restoreRoomFromTrash = (roomId) => {
+    const sourceLayoutId = controlRoomsRef.current.trash.deleted.find((entry) => entry.room.id === roomId)?.room.layoutId;
+    let restoredId = null;
+    const now = Date.now();
+    commitControlRooms((current) => {
+      const result = restoreControlRoom(current.state, current.trash, roomId, now);
+      restoredId = result.restoredId;
+      if (!restoredId) return { state: result.state, trash: result.trash };
+      return {
+        state: result.state,
+        trash: {
+          ...result.trash,
+          audit: appendControlRoomAudit(result.trash.audit, {
+            actor: "user",
+            timestamp: now,
+            action: "restore",
+            controlRoomId: restoredId,
+            summary: "Restored archived control-room configuration"
+          })
+        }
+      };
+    });
+    if (sourceLayoutId && restoredId) {
+      const targetLayoutId = `wt-console:${restoredId}`;
+      if (sourceLayoutId !== targetLayoutId) {
+        persistProjects((prev) => ({ ...prev, views: copyControlRoomLayoutView(prev.views, sourceLayoutId, targetLayoutId) }));
+        copyControlRoomSplitGeometryInStorage(localStorage, SPLIT_PERSIST_KEY, sourceLayoutId, targetLayoutId);
+      }
+    }
+  };
+  const toggleRoomProject = (roomId, projectId, checked) => {
+    commitUserControlRooms(roomId, checked ? "add_projects" : "remove_projects", `${checked ? "Added" : "Removed"} project reference ${projectId}`, (current, now) => ({
+      ...current,
+      state: checked ? addProjectToRoom(current.state, roomId, projectId, now) : (() => {
+        const room = current.state.rooms[roomId];
+        if (!room) return current.state;
+        return updateControlRoom(current.state, roomId, {
+          projectIds: room.projectIds.filter((id) => id !== projectId),
+          projectOrder: room.fixedProjectIds.includes(projectId) ? room.projectOrder : room.projectOrder.filter((id) => id !== projectId)
+        }, now);
+      })()
+    }));
+  };
+  const updateRoomRules = (roomId, rules) => {
+    commitUserControlRooms(roomId, "set_rule", `Updated control-room rules (${rules.length})`, (current, now) => ({
+      ...current,
+      state: updateControlRoom(current.state, roomId, { rules }, now)
+    }));
+  };
+  const addRoomRule = (room) => {
+    const stamp = Date.now().toString(36);
+    updateRoomRules(room.id, [...room.rules, {
+      id: `rule-${stamp}`,
+      name: t("rooms.ruleDefaultName", { count: String(room.rules.length + 1) }),
+      enabled: true,
+      mode: "all",
+      conditions: [{ id: `condition-${stamp}`, field: "status", operator: "equals", value: "busy" }]
+    }]);
+  };
+  const patchRoomRule = (room, ruleId, patch) => {
+    updateRoomRules(room.id, room.rules.map((rule) => rule.id === ruleId ? { ...rule, ...patch } : rule));
+  };
+  const patchRoomCondition = (room, rule, conditionId, patch) => {
+    patchRoomRule(room, rule.id, {
+      conditions: rule.conditions.map((condition) => condition.id === conditionId ? { ...condition, ...patch } : condition)
+    });
+  };
+  const toggleRoomFixed = (roomId, projectId, fixed) => {
+    commitUserControlRooms(roomId, "update_project_policy", `${fixed ? "Fixed" : "Unfixed"} project ${projectId}`, (current, now) => ({ ...current, state: setProjectFixed(current.state, roomId, projectId, fixed, now) }));
+  };
+  const toggleRoomExcluded = (roomId, projectId, excluded) => {
+    commitUserControlRooms(roomId, "update_project_policy", `${excluded ? "Excluded" : "Included"} project ${projectId}`, (current, now) => ({ ...current, state: setProjectExcluded(current.state, roomId, projectId, excluded, now) }));
+  };
+  const exportRoomConfiguration = () => {
+    const blob = new Blob([exportControlRooms(controlRoomsRef.current.state, Date.now())], { type: "application/json" });
+    const href = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = href;
+    anchor.download = CONTROL_ROOMS_EXPORT_FORMAT;
+    anchor.click();
+    window.setTimeout(() => URL.revokeObjectURL(href), 0);
+  };
+  const importRoomConfiguration = async (file) => {
+    if (!file) return;
+    try {
+      const serialized = await file.text();
+      commitControlRooms((current) => importControlRoomsWithAudit(current, serialized, Date.now(), "user").snapshot);
+      setRoomDataNotice("imported");
+    } catch {
+      setRoomDataNotice("importFailed");
+    } finally {
+      if (roomImportInputRef.current) roomImportInputRef.current.value = "";
+    }
+  };
+  (0, import_react3.useEffect)(() => {
+    const bridge = createControlRoomCommandBridge({
+      snapshot: () => controlRoomsRef.current,
+      commit: commitControlRooms,
+      now: () => Date.now(),
+      knownProjectIds: () => allIds,
+      isSessionRunning: (sessionId) => sessionsSnapshotStore.snapshot?.byId?.[sessionId]?.running === true,
+      open: openControlRoom,
+      search: (query2, limit) => ({ query: query2, ...buildControlRoomSearchResponse(query2, limit) }),
+      afterCopy: (sourceControlRoomId, newControlRoomId) => {
+        const sourceLayoutId = controlRoomsRef.current.state.rooms[sourceControlRoomId]?.layoutId ?? `wt-console:${sourceControlRoomId}`;
+        const targetLayoutId = `wt-console:${newControlRoomId}`;
+        persistProjects((prev) => ({ ...prev, views: copyControlRoomLayoutView(prev.views, sourceLayoutId, targetLayoutId) }));
+        copyControlRoomSplitGeometryInStorage(localStorage, SPLIT_PERSIST_KEY, sourceLayoutId, targetLayoutId);
+      },
+      afterArchive: (controlRoomId, layoutId) => {
+        if (splitStore.active && splitStore.spec?.id === layoutId) {
+          splitStore.close();
+          const nextId = controlRoomsRef.current.state.activeId;
+          if (nextId) openControlRoom(nextId);
+        }
+      },
+      afterRestore: (sourceLayoutId, restoredControlRoomId) => {
+        const targetLayoutId = `wt-console:${restoredControlRoomId}`;
+        if (sourceLayoutId === targetLayoutId) return;
+        persistProjects((prev) => ({ ...prev, views: copyControlRoomLayoutView(prev.views, sourceLayoutId, targetLayoutId) }));
+        copyControlRoomSplitGeometryInStorage(localStorage, SPLIT_PERSIST_KEY, sourceLayoutId, targetLayoutId);
+      }
+    });
+    const debugRoot = window.__dshWorktable ??= {};
+    debugRoot.controlRooms = bridge;
+    return () => {
+      if (debugRoot.controlRooms === bridge) delete debugRoot.controlRooms;
+    };
+  }, [allIds, openControlRoom, roomRuleRefresh, ruleProjectInputs]);
+  const locateSearchTarget = (attribute, id) => {
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      const target = Array.from(document.querySelectorAll(`[${attribute}]`)).find((element) => element.getAttribute(attribute) === id);
+      if (!target) return;
+      target.scrollIntoView({ block: "center", inline: "nearest" });
+      const focusTarget = target.matches("button,[tabindex]") ? target : target.querySelector("input,button,select,[tabindex]");
+      focusTarget?.focus({ preventScroll: true });
+      target.classList.add("dsh-wt_searchLocated");
+      window.setTimeout(() => target.classList.remove("dsh-wt_searchLocated"), 1800);
+    }));
+  };
+  const openProjectFromSearch = (roomId, projectId) => {
+    openControlRoom(roomId);
+    reportUsed(projectId);
+    locateSearchTarget("data-wt-console-project-id", projectId);
+  };
+  const openRuleFromSearch = (roomId, ruleId) => {
+    if (!controlRoomsRef.current.state.rooms[roomId]) return;
+    setRoomMoreOpen(false);
+    setRoomManageId(roomId);
+    locateSearchTarget("data-wt-room-rule-id", ruleId);
+  };
+  const activateSearchResult = (result) => {
+    closeGlobalSearch();
+    executeControlRoomSearchNavigation(describeControlRoomSearchNavigation(result), {
+      openControlRoom,
+      openProjectInRoom: openProjectFromSearch,
+      openRuleEditor: openRuleFromSearch
+    });
+  };
+  const renderRoomNavItem = (roomId, inMore = false) => {
+    const room = controlRooms.state.rooms[roomId];
+    if (!room) return null;
+    const summary = roomRuleRefresh.summariesByRoom[roomId];
+    const effectiveMembers = summary?.memberIds ?? effectiveControlRoomProjectIds(room, allIds, roomRuleMatches[roomId] ?? []);
+    const needCount = summary?.needCount ?? 0;
+    return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomNavWrap", "data-on": controlRooms.state.activeId === roomId ? "true" : "false", "data-hidden": room.sidebarVisible ? void 0 : "true", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
+        "button",
+        {
+          type: "button",
+          className: "dsh-wt_roomNav",
+          "data-on": controlRooms.state.activeId === roomId ? "true" : "false",
+          "aria-current": controlRooms.state.activeId === roomId ? "page" : void 0,
+          "aria-label": t("rooms.navLabel", { name: room.name, projects: String(effectiveMembers.length), need: String(needCount) }),
+          onClick: (event) => selectRoomFromNavigation(roomId, event.currentTarget),
+          children: [
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_roomIcon", "aria-hidden": true, children: room.icon }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_roomName", children: room.name }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_roomCount", title: t("rooms.projectCount", { count: String(effectiveMembers.length) }), children: effectiveMembers.length }),
+            needCount > 0 && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_roomNeed", title: t("rooms.needCount", { count: String(needCount) }), children: needCount }),
+            inMore && !room.sidebarVisible && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_roomHidden", children: t("rooms.hidden") })
+          ]
+        }
+      ),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_roomMenuBtn", "aria-label": t("rooms.manageRoom", { name: room.name }), onClick: () => setRoomManageId(roomId), children: "\u2022\u2022\u2022" })
+    ] }, roomId);
+  };
   const ownerProps = {
     query: view.query.trim(),
     wide,
@@ -20865,9 +23531,19 @@ function WorktableSection(props) {
     persistView({ dock: "footer", floatTop: null });
   };
   const onSearchKeyDown = (e) => {
-    if (e.key === "Escape") {
-      persistView({ searchOpen: false, query: "" });
-    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSearchSelection((selection) => groupedSearchResults.length ? (selection + 1) % groupedSearchResults.length : 0);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSearchSelection((selection) => groupedSearchResults.length ? (selection - 1 + groupedSearchResults.length) % groupedSearchResults.length : 0);
+    } else if (e.key === "Enter") {
+      const selected = groupedSearchResults[searchSelection];
+      if (selected) {
+        e.preventDefault();
+        activateSearchResult(selected);
+      }
+    } else if (e.key === "Escape") closeGlobalSearch();
   };
   const moveTo = (id, targetId) => {
     if (id === targetId) return;
@@ -21026,7 +23702,7 @@ function WorktableSection(props) {
     const sync = () => {
       const box = document.querySelector(".dsh-wt_projects");
       if (!box) return;
-      const cards = Array.from(box.querySelectorAll("button:not(.dsh-wt_layout)"));
+      const cards = Array.from(box.querySelectorAll("button:not(.dsh-wt_layout)")).filter((element) => !element.closest(".dsh-wt_roomNavigation"));
       cards.forEach((el, i) => {
         const id = aliveRegisteredIds[i];
         if (id) {
@@ -21216,7 +23892,14 @@ function WorktableSection(props) {
   };
   if (!wide) {
     const railItems = [
-      { icon: CONSOLE_ICON, name: t("console.name"), onClick: (e) => clickConsoleCard(e.currentTarget) },
+      ...roomNavigation.primaryIds.map((roomId) => {
+        const room = controlRooms.state.rooms[roomId];
+        return { icon: room.icon, name: room.name, onClick: (e) => selectRoomFromNavigation(roomId, e.currentTarget) };
+      }),
+      ...controlRooms.state.order.length === 0 ? [{ icon: "\uFF0B", name: t("rooms.create"), onClick: () => {
+        const name = window.prompt(t("rooms.namePh"));
+        if (name) createNamedRoom(name);
+      } }] : [],
       ...aliveRegisteredIds.map((id) => ({
         icon: projects.iconOverrides[id] ?? metas[id]?.icon ?? "\u{1F4E6}",
         name: projects.nameOverrides[id] ?? metas[id]?.name ?? id,
@@ -21295,7 +23978,8 @@ function WorktableSection(props) {
             className: "dsh-wt_iconBtn",
             "aria-label": t("menu.search"),
             title: t("menu.search"),
-            onClick: () => persistView({ searchOpen: !view.searchOpen, query: view.searchOpen ? "" : view.query }),
+            "aria-keyshortcuts": "Control+K Control+Shift+P",
+            onClick: (event) => openGlobalSearch(event.currentTarget),
             children: ICON_SEARCH
           }
         ),
@@ -21332,29 +24016,6 @@ function WorktableSection(props) {
           }
         )
       ] })
-    ] }),
-    view.searchOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_search", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-        "input",
-        {
-          autoFocus: true,
-          type: "text",
-          placeholder: t("search.placeholder"),
-          value: view.query,
-          onChange: (e) => persistView({ query: e.target.value }),
-          onKeyDown: onSearchKeyDown
-        }
-      ),
-      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-        "button",
-        {
-          type: "button",
-          className: "dsh-wt_searchClear",
-          "aria-label": t("search.close"),
-          onClick: () => persistView({ searchOpen: false, query: "" }),
-          children: "\u2715"
-        }
-      )
     ] }),
     addOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop", onClick: () => setAddOpen(false) }),
     addOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_menu dsh-wt_add dsh-wt_pop", style: { position: "fixed", left: popLeft, top: popTop, width: 360, zIndex: 80 }, children: [
@@ -21735,57 +24396,68 @@ function WorktableSection(props) {
       ] }, g.title || "g" + gi)) }) });
     })(),
     consoleBind && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop", style: { zIndex: 85 }, onClick: () => setConsoleBind(null) }),
-    consoleBind && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_menu dsh-wt_pop dsh-wt_consoleBindPop", style: { position: "fixed", left: consoleBind.x, top: consoleBind.y, width: 560, zIndex: 86 }, children: /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_consoleBindCols", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_consoleBindCol", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_consoleBindLabel", children: [
-          "\u2795 ",
-          t("console.joinExisting")
+    consoleBind && (() => {
+      const room = controlRooms.state.rooms[consoleBind.roomId];
+      if (!room) return null;
+      const bindingState = controlRoomBindingState(room, knownSessionIds());
+      return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_menu dsh-wt_pop dsh-wt_consoleBindPop", style: { position: "fixed", left: consoleBind.x, top: consoleBind.y, width: 560, zIndex: 86 }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_consoleBindingStatus", "data-state": bindingState, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: bindingState === "missing" ? t("rooms.bindingMissing", { id: room.boundSessionId ?? "" }) : bindingState === "valid" ? t("rooms.bindingCurrent", { name: boundSessionTitle(room.boundSessionId) }) : t("rooms.bindingNone") }),
+          room.boundSessionId && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", onClick: clearControlRoomBinding, children: t("bind.unbind") })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_selectList dsh-wt_consoleBindList", children: [
-          consoleGroups.map((g, gi) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_react3.Fragment, { children: [
-            g.title && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_jsx_runtime3.Fragment, { children: [
-              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_selectDivider" }),
-              /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_selectGroup", children: [
-                "\u{1F4C1} ",
-                g.title
-              ] })
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_consoleBindCols", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_consoleBindCol", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_consoleBindLabel", children: [
+              "\u2795 ",
+              t("console.joinExisting")
             ] }),
-            g.sessions.map((s) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
-              "button",
-              {
-                type: "button",
-                className: "dsh-wt_selectItem" + (projects.bindings[CONSOLE_ID] === s.id ? " dsh-wt_selectItemOn" : ""),
-                onClick: () => bindConsoleExisting(s.id),
-                children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_selectItemTitle", children: s.title }),
-                  s.isCurrent && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_selectCurrent", children: t("custom.sessionCurrent") })
-                ]
-              },
-              s.id
-            ))
-          ] }, g.title || "g" + gi)),
-          consoleGroups.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_consoleBindEmpty", children: t("console.noSessions") })
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_selectList dsh-wt_consoleBindList", children: [
+              consoleGroups.map((g, gi) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_react3.Fragment, { children: [
+                g.title && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_jsx_runtime3.Fragment, { children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_selectDivider" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_selectGroup", children: [
+                    "\u{1F4C1} ",
+                    g.title
+                  ] })
+                ] }),
+                g.sessions.map((s) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
+                  "button",
+                  {
+                    type: "button",
+                    className: "dsh-wt_selectItem" + (room.boundSessionId === s.id ? " dsh-wt_selectItemOn" : ""),
+                    onClick: () => bindControlRoomExisting(s.id),
+                    children: [
+                      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_selectItemTitle", children: s.title }),
+                      s.isCurrent && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_selectCurrent", children: t("custom.sessionCurrent") })
+                    ]
+                  },
+                  s.id
+                ))
+              ] }, g.title || "g" + gi)),
+              consoleGroups.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_consoleBindEmpty", children: t("console.noSessions") })
+            ] })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_consoleBindCol dsh-wt_consoleBindColNew", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_consoleBindLabel", children: [
+              "\u2728 ",
+              t("console.newConv")
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("select", { className: "dsh-wt_consoleSelect", value: consoleMode, onChange: (e) => setConsoleMode(e.target.value), children: [
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "none", children: t("console.groupNone") }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "existing", children: t("console.groupExisting") }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "new", children: t("console.groupNew") })
+            ] }),
+            consoleMode === "existing" && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("select", { className: "dsh-wt_consoleSelect", value: consoleWsId, onChange: (e) => setConsoleWsId(e.target.value), children: listWorkspaces().map((w) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: w.id, children: w.title }, w.id)) }),
+            consoleMode === "new" && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_jsx_runtime3.Fragment, { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { className: "dsh-wt_consoleInput", placeholder: t("console.newParentPh"), value: consoleParent, onChange: (e) => setConsoleParent(e.target.value) }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { className: "dsh-wt_consoleInput", placeholder: t("console.newNamePh"), value: consoleName, onChange: (e) => setConsoleName(e.target.value) })
+            ] }),
+            consoleErr && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { className: "dsh-wt_consoleErr", children: t("console.bindFail") }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_consoleCreateBtn", disabled: consoleBusy, onClick: bindConsoleNew, children: consoleBusy ? "\u2026" : t("console.createBind") })
+          ] })
         ] })
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_consoleBindCol dsh-wt_consoleBindColNew", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_consoleBindLabel", children: [
-          "\u2728 ",
-          t("console.newConv")
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("select", { className: "dsh-wt_consoleSelect", value: consoleMode, onChange: (e) => setConsoleMode(e.target.value), children: [
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "none", children: t("console.groupNone") }),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "existing", children: t("console.groupExisting") }),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "new", children: t("console.groupNew") })
-        ] }),
-        consoleMode === "existing" && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("select", { className: "dsh-wt_consoleSelect", value: consoleWsId, onChange: (e) => setConsoleWsId(e.target.value), children: listWorkspaces().map((w) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: w.id, children: w.title }, w.id)) }),
-        consoleMode === "new" && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_jsx_runtime3.Fragment, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { className: "dsh-wt_consoleInput", placeholder: t("console.newParentPh"), value: consoleParent, onChange: (e) => setConsoleParent(e.target.value) }),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { className: "dsh-wt_consoleInput", placeholder: t("console.newNamePh"), value: consoleName, onChange: (e) => setConsoleName(e.target.value) })
-        ] }),
-        consoleErr && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { className: "dsh-wt_consoleErr", children: t("console.bindFail") }),
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_consoleCreateBtn", disabled: consoleBusy, onClick: bindConsoleNew, children: consoleBusy ? "\u2026" : t("console.createBind") })
-      ] })
-    ] }) }),
+      ] });
+    })(),
     customOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop", style: { zIndex: 83 }, onClick: () => setCustomOpen(false) }),
     customOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_menu dsh-wt_pop", style: { position: "fixed", left: popLeft, top: popTop, width: 340, zIndex: 84 }, children: [
       /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_menuLabel", children: [
@@ -21818,39 +24490,359 @@ function WorktableSection(props) {
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_confirmDelete", onClick: doDelete, children: t("confirm.delete") })
       ] })
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_projects", "data-managing": viewOptionsOpen ? "true" : void 0, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
-        "button",
-        {
-          type: "button",
-          className: "dsh-wt_layout dsh-wt_consoleEntry",
-          "data-on": activeSplitId === CONSOLE_ID ? "true" : "false",
-          style: { order: 0, position: "relative" },
-          title: t("console.name"),
-          onClick: (e) => clickConsoleCard(e.currentTarget),
-          children: [
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_layoutIcon", children: CONSOLE_ICON }),
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_layoutText", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_layoutName", children: t("console.name") }) }),
+    roomReloadNotice && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomReload", role: "status", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: t("rooms.reloadNotice") }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", onClick: () => window.location.reload(), children: t("rooms.reload") })
+    ] }),
+    roomSaveFailed && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_roomError", role: "alert", children: t("rooms.saveFailed") }),
+    view.searchOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop dsh-wt_globalSearchBackdrop", onClick: closeGlobalSearch }),
+    view.searchOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
+      "div",
+      {
+        ref: searchDialogRef,
+        tabIndex: -1,
+        className: "dsh-wt_globalSearch",
+        role: "dialog",
+        "aria-modal": "true",
+        "aria-labelledby": "dsh-wt_globalSearchTitle",
+        onKeyDown: onSearchKeyDown,
+        children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_globalSearchHead", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { id: "dsh-wt_globalSearchTitle", children: t("rooms.search") }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_globalSearchShortcut", "aria-hidden": true, children: "Ctrl K \xB7 Ctrl Shift P" })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_globalSearchInputWrap", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { "aria-hidden": true, children: ICON_SEARCH }),
             /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-              "span",
+              "input",
               {
-                className: "dsh-wt_bindBtn",
-                role: "button",
-                tabIndex: 0,
-                "data-bound": bindNotifyMap[CONSOLE_ID] ?? (projects.bindings[CONSOLE_ID] ? "true" : "false"),
-                "data-tip": projects.bindings[CONSOLE_ID] ? t("bind.tipBound", { name: boundSessionTitle(projects.bindings[CONSOLE_ID]) }) : t("bind.tipUnbound"),
-                "aria-label": projects.bindings[CONSOLE_ID] ? t("bind.tipBound", { name: boundSessionTitle(projects.bindings[CONSOLE_ID]) }) : t("bind.tipUnbound"),
-                onClick: (e) => {
-                  e.stopPropagation();
-                  openBindPick(CONSOLE_ID, e.currentTarget);
-                },
-                children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_bindCircles", "aria-hidden": true })
+                ref: searchInputRef,
+                type: "text",
+                role: "combobox",
+                "aria-expanded": "true",
+                "aria-controls": "dsh-wt_globalSearchResults",
+                "aria-activedescendant": groupedSearchResults[searchSelection] ? `dsh-wt_search-result-${searchSelection}` : void 0,
+                "aria-autocomplete": "list",
+                placeholder: t("rooms.searchPlaceholder"),
+                value: view.query,
+                onChange: (event) => {
+                  setSearchSelection(0);
+                  persistView({ query: event.target.value });
+                }
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_layoutArrow", "aria-hidden": true, children: "\u203A" })
-          ]
-        }
-      ),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", "aria-label": t("search.close"), onClick: closeGlobalSearch, children: "\u2715" })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { id: "dsh-wt_globalSearchResults", className: "dsh-wt_globalSearchResults", role: "listbox", "aria-label": t("rooms.searchResults"), children: [
+            groupedSearchResults.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_globalSearchEmpty", children: t("rooms.searchEmpty") }),
+            SEARCH_KIND_ORDER.map((kind) => {
+              const results = groupedSearchResults.filter((result) => result.kind === kind);
+              if (results.length === 0) return null;
+              return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("section", { className: "dsh-wt_globalSearchGroup", role: "group", "aria-label": t(`rooms.searchKind.${kind}`), children: [
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("h4", { children: t(`rooms.searchKind.${kind}`) }),
+                results.map((result) => {
+                  const index = groupedSearchResults.indexOf(result);
+                  return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
+                    "button",
+                    {
+                      id: `dsh-wt_search-result-${index}`,
+                      type: "button",
+                      role: "option",
+                      "aria-selected": index === searchSelection,
+                      "data-search-selected": index === searchSelection ? "true" : void 0,
+                      onMouseMove: () => setSearchSelection(index),
+                      onClick: () => activateSearchResult(result),
+                      children: [
+                        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_globalSearchIcon", "aria-hidden": true, children: result.icon }),
+                        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_globalSearchText", children: [
+                          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: result.title }),
+                          result.subtitle && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("small", { children: result.subtitle })
+                        ] }),
+                        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_globalSearchRoom", children: controlRooms.state.rooms[result.roomId]?.name ?? result.roomId })
+                      ]
+                    },
+                    `${result.kind}:${result.roomId}:${result.targetId}`
+                  );
+                })
+              ] }, kind);
+            })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_globalSearchFoot", role: "status", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: t("rooms.searchHint") }),
+            roomSearchResponse.overflow > 0 && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("strong", { children: t("rooms.searchOverflow", { count: String(roomSearchResponse.overflow) }) })
+          ] })
+        ]
+      }
+    ),
+    roomCreateOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop", style: { zIndex: 87 }, onClick: () => setRoomCreateOpen(false) }),
+    roomCreateOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomDialog", role: "dialog", "aria-modal": "true", "aria-labelledby": "dsh-wt_roomCreateTitle", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("h3", { id: "dsh-wt_roomCreateTitle", children: t("rooms.create") }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: t("rooms.name") }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { autoFocus: true, value: roomCreateName, placeholder: t("rooms.namePh"), onChange: (event) => setRoomCreateName(event.target.value), onKeyDown: (event) => {
+          if (event.key === "Enter") createRoomFromDialog();
+        } })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomDialogActions", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", onClick: () => setRoomCreateOpen(false), children: t("confirm.cancel") }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", disabled: !roomCreateName.trim(), onClick: createRoomFromDialog, children: t("rooms.create") })
+      ] })
+    ] }),
+    roomManageId && controlRooms.state.rooms[roomManageId] && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop", style: { zIndex: 87 }, onClick: () => setRoomManageId(null) }),
+    roomManageId && controlRooms.state.rooms[roomManageId] && (() => {
+      const room = controlRooms.state.rooms[roomManageId];
+      return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomDialog dsh-wt_roomManageDialog", role: "dialog", "aria-modal": roomDeleteId ? void 0 : true, "aria-labelledby": "dsh-wt_roomManageTitle", "aria-hidden": roomDeleteId ? true : void 0, inert: roomDeleteId ? true : void 0, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_settingsClose", "aria-label": t("manage.done"), onClick: () => setRoomManageId(null), children: "\u2715" }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("h3", { id: "dsh-wt_roomManageTitle", children: t("rooms.manage") }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: t("rooms.name") }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(RenameInput, { initial: room.name, placeholder: t("rooms.namePh"), onCommit: (name) => renameRoom(room.id, name) }, room.id + ":" + room.name)
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomLocalSettings", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: t("rooms.theme") }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("select", { value: room.themeMode, onChange: (event) => updateRoomPresentation(room.id, { themeMode: event.target.value }), children: [
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "system", children: t("console.themeSystem") }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "dark", children: t("console.themeDark") }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "light", children: t("console.themeLight") })
+            ] })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: t("rooms.columns") }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("select", { value: room.cardLayout.columns, onChange: (event) => updateRoomPresentation(room.id, { cardLayout: { ...room.cardLayout, columns: Number(event.target.value) } }), children: [1, 2, 3, 4].map((columns) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: columns, children: columns }, columns)) })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: t("rooms.cardSize") }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("select", { value: room.cardLayout.cardSize, onChange: (event) => updateRoomPresentation(room.id, { cardLayout: { ...room.cardLayout, cardSize: event.target.value } }), children: [
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "compact", children: t("rooms.cardCompact") }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "comfortable", children: t("rooms.cardComfortable") }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "wide", children: t("rooms.cardWide") })
+            ] })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: t("rooms.defaultPane") }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("select", { value: room.defaultPane, onChange: (event) => updateRoomPresentation(room.id, { defaultPane: event.target.value }), children: [
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "console", children: t("console.name") }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "conversation", children: t("rooms.paneConversation") }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "files", children: t("pane.explorer") }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "terminal", children: t("pane.terminal") })
+            ] })
+          ] })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomBindingRow", "data-state": controlRoomBindingState(room, knownSessionIds()), children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: room.boundSessionId ? controlRoomBindingState(room, knownSessionIds()) === "missing" ? t("rooms.bindingMissing", { id: room.boundSessionId }) : t("rooms.bindingCurrent", { name: boundSessionTitle(room.boundSessionId) }) : t("rooms.bindingNone") }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", onClick: (event) => manageRoomBinding(room.id, event.currentTarget), children: t("rooms.bindingManage") })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("fieldset", { className: "dsh-wt_roomRules", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("legend", { children: t("rooms.rules") }),
+          room.rules.map((rule, ruleIndex) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("article", { className: "dsh-wt_roomRule", "data-enabled": rule.enabled ? "true" : void 0, "data-wt-room-rule-id": rule.id, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomRuleHead", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                "input",
+                {
+                  value: rule.name ?? "",
+                  "aria-label": t("rooms.ruleName"),
+                  placeholder: t("rooms.ruleDefaultName", { count: String(ruleIndex + 1) }),
+                  onChange: (event) => patchRoomRule(room, rule.id, { name: event.target.value })
+                }
+              ),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { type: "checkbox", checked: rule.enabled, onChange: (event) => patchRoomRule(room, rule.id, { enabled: event.target.checked }) }),
+                " ",
+                t("rooms.ruleEnabled")
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("select", { "aria-label": t("rooms.ruleMode"), value: rule.mode, onChange: (event) => patchRoomRule(room, rule.id, { mode: event.target.value }), children: [
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "all", children: t("rooms.ruleAll") }),
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "any", children: t("rooms.ruleAny") })
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", "aria-label": t("rooms.ruleDelete"), onClick: () => updateRoomRules(room.id, room.rules.filter((item) => item.id !== rule.id)), children: "\u2715" })
+            ] }),
+            rule.conditions.map((condition) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomCondition", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                "select",
+                {
+                  "aria-label": t("rooms.ruleField"),
+                  value: condition.field,
+                  onChange: (event) => {
+                    const field = event.target.value;
+                    patchRoomCondition(room, rule, condition.id, {
+                      field,
+                      operator: ruleOperatorsFor(field)[0],
+                      value: defaultRuleConditionValue(field)
+                    });
+                  },
+                  children: RULE_FIELDS.map((field) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: field, children: t(`rooms.ruleField.${field}`) }, field))
+                }
+              ),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                "select",
+                {
+                  "aria-label": t("rooms.ruleOperator"),
+                  value: condition.operator,
+                  onChange: (event) => {
+                    const operator = event.target.value;
+                    const listOperator = operator === "in" || operator === "notIn";
+                    const value = listOperator ? Array.isArray(condition.value) ? condition.value : [String(condition.value ?? "")] : Array.isArray(condition.value) ? condition.value[0] ?? "" : condition.value;
+                    patchRoomCondition(room, rule, condition.id, { operator, value });
+                  },
+                  children: ruleOperatorsFor(condition.field).map((operator) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: operator, children: t(`rooms.ruleOperator.${operator}`) }, operator))
+                }
+              ),
+              condition.field === "status" && condition.operator !== "in" && condition.operator !== "notIn" ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("select", { "aria-label": t("rooms.ruleValue"), value: String(condition.value), onChange: (event) => patchRoomCondition(room, rule, condition.id, { value: event.target.value }), children: ["idle", "busy", "need", "done"].map((status) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: status, children: t(`rooms.ruleStatus.${status}`) }, status)) }) : condition.field === "hasBoundSession" || condition.field === "hidden" || condition.field === "archived" ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("select", { "aria-label": t("rooms.ruleValue"), value: condition.value === true ? "true" : "false", onChange: (event) => patchRoomCondition(room, rule, condition.id, { value: event.target.value === "true" }), children: [
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "true", children: t("rooms.ruleTrue") }),
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "false", children: t("rooms.ruleFalse") })
+              ] }) : condition.field === "subagentCount" ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { "aria-label": t("rooms.ruleValue"), type: "number", min: 0, value: Number(condition.value), onChange: (event) => patchRoomCondition(room, rule, condition.id, { value: Number(event.target.value) }) }) : condition.field === "lastActiveAt" || condition.field === "lastCompletedAt" ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { "aria-label": t("rooms.ruleValue"), type: "datetime-local", value: dateTimeInputValue(condition.value), onChange: (event) => patchRoomCondition(room, rule, condition.id, { value: new Date(event.target.value).getTime() }) }) : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                "input",
+                {
+                  "aria-label": t("rooms.ruleValue"),
+                  value: Array.isArray(condition.value) ? condition.value.join(", ") : String(condition.value),
+                  placeholder: condition.operator === "in" || condition.operator === "notIn" ? t("rooms.ruleListPh") : t("rooms.ruleValuePh"),
+                  onChange: (event) => patchRoomCondition(room, rule, condition.id, {
+                    value: condition.operator === "in" || condition.operator === "notIn" ? event.target.value.split(",").map((item) => item.trim()).filter(Boolean) : event.target.value
+                  })
+                }
+              ),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { className: "dsh-wt_roomConditionExclude", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { type: "checkbox", checked: condition.exclude === true, onChange: (event) => patchRoomCondition(room, rule, condition.id, { exclude: event.target.checked || void 0 }) }),
+                " ",
+                t("rooms.ruleExclude")
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", "aria-label": t("rooms.ruleConditionDelete"), onClick: () => patchRoomRule(room, rule.id, { conditions: rule.conditions.filter((item) => item.id !== condition.id) }), children: "\u2212" })
+            ] }, condition.id)),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
+              "button",
+              {
+                type: "button",
+                className: "dsh-wt_roomRuleAddCondition",
+                onClick: () => patchRoomRule(room, rule.id, { conditions: [...rule.conditions, {
+                  id: `condition-${Date.now().toString(36)}`,
+                  field: "status",
+                  operator: "equals",
+                  value: "busy"
+                }] }),
+                children: [
+                  "\uFF0B ",
+                  t("rooms.ruleAddCondition")
+                ]
+              }
+            )
+          ] }, rule.id)),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("button", { type: "button", className: "dsh-wt_roomRuleAdd", onClick: () => addRoomRule(room), children: [
+            "\uFF0B ",
+            t("rooms.ruleAdd")
+          ] })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("fieldset", { className: "dsh-wt_roomMembers", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("legend", { children: t("rooms.members") }),
+          roomProjectOptions.length > 0 ? roomProjectOptions.map((project) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomMemberRow", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { "aria-hidden": true, children: project.icon }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: project.name }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { type: "checkbox", checked: room.projectIds.includes(project.id), onChange: (event) => toggleRoomProject(room.id, project.id, event.target.checked) }),
+              " ",
+              t("rooms.memberManual")
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { type: "checkbox", checked: room.fixedProjectIds.includes(project.id), onChange: (event) => toggleRoomFixed(room.id, project.id, event.target.checked) }),
+              " ",
+              t("rooms.memberFixed")
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { type: "checkbox", checked: room.excludedProjectIds.includes(project.id), onChange: (event) => toggleRoomExcluded(room.id, project.id, event.target.checked) }),
+              " ",
+              t("rooms.memberExcluded")
+            ] })
+          ] }, project.id)) : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_roomMembersEmpty", children: t("rooms.noProjects") })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("fieldset", { className: "dsh-wt_roomData", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("legend", { children: t("rooms.data") }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomDataActions", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", onClick: exportRoomConfiguration, children: t("rooms.export") }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", onClick: () => roomImportInputRef.current?.click(), children: t("rooms.import") }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+              "input",
+              {
+                ref: roomImportInputRef,
+                type: "file",
+                accept: "application/json,.json",
+                "aria-label": t("rooms.import"),
+                hidden: true,
+                onChange: (event) => void importRoomConfiguration(event.target.files?.[0])
+              }
+            )
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_roomDataHint", children: t("rooms.dataIsolation") }),
+          roomDataNotice && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_roomDataNotice", "data-error": roomDataNotice === "importFailed" ? "true" : void 0, children: t(roomDataNotice === "imported" ? "rooms.imported" : "rooms.importFailed") }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("details", { className: "dsh-wt_roomAudit", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("summary", { children: [
+              t("rooms.audit"),
+              " (",
+              controlRooms.trash.audit.length,
+              ")"
+            ] }),
+            controlRooms.trash.audit.length > 0 ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("ol", { children: [...controlRooms.trash.audit].reverse().map((entry, index) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("li", { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: entry.actor === "deepseek" ? t("rooms.auditDeepseek") : t("rooms.auditUser") }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("time", { dateTime: new Date(entry.timestamp).toISOString(), children: new Date(entry.timestamp).toLocaleString() }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("strong", { children: entry.action }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("code", { children: entry.controlRoomId }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: entry.summary })
+            ] }, `${entry.timestamp}-${entry.actor}-${entry.action}-${entry.controlRoomId}-${index}`)) }) : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_roomMembersEmpty", children: t("rooms.auditEmpty") })
+          ] })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomDialogActions dsh-wt_roomManageActions", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", onClick: () => copyRoom(room.id), children: t("rooms.copy") }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", onClick: () => toggleRoomHidden(room.id), children: room.sidebarVisible ? t("rooms.hide") : t("rooms.show") }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_roomDanger", onClick: (event) => {
+            roomDeleteReturnFocusRef.current = event.currentTarget;
+            setRoomDeleteId(room.id);
+          }, children: t("rooms.delete") })
+        ] })
+      ] });
+    })(),
+    roomDeleteId && controlRooms.state.rooms[roomDeleteId] && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_confirmBackdrop", style: { zIndex: 89 }, onClick: () => setRoomDeleteId(null) }),
+    roomDeleteId && controlRooms.state.rooms[roomDeleteId] && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { ref: roomDeleteDialogRef, tabIndex: -1, className: "dsh-wt_confirm dsh-wt_roomDeleteConfirm", role: "alertdialog", "aria-modal": "true", "aria-labelledby": "dsh-wt_roomDeleteTitle", "aria-describedby": "dsh-wt_roomDeleteBody", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { id: "dsh-wt_roomDeleteTitle", className: "dsh-wt_confirmTitle", children: [
+        "\u26A0\uFE0F ",
+        t("rooms.deleteTitle")
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { id: "dsh-wt_roomDeleteBody", className: "dsh-wt_confirmBody", children: t("rooms.deleteBody", { name: controlRooms.state.rooms[roomDeleteId].name }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_confirmActions", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { ref: roomDeleteCancelRef, type: "button", className: "dsh-wt_confirmCancel", onClick: () => setRoomDeleteId(null), children: t("confirm.cancel") }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_confirmDelete", onClick: confirmDeleteRoom, children: t("rooms.delete") })
+      ] })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_projects", "data-managing": viewOptionsOpen ? "true" : void 0, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("nav", { className: "dsh-wt_roomNavigation", "aria-label": t("rooms.navigation"), children: [
+        roomNavigation.primaryIds.map((roomId) => renderRoomNavItem(roomId)),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("button", { type: "button", className: "dsh-wt_roomSearch", "aria-keyshortcuts": "Control+K Control+Shift+P", onClick: (event) => openGlobalSearch(event.currentTarget), children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { "aria-hidden": true, children: "\u2315" }),
+          " ",
+          t("rooms.search"),
+          " ",
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("kbd", { children: "Ctrl K" })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("button", { type: "button", className: "dsh-wt_roomCreate", onClick: () => setRoomCreateOpen(true), children: [
+          "\uFF0B ",
+          t("rooms.create")
+        ] }),
+        (roomMoreIds.length > 0 || controlRooms.trash.deleted.length > 0) && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("button", { type: "button", className: "dsh-wt_roomMoreBtn", "aria-expanded": roomMoreOpen, onClick: () => setRoomMoreOpen((open) => !open), children: [
+          t("rooms.more"),
+          " ",
+          roomMoreOpen ? "\u25B4" : "\u25BE"
+        ] }),
+        roomMoreOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("section", { className: "dsh-wt_roomMore", "aria-label": t("rooms.more"), children: [
+          roomMoreIds.map((roomId) => renderRoomNavItem(roomId, true)),
+          controlRooms.trash.deleted.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomTrash", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("h4", { children: t("rooms.trash") }),
+            controlRooms.trash.deleted.map((entry) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomTrashRow", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { "aria-hidden": true, children: entry.room.icon }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: entry.room.name }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", onClick: () => restoreRoomFromTrash(entry.room.id), children: t("rooms.restore") })
+            ] }, entry.room.id))
+          ] })
+        ] }),
+        controlRooms.state.order.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_roomEmpty", children: t("rooms.empty") })
+      ] }),
       renderProjectSlot ? renderProjectSlot("sidebar.worktable.project", ownerProps) : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_empty", children: t("empty") }),
       visibleLayouts.map((l) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
         "button",
