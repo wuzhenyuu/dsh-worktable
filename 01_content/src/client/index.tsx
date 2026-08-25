@@ -44,6 +44,12 @@ import {
   type ControlRoomRuleProjectInput,
   type ControlRoomRuleRefreshResult,
 } from './controlRoomRules'
+import {
+  describeControlRoomSearchNavigation,
+  executeControlRoomSearchNavigation,
+  searchControlRooms,
+  type ControlRoomSearchResult,
+} from './controlRoomSearch'
 
 /**
  * dsh-worktable 客户端（v2）：侧边栏底部「工作台」区块。
@@ -178,6 +184,7 @@ const dateTimeInputValue = (value: unknown): string => {
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
   return local.toISOString().slice(0, 16)
 }
+const SEARCH_KIND_ORDER: ControlRoomSearchResult['kind'][] = ['room', 'project', 'conversation', 'rule']
 
 const PERSIST_KEY = 'dsh.worktable.view.v1'
 const PROJECTS_KEY = 'dsh.worktable.projects.v1'
@@ -1152,6 +1159,10 @@ function WorktableSection(props: any) {
   const roomDeleteDialogRef = useRef<HTMLDivElement | null>(null)
   const roomDeleteCancelRef = useRef<HTMLButtonElement | null>(null)
   const roomDeleteReturnFocusRef = useRef<HTMLElement | null>(null)
+  const searchDialogRef = useRef<HTMLDivElement | null>(null)
+  const searchInputRef = useRef<HTMLInputElement | null>(null)
+  const searchReturnFocusRef = useRef<HTMLElement | null>(null)
+  const [searchSelection, setSearchSelection] = useState(0)
   const [roomReloadNotice, setRoomReloadNotice] = useState(false)
   const [roomSaveFailed, setRoomSaveFailed] = useState(false)
   const [metas, setMetas] = useState<Record<string, ProjectMeta>>({})
@@ -2293,6 +2304,53 @@ function buildCustomLayoutPrompt(req: string): string {
       icon: projects.iconOverrides[id] ?? metas[id]?.icon ?? layout?.icon ?? '📦',
     }
   }), [allIds, projects.layouts, projects.nameOverrides, projects.iconOverrides, metas])
+  const roomSearchResponse = useMemo(() => {
+    const factsById = new Map(roomRuleRefresh.facts.map((fact) => [fact.id, fact]))
+    const knownSessions = knownSessionIds()
+    return searchControlRooms({
+      currentRoomId: controlRooms.state.activeId,
+      rooms: controlRooms.state.order.flatMap((roomId) => {
+        const room = controlRooms.state.rooms[roomId]
+        if (!room) return []
+        const validBoundSession = controlRoomBindingState(room, knownSessions) === 'valid' ? room.boundSessionId : null
+        return [{
+          id: room.id,
+          name: room.name,
+          icon: room.icon,
+          description: room.description,
+          effectiveProjectIds: roomRuleRefresh.summariesByRoom[room.id]?.memberIds ?? [],
+          boundSessionId: validBoundSession,
+          boundSessionTitle: validBoundSession ? boundSessionTitle(validBoundSession) : '',
+          rules: room.rules,
+          lastOpenedAt: room.lastOpenedAt,
+          needCount: roomRuleRefresh.summariesByRoom[room.id]?.needCount ?? 0,
+        }]
+      }),
+      projects: ruleProjectInputs.map((project) => ({
+        id: project.id,
+        name: project.name,
+        icon: project.icon,
+        tags: project.tags ?? [],
+        workspace: project.workspace ?? '',
+        lastUsedAt: projects.lastUsed[project.id] ?? project.lastActiveAt ?? 0,
+        status: factsById.get(project.id)?.status ?? 'idle',
+      })),
+    }, view.query)
+  }, [controlRooms.state, projects.lastUsed, roomRuleRefresh, ruleProjectInputs, view.query, notifyTick])
+  const groupedSearchResults = useMemo(
+    () => SEARCH_KIND_ORDER.flatMap((kind) => roomSearchResponse.results.filter((result) => result.kind === kind)),
+    [roomSearchResponse.results],
+  )
+
+  useEffect(() => {
+    setSearchSelection((selection) => Math.min(Math.max(0, selection), Math.max(0, groupedSearchResults.length - 1)))
+  }, [groupedSearchResults.length, view.query])
+
+  useEffect(() => {
+    if (!view.searchOpen) return
+    const selected = searchDialogRef.current?.querySelector<HTMLElement>('[data-search-selected="true"]')
+    selected?.scrollIntoView({ block: 'nearest' })
+  }, [searchSelection, view.searchOpen, groupedSearchResults])
 
   const createRoomId = (): string => {
     const base = 'room-' + Date.now().toString(36)
@@ -2310,6 +2368,41 @@ function buildCustomLayoutPrompt(req: string): string {
       return { ...current, state: selectControlRoom(created, id, Date.now()) }
     })
   }
+
+  const closeGlobalSearch = () => persistView({ searchOpen: false, query: '' })
+  const openGlobalSearch = (returnFocus?: HTMLElement | null) => {
+    searchReturnFocusRef.current = returnFocus ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null)
+    setSearchSelection(0)
+    setAddOpen(false)
+    setViewOptionsOpen(false)
+    setRoomMoreOpen(false)
+    setRoomCreateOpen(false)
+    setRoomManageId(null)
+    persistView({ searchOpen: true, query: '' })
+  }
+
+  useEffect(() => {
+    if (!view.searchOpen || !searchDialogRef.current || !searchInputRef.current) return
+    return installModalFocusGuard({
+      dialog: searchDialogRef.current,
+      initialFocus: searchInputRef.current,
+      returnFocus: searchReturnFocusRef.current,
+      onEscape: closeGlobalSearch,
+    })
+  }, [view.searchOpen])
+
+  useEffect(() => {
+    const onShortcut = (event: KeyboardEvent) => {
+      const key = event.key.toLocaleLowerCase()
+      const matches = (event.ctrlKey || event.metaKey) && (key === 'k' || (event.shiftKey && key === 'p'))
+      if (!matches || roomDeleteId) return
+      event.preventDefault()
+      if (view.searchOpen) searchInputRef.current?.focus()
+      else openGlobalSearch()
+    }
+    document.addEventListener('keydown', onShortcut)
+    return () => document.removeEventListener('keydown', onShortcut)
+  }, [roomDeleteId, view.searchOpen])
   const createRoomFromDialog = () => {
     if (!roomCreateName.trim()) return
     createNamedRoom(roomCreateName)
@@ -2436,6 +2529,40 @@ function buildCustomLayoutPrompt(req: string): string {
     commitControlRooms((current) => ({ ...current, state: setProjectExcluded(current.state, roomId, projectId, excluded, Date.now()) }))
   }
 
+  const locateSearchTarget = (attribute: 'data-wt-console-project-id' | 'data-wt-room-rule-id', id: string) => {
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      const target = Array.from(document.querySelectorAll<HTMLElement>(`[${attribute}]`))
+        .find((element) => element.getAttribute(attribute) === id)
+      if (!target) return
+      target.scrollIntoView({ block: 'center', inline: 'nearest' })
+      const focusTarget = target.matches('button,[tabindex]')
+        ? target
+        : target.querySelector<HTMLElement>('input,button,select,[tabindex]')
+      focusTarget?.focus({ preventScroll: true })
+      target.classList.add('dsh-wt_searchLocated')
+      window.setTimeout(() => target.classList.remove('dsh-wt_searchLocated'), 1800)
+    }))
+  }
+  const openProjectFromSearch = (roomId: string, projectId: string) => {
+    openControlRoom(roomId)
+    reportUsed(projectId)
+    locateSearchTarget('data-wt-console-project-id', projectId)
+  }
+  const openRuleFromSearch = (roomId: string, ruleId: string) => {
+    if (!controlRoomsRef.current.state.rooms[roomId]) return
+    setRoomMoreOpen(false)
+    setRoomManageId(roomId)
+    locateSearchTarget('data-wt-room-rule-id', ruleId)
+  }
+  const activateSearchResult = (result: ControlRoomSearchResult) => {
+    closeGlobalSearch()
+    executeControlRoomSearchNavigation(describeControlRoomSearchNavigation(result), {
+      openControlRoom,
+      openProjectInRoom: openProjectFromSearch,
+      openRuleEditor: openRuleFromSearch,
+    })
+  }
+
   const renderRoomNavItem = (roomId: string, inMore = false) => {
     const room = controlRooms.state.rooms[roomId]
     if (!room) return null
@@ -2530,11 +2657,18 @@ function buildCustomLayoutPrompt(req: string): string {
     setFloat(null); persistView({ dock: 'footer', floatTop: null })
   }
 
-  // Esc 关闭搜索
+  // 全局搜索键盘导航；Escape 由共用 modal focus guard 拦截并恢复触发点。
   const onSearchKeyDown = (e: any) => {
-    if (e.key === 'Escape') {
-      persistView({ searchOpen: false, query: '' })
-    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setSearchSelection((selection) => groupedSearchResults.length ? (selection + 1) % groupedSearchResults.length : 0)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setSearchSelection((selection) => groupedSearchResults.length ? (selection - 1 + groupedSearchResults.length) % groupedSearchResults.length : 0)
+    } else if (e.key === 'Enter') {
+      const selected = groupedSearchResults[searchSelection]
+      if (selected) { e.preventDefault(); activateSearchResult(selected) }
+    } else if (e.key === 'Escape') closeGlobalSearch()
   }
 
   // ── 编辑模式动作（排序只用左缘 ≡ 抓手拖拽，无 ↑↓ 按钮） ──
@@ -3013,7 +3147,8 @@ function buildCustomLayoutPrompt(req: string): string {
             className="dsh-wt_iconBtn"
             aria-label={t('menu.search')}
             title={t('menu.search')}
-            onClick={() => persistView({ searchOpen: !view.searchOpen, query: view.searchOpen ? '' : view.query })}
+            aria-keyshortcuts="Control+K Control+Shift+P"
+            onClick={(event) => openGlobalSearch(event.currentTarget)}
           >{ICON_SEARCH}</button>
           <button
             type="button"
@@ -3038,21 +3173,6 @@ function buildCustomLayoutPrompt(req: string): string {
           >{ICON_ADD}</button>
         </div>
       </div>
-
-      {view.searchOpen && (
-        <div className="dsh-wt_search">
-          <input
-            autoFocus
-            type="text"
-            placeholder={t('search.placeholder')}
-            value={view.query}
-            onChange={(e) => persistView({ query: e.target.value })}
-            onKeyDown={onSearchKeyDown}
-          />
-          <button type="button" className="dsh-wt_searchClear" aria-label={t('search.close')}
-            onClick={() => persistView({ searchOpen: false, query: '' })}>✕</button>
-        </div>
-      )}
 
       {addOpen && <div className="dsh-wt_popBackdrop" onClick={() => setAddOpen(false)} />}
       {addOpen && (
@@ -3470,6 +3590,78 @@ function buildCustomLayoutPrompt(req: string): string {
       )}
       {roomSaveFailed && <div className="dsh-wt_roomError" role="alert">{t('rooms.saveFailed')}</div>}
 
+      {view.searchOpen && <div className="dsh-wt_popBackdrop dsh-wt_globalSearchBackdrop" onClick={closeGlobalSearch} />}
+      {view.searchOpen && (
+        <div
+          ref={searchDialogRef}
+          tabIndex={-1}
+          className="dsh-wt_globalSearch"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="dsh-wt_globalSearchTitle"
+          onKeyDown={onSearchKeyDown}
+        >
+          <div className="dsh-wt_globalSearchHead">
+            <span id="dsh-wt_globalSearchTitle">{t('rooms.search')}</span>
+            <span className="dsh-wt_globalSearchShortcut" aria-hidden>Ctrl K · Ctrl Shift P</span>
+          </div>
+          <div className="dsh-wt_globalSearchInputWrap">
+            <span aria-hidden>{ICON_SEARCH}</span>
+            <input
+              ref={searchInputRef}
+              type="text"
+              role="combobox"
+              aria-expanded="true"
+              aria-controls="dsh-wt_globalSearchResults"
+              aria-activedescendant={groupedSearchResults[searchSelection] ? `dsh-wt_search-result-${searchSelection}` : undefined}
+              aria-autocomplete="list"
+              placeholder={t('rooms.searchPlaceholder')}
+              value={view.query}
+              onChange={(event) => { setSearchSelection(0); persistView({ query: event.target.value }) }}
+            />
+            <button type="button" aria-label={t('search.close')} onClick={closeGlobalSearch}>✕</button>
+          </div>
+          <div id="dsh-wt_globalSearchResults" className="dsh-wt_globalSearchResults" role="listbox" aria-label={t('rooms.searchResults')}>
+            {groupedSearchResults.length === 0 && <div className="dsh-wt_globalSearchEmpty">{t('rooms.searchEmpty')}</div>}
+            {SEARCH_KIND_ORDER.map((kind) => {
+              const results = groupedSearchResults.filter((result) => result.kind === kind)
+              if (results.length === 0) return null
+              return (
+                <section key={kind} className="dsh-wt_globalSearchGroup" role="group" aria-label={t(`rooms.searchKind.${kind}` as WorktableKey)}>
+                  <h4>{t(`rooms.searchKind.${kind}` as WorktableKey)}</h4>
+                  {results.map((result) => {
+                    const index = groupedSearchResults.indexOf(result)
+                    return (
+                      <button
+                        key={`${result.kind}:${result.roomId}:${result.targetId}`}
+                        id={`dsh-wt_search-result-${index}`}
+                        type="button"
+                        role="option"
+                        aria-selected={index === searchSelection}
+                        data-search-selected={index === searchSelection ? 'true' : undefined}
+                        onMouseMove={() => setSearchSelection(index)}
+                        onClick={() => activateSearchResult(result)}
+                      >
+                        <span className="dsh-wt_globalSearchIcon" aria-hidden>{result.icon}</span>
+                        <span className="dsh-wt_globalSearchText">
+                          <span>{result.title}</span>
+                          {result.subtitle && <small>{result.subtitle}</small>}
+                        </span>
+                        <span className="dsh-wt_globalSearchRoom">{controlRooms.state.rooms[result.roomId]?.name ?? result.roomId}</span>
+                      </button>
+                    )
+                  })}
+                </section>
+              )
+            })}
+          </div>
+          <div className="dsh-wt_globalSearchFoot" role="status">
+            <span>{t('rooms.searchHint')}</span>
+            {roomSearchResponse.overflow > 0 && <strong>{t('rooms.searchOverflow', { count: String(roomSearchResponse.overflow) })}</strong>}
+          </div>
+        </div>
+      )}
+
       {roomCreateOpen && <div className="dsh-wt_popBackdrop" style={{ zIndex: 87 }} onClick={() => setRoomCreateOpen(false)} />}
       {roomCreateOpen && (
         <div className="dsh-wt_roomDialog" role="dialog" aria-modal="true" aria-labelledby="dsh-wt_roomCreateTitle">
@@ -3540,7 +3732,7 @@ function buildCustomLayoutPrompt(req: string): string {
             <fieldset className="dsh-wt_roomRules">
               <legend>{t('rooms.rules')}</legend>
               {room.rules.map((rule, ruleIndex) => (
-                <article key={rule.id} className="dsh-wt_roomRule" data-enabled={rule.enabled ? 'true' : undefined}>
+                <article key={rule.id} className="dsh-wt_roomRule" data-enabled={rule.enabled ? 'true' : undefined} data-wt-room-rule-id={rule.id}>
                   <div className="dsh-wt_roomRuleHead">
                     <input
                       value={rule.name ?? ''}
@@ -3664,6 +3856,9 @@ function buildCustomLayoutPrompt(req: string): string {
       <div className="dsh-wt_projects" data-managing={viewOptionsOpen ? 'true' : undefined}>
         <nav className="dsh-wt_roomNavigation" aria-label={t('rooms.navigation')}>
           {roomNavigation.primaryIds.map((roomId) => renderRoomNavItem(roomId))}
+          <button type="button" className="dsh-wt_roomSearch" aria-keyshortcuts="Control+K Control+Shift+P" onClick={(event) => openGlobalSearch(event.currentTarget)}>
+            <span aria-hidden>⌕</span> {t('rooms.search')} <kbd>Ctrl K</kbd>
+          </button>
           <button type="button" className="dsh-wt_roomCreate" onClick={() => setRoomCreateOpen(true)}>＋ {t('rooms.create')}</button>
           {(roomMoreIds.length > 0 || controlRooms.trash.deleted.length > 0) && (
             <button type="button" className="dsh-wt_roomMoreBtn" aria-expanded={roomMoreOpen} onClick={() => setRoomMoreOpen((open) => !open)}>

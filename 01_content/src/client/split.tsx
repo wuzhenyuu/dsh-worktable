@@ -1107,6 +1107,7 @@ function ConsolePane() {
         {cards.map((c) => (
           <div
             key={c.id}
+            data-wt-console-project-id={c.id}
             role={!c.self || c.bound ? 'button' : undefined}
             tabIndex={!c.self || c.bound ? 0 : -1}
             draggable={!c.self}
