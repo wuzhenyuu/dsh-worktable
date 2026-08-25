@@ -31,7 +31,7 @@
 - Built-in panes: **file explorer, terminal, browser, animation site, custom window**
 - Custom window: send a requirement to a new or existing conversation; the agent builds it and the result auto-mounts into the window (locked)
 
-### 🖥️ Control room (built-in default project)
+### 🖥️ Control rooms
 
 - Multiple named control rooms (the original overview is now an ordinary room): create, rename, copy, hide, archive, restore and delete even the final room
 - Each room keeps only project IDs, ordering, rules, one optional management-conversation binding, layout, theme and card preferences; project master data, files, conversations, Token statistics and hardware data remain global
