@@ -383,6 +383,24 @@ export function importControlRoomsWithAudit(
 }
 
 export function createControlRoomCommandBridge(adapter: ControlRoomCommandAdapter): ControlRoomCommandBridge {
+  const consumedConfirmationTokens = new Set<string>()
+
+  const consumedConfirmationFailure = (request: Record<string, unknown>): ControlRoomCommandResult | null => {
+    const token = request.confirmationToken
+    return typeof token === 'string' && consumedConfirmationTokens.has(token)
+      ? fail(request.action, 'CONFIRMATION_REQUIRED', 'This confirmation token was already consumed by a successful mutation.')
+      : null
+  }
+
+  const unexpectedConfirmationFailure = (request: Record<string, unknown>): ControlRoomCommandResult | null =>
+    request.confirmationToken === undefined
+      ? null
+      : fail(request.action, 'CONFIRMATION_REQUIRED', 'No confirmation token is valid for the current room state and payload.')
+
+  const consumeConfirmation = (request: Record<string, unknown>): void => {
+    if (typeof request.confirmationToken === 'string') consumedConfirmationTokens.add(request.confirmationToken)
+  }
+
   const execute = (unknownRequest: ControlRoomCommandRequest | unknown): ControlRoomCommandResult => {
     if (!isRecord(unknownRequest) || typeof unknownRequest.action !== 'string') {
       return fail('', 'INVALID_REQUEST', 'A typed control-room command request is required.')
@@ -511,17 +529,27 @@ export function createControlRoomCommandBridge(adapter: ControlRoomCommandAdapte
       }
 
       if (typedAction === 'control_room.remove_projects') {
+        const replayed = consumedConfirmationFailure(request)
+        if (replayed) return replayed
         const requestedIds = uniqueIds(request.projectIds)
         if (!requestedIds || requestedIds.length === 0) return fail(action, 'INVALID_REQUEST', 'remove_projects requires one or more exact project IDs.')
         const removed = requestedIds.filter((id) => room.projectIds.includes(id) || room.fixedProjectIds.includes(id) || room.excludedProjectIds.includes(id))
-        if (removed.length === 0) return success(typedAction, false, controlRoomId, roomResult(room))
-        if (removed.length >= 5) {
+        const requiresConfirmation = removed.length >= 5
+        if (removed.length === 0) {
+          const unexpected = unexpectedConfirmationFailure(request)
+          if (unexpected) return unexpected
+          return success(typedAction, false, controlRoomId, roomResult(room))
+        }
+        if (requiresConfirmation) {
           const confirmation = confirmationFor(typedAction, [controlRoomId!], `Remove ${removed.length} project references from ${controlRoomId}`, {
             updatedAt: room.updatedAt,
             projectIds: requestedIds,
           })
           const blocked = confirmationMissing(request, confirmation)
           if (blocked) return blocked
+        } else {
+          const unexpected = unexpectedConfirmationFailure(request)
+          if (unexpected) return unexpected
         }
         const now = adapter.now()
         const next = adapter.commit((current) => {
@@ -529,6 +557,7 @@ export function createControlRoomCommandBridge(adapter: ControlRoomCommandAdapte
           for (const projectId of removed) state = removeProjectFromRoom(state, controlRoomId!, projectId, now)
           return withAudit(current, state, now, 'remove_projects', controlRoomId!, `Removed ${removed.length} project reference(s)`)
         })
+        if (requiresConfirmation) consumeConfirmation(request)
         return success(typedAction, true, controlRoomId, roomResult(next.state.rooms[controlRoomId!]))
       }
 
@@ -549,6 +578,8 @@ export function createControlRoomCommandBridge(adapter: ControlRoomCommandAdapte
 
       if (typedAction === 'control_room.set_rule') {
         if (request.mode === 'replace_all') {
+          const replayed = consumedConfirmationFailure(request)
+          if (replayed) return replayed
           if (!validRules(request.rules)) return fail(action, 'INVALID_RULE', 'replace_all requires valid control-room rules with unique IDs.')
           const confirmation = confirmationFor(typedAction, [controlRoomId!], `Replace all rules in ${controlRoomId}`, {
             updatedAt: room.updatedAt,
@@ -565,6 +596,7 @@ export function createControlRoomCommandBridge(adapter: ControlRoomCommandAdapte
             controlRoomId!,
             `Replaced all rules (${request.rules.length})`,
           ))
+          consumeConfirmation(request)
           return success(typedAction, true, controlRoomId, roomResult(next.state.rooms[controlRoomId!]))
         }
         if (request.mode === 'remove') {
@@ -603,15 +635,25 @@ export function createControlRoomCommandBridge(adapter: ControlRoomCommandAdapte
       }
 
       if (typedAction === 'control_room.bind_session') {
+        const replayed = consumedConfirmationFailure(request)
+        if (replayed) return replayed
         if (request.sessionId !== null && !exactId(request.sessionId)) return fail(action, 'INVALID_REQUEST', 'sessionId must be one exact ID or null.')
-        if (request.sessionId === room.boundSessionId) return success(typedAction, false, controlRoomId, roomResult(room))
-        if (request.sessionId === null && room.boundSessionId && adapter.isSessionRunning(room.boundSessionId)) {
+        const requiresConfirmation = request.sessionId === null && !!room.boundSessionId && adapter.isSessionRunning(room.boundSessionId)
+        if (request.sessionId === room.boundSessionId) {
+          const unexpected = unexpectedConfirmationFailure(request)
+          if (unexpected) return unexpected
+          return success(typedAction, false, controlRoomId, roomResult(room))
+        }
+        if (requiresConfirmation) {
           const confirmation = confirmationFor(typedAction, [controlRoomId!], `Unbind running management session ${room.boundSessionId}`, {
             updatedAt: room.updatedAt,
             boundSessionId: room.boundSessionId,
           })
           const blocked = confirmationMissing(request, confirmation)
           if (blocked) return blocked
+        } else {
+          const unexpected = unexpectedConfirmationFailure(request)
+          if (unexpected) return unexpected
         }
         const now = adapter.now()
         const next = adapter.commit((current) => withAudit(
@@ -622,6 +664,7 @@ export function createControlRoomCommandBridge(adapter: ControlRoomCommandAdapte
           controlRoomId!,
           request.sessionId ? `Bound management session ${request.sessionId}` : 'Unbound management session',
         ))
+        if (requiresConfirmation) consumeConfirmation(request)
         return success(typedAction, true, controlRoomId, roomResult(next.state.rooms[controlRoomId!]))
       }
 
@@ -633,6 +676,8 @@ export function createControlRoomCommandBridge(adapter: ControlRoomCommandAdapte
       }
 
       if (typedAction === 'control_room.archive') {
+        const replayed = consumedConfirmationFailure(request)
+        if (replayed) return replayed
         const confirmation = confirmationFor(typedAction, [controlRoomId!], `Archive ${controlRoomId}; only its reversible room configuration moves to Trash`, {
           updatedAt: room.updatedAt,
           projectIds: room.projectIds,
@@ -653,6 +698,7 @@ export function createControlRoomCommandBridge(adapter: ControlRoomCommandAdapte
             archived.trash,
           )
         })
+        consumeConfirmation(request)
         adapter.afterArchive?.(controlRoomId!, room.layoutId)
         return success(typedAction, true, controlRoomId, {
           reversible: true,

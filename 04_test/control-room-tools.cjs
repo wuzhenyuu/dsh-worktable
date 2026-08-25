@@ -220,7 +220,18 @@ async function main() {
     const unbind = bridge.execute({ action: 'control_room.bind_session', controlRoomId: 'room-alpha', sessionId: null })
     assert.equal(unbind.error.code, 'CONFIRMATION_REQUIRED')
     assert.equal(snapshot.state.rooms['room-alpha'].boundSessionId, 'session-running')
-    assert.equal(bridge.execute({ action: 'control_room.bind_session', controlRoomId: 'room-alpha', sessionId: null, confirmationToken: unbind.confirmation.token }).ok, true)
+    const confirmedUnbindRequest = {
+      action: 'control_room.bind_session',
+      controlRoomId: 'room-alpha',
+      sessionId: null,
+      confirmationToken: unbind.confirmation.token,
+    }
+    assert.equal(bridge.execute(confirmedUnbindRequest).ok, true)
+    const afterConfirmedUnbind = JSON.stringify(snapshot)
+    const replayedUnbind = bridge.execute(confirmedUnbindRequest)
+    assert.equal(replayedUnbind.ok, false)
+    assert.equal(replayedUnbind.error.code, 'CONFIRMATION_REQUIRED')
+    assert.equal(JSON.stringify(snapshot), afterConfirmedUnbind)
 
     const replaceRules = bridge.execute({ action: 'control_room.set_rule', controlRoomId: 'room-alpha', mode: 'replace_all', rules: [] })
     assert.equal(replaceRules.error.code, 'CONFIRMATION_REQUIRED')
@@ -236,7 +247,7 @@ async function main() {
 
   // Catches: confirmation tokens being accepted for another action, room, payload, or room revision.
   {
-    for (const controlRoomId of ['token-room-a', 'token-room-b']) {
+    for (const controlRoomId of ['token-room-a', 'token-room-b', 'token-room-c']) {
       assert.equal(bridge.execute({
         action: 'control_room.create',
         controlRoomId,
@@ -275,11 +286,22 @@ async function main() {
       assert.equal(JSON.stringify(snapshot), invalidIdsBefore)
     }
 
-    assert.equal(bridge.execute({ action: 'control_room.update', controlRoomId: 'token-room-a', patch: { description: 'Revision changed' } }).ok, true)
+    const confirmedRemove = bridge.execute({ ...removeRequest, confirmationToken: token })
+    assert.equal(confirmedRemove.ok, true)
+    const afterConfirmedRemove = JSON.stringify(snapshot)
+    const replayedRemove = bridge.execute({ ...removeRequest, confirmationToken: token })
+    assert.equal(replayedRemove.ok, false)
+    assert.equal(replayedRemove.error.code, 'CONFIRMATION_REQUIRED')
+    assert.equal(JSON.stringify(snapshot), afterConfirmedRemove)
+
+    const revisionRequest = { ...removeRequest, controlRoomId: 'token-room-c' }
+    const revisionBlocked = bridge.execute(revisionRequest)
+    assert.equal(revisionBlocked.error.code, 'CONFIRMATION_REQUIRED')
+    assert.equal(bridge.execute({ action: 'control_room.update', controlRoomId: 'token-room-c', patch: { description: 'Revision changed' } }).ok, true)
     const changedRevisionBefore = JSON.stringify(snapshot)
-    const changedRevision = bridge.execute({ ...removeRequest, confirmationToken: token })
+    const changedRevision = bridge.execute({ ...revisionRequest, confirmationToken: revisionBlocked.confirmation.token })
     assert.equal(changedRevision.error.code, 'CONFIRMATION_REQUIRED')
-    assert.notEqual(changedRevision.confirmation.token, token)
+    assert.notEqual(changedRevision.confirmation.token, revisionBlocked.confirmation.token)
     assert.equal(JSON.stringify(snapshot), changedRevisionBefore)
   }
 
