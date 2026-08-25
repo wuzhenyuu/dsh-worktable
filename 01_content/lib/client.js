@@ -23409,8 +23409,11 @@ function WorktableSection(props) {
     });
     const debugRoot = window.__dshWorktable ??= {};
     debugRoot.controlRooms = bridge;
+    const searchNavigation = (result, actions) => executeControlRoomSearchNavigation(describeControlRoomSearchNavigation(result), actions);
+    debugRoot.controlRoomSearchNavigation = searchNavigation;
     return () => {
       if (debugRoot.controlRooms === bridge) delete debugRoot.controlRooms;
+      if (debugRoot.controlRoomSearchNavigation === searchNavigation) delete debugRoot.controlRoomSearchNavigation;
     };
   }, [allIds, openControlRoom, roomRuleRefresh, ruleProjectInputs]);
   const locateSearchTarget = (attribute, id) => {
