@@ -153,6 +153,19 @@ const UPDATE_KEYS = new Set([
   'name', 'icon', 'description', 'themeMode', 'cardLayout', 'filters', 'defaultPane', 'sidebarVisible',
 ])
 
+const CREATE_KEYS = new Set([
+  ...UPDATE_KEYS, 'projectIds', 'projectOrder', 'fixedProjectIds', 'excludedProjectIds', 'boundSessionId', 'rules',
+])
+
+const CARD_LAYOUT_KEYS = new Set(['columns', 'cardSize'])
+const FILTER_KEYS = new Set(['statuses', 'showHidden', 'showArchived'])
+const RULE_KEYS = new Set(['id', 'name', 'enabled', 'mode', 'conditions'])
+const CONDITION_KEYS = new Set(['id', 'field', 'operator', 'value', 'exclude'])
+const THEME_MODES = new Set(['dark', 'light', 'system'])
+const CARD_SIZES = new Set(['compact', 'comfortable', 'wide'])
+const FILTER_STATUSES = new Set(['idle', 'busy', 'need', 'done'])
+const DEFAULT_PANES = new Set(['console', 'conversation', 'files', 'terminal'])
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === 'object' && !Array.isArray(value)
 
@@ -183,29 +196,105 @@ function exactId(value: unknown): value is string {
 
 function uniqueIds(value: unknown): string[] | null {
   if (!Array.isArray(value) || value.some((item) => !exactId(item))) return null
-  return [...new Set(value)]
+  if (new Set(value).size !== value.length) return null
+  return [...value]
+}
+
+function hasOnlyKeys(value: Record<string, unknown>, allowed: ReadonlySet<string>): boolean {
+  return Object.keys(value).every((key) => allowed.has(key))
+}
+
+function hasOwn(value: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(value, key)
+}
+
+function validCardLayout(value: unknown): boolean {
+  return isRecord(value)
+    && hasOnlyKeys(value, CARD_LAYOUT_KEYS)
+    && Object.keys(value).length === CARD_LAYOUT_KEYS.size
+    && (value.columns === 1 || value.columns === 2 || value.columns === 3 || value.columns === 4)
+    && typeof value.cardSize === 'string'
+    && CARD_SIZES.has(value.cardSize)
+}
+
+function validFilters(value: unknown): boolean {
+  if (!isRecord(value) || !hasOnlyKeys(value, FILTER_KEYS) || Object.keys(value).length !== FILTER_KEYS.size
+    || typeof value.showHidden !== 'boolean' || typeof value.showArchived !== 'boolean'
+    || !Array.isArray(value.statuses) || value.statuses.length === 0
+    || value.statuses.some((status) => typeof status !== 'string' || !FILTER_STATUSES.has(status))) return false
+  return new Set(value.statuses).size === value.statuses.length
+}
+
+function validPresentationField(key: string, value: unknown): boolean {
+  if (key === 'name') return typeof value === 'string' && value.trim().length > 0
+  if (key === 'icon') return typeof value === 'string' && value.length > 0
+  if (key === 'description') return typeof value === 'string'
+  if (key === 'themeMode') return typeof value === 'string' && THEME_MODES.has(value)
+  if (key === 'cardLayout') return validCardLayout(value)
+  if (key === 'filters') return validFilters(value)
+  if (key === 'defaultPane') return typeof value === 'string' && DEFAULT_PANES.has(value)
+  if (key === 'sidebarVisible') return typeof value === 'boolean'
+  return false
+}
+
+function validConditionValue(value: unknown): boolean {
+  return typeof value === 'string' || typeof value === 'boolean'
+    || (typeof value === 'number' && Number.isFinite(value))
+    || (Array.isArray(value) && value.every((item) => typeof item === 'string'))
+}
+
+function validRule(value: unknown): value is ControlRoomRule {
+  if (!isRecord(value) || !hasOnlyKeys(value, RULE_KEYS) || !exactId(value.id)
+    || (hasOwn(value, 'name') && (typeof value.name !== 'string' || !exactId(value.name)))
+    || (value.mode !== 'all' && value.mode !== 'any') || typeof value.enabled !== 'boolean'
+    || !Array.isArray(value.conditions) || value.conditions.length === 0) return false
+  const conditionIds = new Set<string>()
+  for (const condition of value.conditions) {
+    if (!isRecord(condition) || !hasOnlyKeys(condition, CONDITION_KEYS) || !exactId(condition.id)
+      || conditionIds.has(condition.id) || typeof condition.field !== 'string' || typeof condition.operator !== 'string'
+      || !hasOwn(condition, 'value') || !validConditionValue(condition.value)
+      || (hasOwn(condition, 'exclude') && typeof condition.exclude !== 'boolean')
+      || !isControlRoomConditionCompatible(condition as unknown as ControlRoomRule['conditions'][number])) return false
+    conditionIds.add(condition.id)
+  }
+  return true
+}
+
+function validRules(value: unknown): value is ControlRoomRule[] {
+  if (!Array.isArray(value)) return false
+  const ruleIds = new Set<string>()
+  for (const rule of value) {
+    if (!validRule(rule) || ruleIds.has(rule.id)) return false
+    ruleIds.add(rule.id)
+  }
+  return true
 }
 
 function safeUpdatePatch(value: unknown): ControlRoomUpdatePatch | null {
-  if (!isRecord(value) || Object.keys(value).length === 0 || Object.keys(value).some((key) => !UPDATE_KEYS.has(key))) return null
+  if (!isRecord(value) || Object.keys(value).length === 0 || !hasOnlyKeys(value, UPDATE_KEYS)
+    || Object.entries(value).some(([key, field]) => !validPresentationField(key, field))) return null
   return clone(value) as ControlRoomUpdatePatch
 }
 
 function safeCreateInput(value: unknown): ControlRoomCreateInput | null {
   if (value === undefined) return {}
-  if (!isRecord(value)) return null
-  const allowed = new Set([...UPDATE_KEYS, 'projectIds', 'projectOrder', 'fixedProjectIds', 'excludedProjectIds', 'boundSessionId', 'rules'])
-  if (Object.keys(value).some((key) => !allowed.has(key))) return null
-  return clone(value) as ControlRoomCreateInput
-}
+  if (!isRecord(value) || !hasOnlyKeys(value, CREATE_KEYS)) return null
+  for (const [key, field] of Object.entries(value)) {
+    if (UPDATE_KEYS.has(key) && !validPresentationField(key, field)) return null
+  }
 
-function validRule(value: unknown): value is ControlRoomRule {
-  if (!isRecord(value) || !exactId(value.id) || (value.mode !== 'all' && value.mode !== 'any')
-    || typeof value.enabled !== 'boolean' || !Array.isArray(value.conditions) || value.conditions.length === 0) return false
-  return value.conditions.every((condition) => isRecord(condition) && exactId(condition.id)
-    && typeof condition.field === 'string' && typeof condition.operator === 'string'
-    && Object.prototype.hasOwnProperty.call(condition, 'value')
-    && isControlRoomConditionCompatible(condition as unknown as ControlRoomRule['conditions'][number]))
+  const projectIds = hasOwn(value, 'projectIds') ? uniqueIds(value.projectIds) : []
+  const fixedProjectIds = hasOwn(value, 'fixedProjectIds') ? uniqueIds(value.fixedProjectIds) : []
+  const excludedProjectIds = hasOwn(value, 'excludedProjectIds') ? uniqueIds(value.excludedProjectIds) : []
+  const projectOrder = hasOwn(value, 'projectOrder') ? uniqueIds(value.projectOrder) : null
+  if (!projectIds || !fixedProjectIds || !excludedProjectIds || (hasOwn(value, 'projectOrder') && !projectOrder)) return null
+  if (projectOrder) {
+    const orderable = new Set([...projectIds, ...fixedProjectIds])
+    if (projectOrder.length !== orderable.size || projectOrder.some((projectId) => !orderable.has(projectId))) return null
+  }
+  if (hasOwn(value, 'boundSessionId') && value.boundSessionId !== null && !exactId(value.boundSessionId)) return null
+  if (hasOwn(value, 'rules') && !validRules(value.rules)) return null
+  return clone(value) as ControlRoomCreateInput
 }
 
 function fnv1a(value: string): string {
@@ -387,7 +476,9 @@ export function createControlRoomCommandBridge(adapter: ControlRoomCommandAdapte
       if (typedAction === 'control_room.copy') {
         if (!exactId(request.newControlRoomId)) return fail(action, 'EXACT_CONTROL_ROOM_ID_REQUIRED', 'copy requires one exact newControlRoomId.')
         if (before.state.rooms[request.newControlRoomId]) return fail(action, 'CONTROL_ROOM_ALREADY_EXISTS', `Control room already exists: ${request.newControlRoomId}`)
-        if (request.name !== undefined && typeof request.name !== 'string') return fail(action, 'INVALID_REQUEST', 'copy name must be a string.')
+        if (request.name !== undefined && (typeof request.name !== 'string' || request.name.trim().length === 0)) {
+          return fail(action, 'INVALID_REQUEST', 'copy name must be a non-blank string.')
+        }
         const now = adapter.now()
         const copiedId = request.newControlRoomId
         const next = adapter.commit((current) => withAudit(
@@ -427,7 +518,7 @@ export function createControlRoomCommandBridge(adapter: ControlRoomCommandAdapte
         if (removed.length >= 5) {
           const confirmation = confirmationFor(typedAction, [controlRoomId!], `Remove ${removed.length} project references from ${controlRoomId}`, {
             updatedAt: room.updatedAt,
-            projectIds: removed,
+            projectIds: requestedIds,
           })
           const blocked = confirmationMissing(request, confirmation)
           if (blocked) return blocked
@@ -458,7 +549,7 @@ export function createControlRoomCommandBridge(adapter: ControlRoomCommandAdapte
 
       if (typedAction === 'control_room.set_rule') {
         if (request.mode === 'replace_all') {
-          if (!Array.isArray(request.rules) || request.rules.some((rule) => !validRule(rule))) return fail(action, 'INVALID_RULE', 'replace_all requires valid control-room rules.')
+          if (!validRules(request.rules)) return fail(action, 'INVALID_RULE', 'replace_all requires valid control-room rules with unique IDs.')
           const confirmation = confirmationFor(typedAction, [controlRoomId!], `Replace all rules in ${controlRoomId}`, {
             updatedAt: room.updatedAt,
             rules: request.rules,

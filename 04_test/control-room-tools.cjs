@@ -88,6 +88,92 @@ async function main() {
     assert.equal(snapshot.state.rooms['room-beta'].name, 'Beta')
   }
 
+  // Catches: unknown command input being silently normalized, partially dropped, persisted, or audited.
+  {
+    const malformedCreates = [
+      { name: 42 },
+      { name: '   ' },
+      { icon: '' },
+      { description: false },
+      { themeMode: 'neon' },
+      { cardLayout: { columns: 5, cardSize: 'wide' } },
+      { cardLayout: { columns: 2, cardSize: 'wide', extra: true } },
+      { filters: { statuses: ['busy', 'busy'], showHidden: false, showArchived: false } },
+      { filters: { statuses: ['idle'], showHidden: 'no', showArchived: false } },
+      { defaultPane: 'dashboard' },
+      { sidebarVisible: 'yes' },
+      { projectIds: ['p1', 'p1'] },
+      { projectIds: [' p1'] },
+      { projectIds: ['p1', 'p2'], projectOrder: ['p1'] },
+      { projectIds: ['p1'], projectOrder: ['p1', 'ghost'] },
+      { fixedProjectIds: ['p1', 'p1'] },
+      { excludedProjectIds: ['p1', 'p1'] },
+      { boundSessionId: ' session-idle' },
+      { rules: [{ id: 'rule-1', name: 7, enabled: true, mode: 'all', conditions: [{ id: 'condition-1', field: 'status', operator: 'equals', value: 'busy' }] }] },
+      { rules: [{ id: 'rule-1', enabled: true, mode: 'all', conditions: [{ id: 'condition-1', field: 'status', operator: 'equals', value: 'busy', exclude: 'yes' }] }] },
+      { rules: [{ id: 'rule-1', enabled: true, mode: 'all', conditions: [{ id: 'condition-1', field: 'status', operator: 'equals', value: 'busy', extra: true }] }] },
+      { rules: [
+        { id: 'rule-1', enabled: true, mode: 'all', conditions: [{ id: 'condition-1', field: 'status', operator: 'equals', value: 'busy' }] },
+        { id: 'rule-1', enabled: true, mode: 'all', conditions: [{ id: 'condition-2', field: 'status', operator: 'equals', value: 'need' }] },
+      ] },
+    ]
+    malformedCreates.forEach((room, index) => {
+      const beforeRequest = JSON.stringify(snapshot)
+      const result = bridge.execute({ action: 'control_room.create', controlRoomId: `invalid-create-${index}`, room })
+      assert.equal(result.ok, false, `malformed create ${index}`)
+      assert.equal(result.error.code, 'INVALID_REQUEST', `malformed create ${index}`)
+      assert.equal(JSON.stringify(snapshot), beforeRequest, `malformed create ${index} mutated state/trash/audit`)
+    })
+
+    const malformedUpdates = [
+      { name: null },
+      { icon: '' },
+      { description: 1 },
+      { themeMode: 'neon' },
+      { cardLayout: { columns: 2 } },
+      { filters: { statuses: [], showHidden: false, showArchived: false } },
+      { defaultPane: false },
+      { sidebarVisible: 1 },
+    ]
+    malformedUpdates.forEach((patch, index) => {
+      const beforeRequest = JSON.stringify(snapshot)
+      const result = bridge.execute({ action: 'control_room.update', controlRoomId: 'room-alpha', patch })
+      assert.equal(result.ok, false, `malformed update ${index}`)
+      assert.equal(result.error.code, 'INVALID_REQUEST', `malformed update ${index}`)
+      assert.equal(JSON.stringify(snapshot), beforeRequest, `malformed update ${index} mutated state/trash/audit`)
+    })
+
+    const validComplex = bridge.execute({
+      action: 'control_room.create',
+      controlRoomId: 'room-complex',
+      room: {
+        name: 'Complex',
+        icon: 'C',
+        description: 'Strict nested input',
+        themeMode: 'dark',
+        cardLayout: { columns: 3, cardSize: 'wide' },
+        filters: { statuses: ['busy', 'need'], showHidden: true, showArchived: false },
+        defaultPane: 'files',
+        sidebarVisible: false,
+        projectIds: ['p1', 'p2'],
+        projectOrder: ['p3', 'p1', 'p2'],
+        fixedProjectIds: ['p3'],
+        excludedProjectIds: ['p4'],
+        boundSessionId: 'session-idle',
+        rules: [{
+          id: 'rule-complex',
+          name: 'Complex rule',
+          enabled: true,
+          mode: 'any',
+          conditions: [{ id: 'condition-complex', field: 'status', operator: 'notEquals', value: 'idle', exclude: false }],
+        }],
+      },
+    })
+    assert.equal(validComplex.ok, true)
+    assert.deepEqual(snapshot.state.rooms['room-complex'].projectOrder, ['p3', 'p1', 'p2'])
+    assert.equal(snapshot.state.rooms['room-complex'].rules[0].name, 'Complex rule')
+  }
+
   // Catches: target commands accepting a missing/name-guessed/array room selector.
   {
     const targeted = [
@@ -148,6 +234,55 @@ async function main() {
     assert.equal(snapshot.trash.deleted[0].room.id, 'room-alpha')
   }
 
+  // Catches: confirmation tokens being accepted for another action, room, payload, or room revision.
+  {
+    for (const controlRoomId of ['token-room-a', 'token-room-b']) {
+      assert.equal(bridge.execute({
+        action: 'control_room.create',
+        controlRoomId,
+        room: { projectIds: knownProjects, projectOrder: knownProjects },
+      }).ok, true)
+    }
+    const removeRequest = {
+      action: 'control_room.remove_projects',
+      controlRoomId: 'token-room-a',
+      projectIds: ['p1', 'p2', 'p3', 'p4', 'p5'],
+    }
+    const blocked = bridge.execute(removeRequest)
+    assert.equal(blocked.error.code, 'CONFIRMATION_REQUIRED')
+    const token = blocked.confirmation.token
+
+    const changedActionBefore = JSON.stringify(snapshot)
+    const changedAction = bridge.execute({ action: 'control_room.archive', controlRoomId: 'token-room-a', confirmationToken: token })
+    assert.equal(changedAction.error.code, 'CONFIRMATION_REQUIRED')
+    assert.equal(JSON.stringify(snapshot), changedActionBefore)
+
+    const changedRoomBefore = JSON.stringify(snapshot)
+    const changedRoom = bridge.execute({ ...removeRequest, controlRoomId: 'token-room-b', confirmationToken: token })
+    assert.equal(changedRoom.error.code, 'CONFIRMATION_REQUIRED')
+    assert.equal(JSON.stringify(snapshot), changedRoomBefore)
+
+    const changedPayloadBefore = JSON.stringify(snapshot)
+    const changedPayload = bridge.execute({ ...removeRequest, projectIds: [...removeRequest.projectIds, 'ghost'], confirmationToken: token })
+    assert.equal(changedPayload.error.code, 'CONFIRMATION_REQUIRED')
+    assert.notEqual(changedPayload.confirmation.token, token)
+    assert.equal(JSON.stringify(snapshot), changedPayloadBefore)
+
+    for (const projectIds of [['p1', 'p1'], [' p1'], ['']]) {
+      const invalidIdsBefore = JSON.stringify(snapshot)
+      const invalidIds = bridge.execute({ action: 'control_room.remove_projects', controlRoomId: 'token-room-a', projectIds })
+      assert.equal(invalidIds.error.code, 'INVALID_REQUEST')
+      assert.equal(JSON.stringify(snapshot), invalidIdsBefore)
+    }
+
+    assert.equal(bridge.execute({ action: 'control_room.update', controlRoomId: 'token-room-a', patch: { description: 'Revision changed' } }).ok, true)
+    const changedRevisionBefore = JSON.stringify(snapshot)
+    const changedRevision = bridge.execute({ ...removeRequest, confirmationToken: token })
+    assert.equal(changedRevision.error.code, 'CONFIRMATION_REQUIRED')
+    assert.notEqual(changedRevision.confirmation.token, token)
+    assert.equal(JSON.stringify(snapshot), changedRevisionBefore)
+  }
+
   // Catches: hidden bulk/master-data deletions becoming executable through the fallback.
   {
     for (const action of ['control_room.empty_trash', 'control_room.update_many', 'control_room.remove_project_from_all_rooms', 'control_room.delete_project_master_data']) {
@@ -182,7 +317,7 @@ async function main() {
     })
   }
 
-  process.stdout.write('control-room-tools: PASS (6 E2E-style safety flows)\n')
+  process.stdout.write('control-room-tools: PASS (8 E2E-style safety flows)\n')
 }
 
 main()
