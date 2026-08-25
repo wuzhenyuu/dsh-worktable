@@ -136,6 +136,14 @@ async function closeSocket(socket) {
   await new Promise((resolve) => { socket.once('close', resolve); socket.close() })
 }
 
+async function closeBrowser(browser) {
+  if (!browser) return
+  const cleanupErrors = []
+  try { await closeSocket(browser.socket) } catch (error) { cleanupErrors.push(error) }
+  try { await stopChild(browser.child) } catch (error) { cleanupErrors.push(error) }
+  if (cleanupErrors.length > 0) throw new AggregateError(cleanupErrors, 'update probe browser cleanup failed')
+}
+
 async function chromePage(chromePath, profilePath, url) {
   const port = await freePort()
   const child = spawn(chromePath, [
@@ -167,8 +175,10 @@ async function chromePage(chromePath, profilePath, url) {
     await navigate(url)
     return { child, socket, cdp, navigate, evaluate }
   } catch (error) {
-    if (socket) await closeSocket(socket)
-    await stopChild(child)
+    const cleanupErrors = []
+    if (socket) { try { await closeSocket(socket) } catch (cleanupError) { cleanupErrors.push(cleanupError) } }
+    try { await stopChild(child) } catch (cleanupError) { cleanupErrors.push(cleanupError) }
+    if (cleanupErrors.length > 0) throw new AggregateError([error, ...cleanupErrors], 'update probe Chrome startup/cleanup failed')
     throw error
   }
 }
@@ -180,8 +190,7 @@ async function runBundlePreflight(chromePath, fixture, profile) {
     if (!value || value.id !== 'dsh-worktable' || value.factory !== 'function') throw new Error('current branch bundle identity or factory handshake is invalid')
     return value
   } finally {
-    await closeSocket(browser.socket)
-    await stopChild(browser.child)
+    await closeBrowser(browser)
   }
 }
 
@@ -270,9 +279,11 @@ async function runScenarioMatrix(chromePath, hostUrl, profile) {
     console.log(pass ? 'ALL SCENARIOS PASS' : 'SCENARIO FAILURES PRESENT')
     if (!pass) throw new Error('update scenario behavior assertions failed')
   } finally {
-    removeFetchHandler()
-    await closeSocket(browser.socket)
-    await stopChild(browser.child)
+    const cleanupErrors = []
+    try { removeFetchHandler() } catch (error) { cleanupErrors.push(error) }
+    try { await closeSocket(browser.socket) } catch (error) { cleanupErrors.push(error) }
+    try { await stopChild(browser.child) } catch (error) { cleanupErrors.push(error) }
+    if (cleanupErrors.length > 0) throw new AggregateError(cleanupErrors, 'update scenario browser cleanup failed')
   }
 }
 
@@ -312,8 +323,7 @@ async function main() {
     }
     const hostBrowser = await chromePage(chromePath, profile, hostUrl.href)
     const hostIdentity = await hostBrowser.evaluate('({ id: window.__dshLoadedSpec && window.__dshLoadedSpec.id, factory: window.__dshLoadedSpec && typeof window.__dshLoadedSpec.factory })')
-    await closeSocket(hostBrowser.socket)
-    await stopChild(hostBrowser.child)
+    await closeBrowser(hostBrowser)
     if (!hostIdentity || hostIdentity.id !== 'dsh-worktable' || hostIdentity.factory !== 'function') {
       console.log('probe-update-scenarios: SKIPPED (exact prerequisite unavailable: supplied disposable fixture did not prove current-branch dsh-worktable factory identity)')
       return
