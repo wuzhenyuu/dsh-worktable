@@ -302,6 +302,6 @@ DeepSeek 可以直接创建、改名、改图标、添加或移除项目、排�
 
 - 已完成控制室仓库、迁移、导航、独立绑定/布局、规则、全局搜索和类型化客户端命令桥接。
 - 持久化键为 `dsh.worktable.controlRooms.v1`、`dsh.worktable.controlRooms.trash.v1`、`dsh.worktable.controlRooms.migrationBackup.v1`；项目主数据、对话、外观和硬件监控数据不进入控制室配置。
-- 已加入最终 bundle / domain acceptance probe：node 04_test/control-room-acceptance.cjs。当前环境以 disposable loopback HTTP fixture + headless Chrome 加载当前分支 final bundle，真实挂载生产 WorktableSection/bridge 并完成 138 项浏览器检查；未发现可安全启动的 disposable DSH service，因此服务重启持久化标记为 SKIPPED，不作为通过项。
+- 已加入最终 bundle / domain acceptance probe：node 04_test/control-room-acceptance.cjs。当前环境以 disposable loopback HTTP fixture + headless Chrome 加载当前分支 final bundle，执行生产 WorktableSection effect/bridge harness 并完成浏览器检查；这证明 final bundle、真实 document/window/localStorage 和生产 bridge 路径，不等同于 React root 或视觉 UI 挂载，视觉验收仍待人工完成。未发现可安全启动的 disposable DSH service，因此服务重启持久化标记为 SKIPPED，不作为通过项。
 - 04_test 的 Chrome 探针使用临时 headless profile；不会启动可见浏览器，也不会修改活动 DSH profile、官方插件或 dsh-usage。
 - 手动视觉验收仍待用户在 disposable DSH web profile 中重启服务并刷新 GUI 后确认。

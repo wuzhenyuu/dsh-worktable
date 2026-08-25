@@ -51,7 +51,7 @@
     node 04_test/control-room-search.cjs
     node 04_test/control-room-tools.cjs
 
-`control-room-acceptance.cjs` 会执行最终 `lib/client.js` 的 ModuleLoader 握手和生产纯逻辑验收；若当前环境没有可安全启动的 disposable DSH 服务，会精确输出 `service-restart: SKIPPED`。手动 GUI 视觉验收仍需在用户确认后执行。
+`control-room-acceptance.cjs` 会在 disposable loopback fixture + headless Chrome 中执行最终 `lib/client.js` 的 ModuleLoader 握手与生产 WorktableSection effect/bridge harness；这不是 React root 或视觉 UI 挂载。若当前环境没有可安全启动的 disposable DSH 服务，会精确输出 `service-restart: SKIPPED`。手动 GUI 视觉验收仍需在用户确认后执行。
 
 ## 构建注意事项
 

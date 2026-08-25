@@ -2637,10 +2637,24 @@ function buildCustomLayoutPrompt(req: string): string {
         copyControlRoomSplitGeometryInStorage(localStorage, SPLIT_PERSIST_KEY, sourceLayoutId, targetLayoutId)
       },
     })
-    const debugRoot = ((window as any).__dshWorktable ??= {}) as { splitStore?: typeof splitStore; controlRooms?: ControlRoomCommandBridge }
+    const debugRoot = ((window as any).__dshWorktable ??= {}) as {
+      splitStore?: typeof splitStore
+      controlRooms?: ControlRoomCommandBridge
+      /** Browser manual/debug seam; the host UI remains responsible for callbacks. */
+      controlRoomSearchNavigation?: (
+        result: ControlRoomSearchResult,
+        actions: Parameters<typeof executeControlRoomSearchNavigation>[1],
+      ) => void
+    }
     debugRoot.controlRooms = bridge
+    const searchNavigation = (
+      result: ControlRoomSearchResult,
+      actions: Parameters<typeof executeControlRoomSearchNavigation>[1],
+    ) => executeControlRoomSearchNavigation(describeControlRoomSearchNavigation(result), actions)
+    debugRoot.controlRoomSearchNavigation = searchNavigation
     return () => {
       if (debugRoot.controlRooms === bridge) delete debugRoot.controlRooms
+      if (debugRoot.controlRoomSearchNavigation === searchNavigation) delete debugRoot.controlRoomSearchNavigation
     }
   }, [allIds, openControlRoom, roomRuleRefresh, ruleProjectInputs])
 

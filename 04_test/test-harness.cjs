@@ -3,6 +3,7 @@
 const fs = require('node:fs')
 const os = require('node:os')
 const path = require('node:path')
+const { spawnSync } = require('node:child_process')
 
 const repoRoot = path.resolve(__dirname, '..')
 const contentRoot = path.join(repoRoot, '01_content')
@@ -36,8 +37,18 @@ function createDisposableProfile(prefix = 'dsh-worktable-') {
 }
 
 function assertDisposablePath(targetPath) {
-  const root = path.resolve(os.tmpdir())
-  const target = path.resolve(targetPath)
+  const root = fs.realpathSync.native(path.resolve(os.tmpdir()))
+  const resolvedTarget = path.resolve(targetPath)
+  let target = resolvedTarget
+  try {
+    target = fs.realpathSync.native(resolvedTarget)
+  } catch {
+    try {
+      target = path.join(fs.realpathSync.native(path.dirname(resolvedTarget)), path.basename(resolvedTarget))
+    } catch {
+      target = resolvedTarget
+    }
+  }
   const relative = path.relative(root, target)
   if (!relative || relative.startsWith('..' + path.sep) || path.isAbsolute(relative)) {
     throw new Error(`refusing cleanup outside disposable temp root: ${target}`)
@@ -76,6 +87,20 @@ async function stopChild(child) {
   await waitForChildExit(child)
 }
 
+/** Stop only the exact disposable runtime PID and its descendants. */
+async function stopChildTree(child) {
+  if (!child) return
+  if (child.exitCode === null && !child.signalCode && child.pid) {
+    if (process.platform === 'win32') {
+      spawnSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true })
+    } else {
+      try { process.kill(-child.pid, 'SIGTERM') } catch (error) { if (error?.code !== 'ESRCH') throw error }
+      try { child.kill('SIGTERM') } catch (error) { if (error?.code !== 'ESRCH') throw error }
+    }
+  }
+  await waitForChildExit(child)
+}
+
 function jsonForBrowser(value) {
   return JSON.stringify(value).replace(/</g, '\\u003c')
 }
@@ -91,5 +116,6 @@ module.exports = {
   assertDisposablePath,
   waitForChildExit,
   stopChild,
+  stopChildTree,
   jsonForBrowser,
 }
