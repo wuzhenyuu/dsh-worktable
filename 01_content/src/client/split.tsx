@@ -2173,6 +2173,6 @@ function SplitWorkspace() {
 }
 
 /** 调试出口（自动化验证用；必须在 store 定义之后） */
-try { (window as any).__dshWorktable = { splitStore } } catch {}
+try { (window as any).__dshWorktable = { ...((window as any).__dshWorktable ?? {}), splitStore } } catch {}
 
 export { SplitWorkspace }

@@ -6,12 +6,15 @@ import { splitStore, SplitWorkspace, SPLIT_PERSIST_KEY, setSplitT, setSplitEnv, 
 import { installAppearance } from './appearance'
 import { installModalFocusGuard } from './modalFocus'
 import {
+  CONTROL_ROOMS_EXPORT_FORMAT,
   CONTROL_ROOMS_KEY,
   CONTROL_ROOMS_TRASH_KEY,
   ControlRoomsStorage,
   addProjectToRoom,
+  appendControlRoomAudit,
   copyControlRoom,
   createControlRoom,
+  exportControlRooms,
   reorderProjectsInRoom,
   resolveControlRoomStorageEvent,
   restoreControlRoom,
@@ -28,6 +31,11 @@ import {
   type ControlRoomsState,
   type ControlRoomsTrashState,
 } from './controlRooms'
+import {
+  createControlRoomCommandBridge,
+  importControlRoomsWithAudit,
+  type ControlRoomCommandBridge,
+} from './controlRoomCommands'
 import {
   autoBindControlRoomSession,
   controlRoomBindingState,
@@ -1246,6 +1254,8 @@ function WorktableSection(props: any) {
   const [consoleName, setConsoleName] = useState('')
   const [consoleErr, setConsoleErr] = useState(false)
   const [consoleBusy, setConsoleBusy] = useState(false)
+  const roomImportInputRef = useRef<HTMLInputElement | null>(null)
+  const [roomDataNotice, setRoomDataNotice] = useState<'imported' | 'importFailed' | null>(null)
 
   const commitControlRooms = (mutate: (current: ControlRoomsSnapshot) => ControlRoomsSnapshot): ControlRoomsSnapshot => {
     const next = mutate(controlRoomsRef.current)
@@ -1256,6 +1266,25 @@ function WorktableSection(props: any) {
     setControlRooms(next)
     notifyConsole()
     return next
+  }
+
+  const commitUserControlRooms = (
+    controlRoomId: string,
+    action: string,
+    summary: string,
+    mutate: (current: ControlRoomsSnapshot, now: number) => ControlRoomsSnapshot,
+  ): ControlRoomsSnapshot => {
+    const now = Date.now()
+    return commitControlRooms((current) => {
+      const next = mutate(current, now)
+      return {
+        ...next,
+        trash: {
+          ...next.trash,
+          audit: appendControlRoomAudit(next.trash.audit, { actor: 'user', timestamp: now, action, controlRoomId, summary }),
+        },
+      }
+    })
   }
 
   useEffect(() => {
@@ -1482,7 +1511,7 @@ function WorktableSection(props: any) {
           if (pid.startsWith('wt-console:')) {
             const outcome = autoBindControlRoomSession(controlRoomsRef.current.state, pid, sessionId, Date.now())
             if (outcome.result === 'auto') {
-              commitControlRooms((current) => ({ ...current, state: outcome.state }))
+              commitUserControlRooms(outcome.roomId!, 'bind_session', `Automatically bound management session ${sessionId}`, (current) => ({ ...current, state: outcome.state }))
             }
             return outcome.result
           }
@@ -1515,9 +1544,9 @@ function WorktableSection(props: any) {
         setTheme: (th: 'dark' | 'light' | 'system') => {
           const roomId = currentRoomRef.current?.id
           if (!roomId) return
-          commitControlRooms((current) => ({
+          commitUserControlRooms(roomId, 'update', 'Updated control-room theme', (current, now) => ({
             ...current,
-            state: updateControlRoom(current.state, roomId, { themeMode: th }, Date.now()),
+            state: updateControlRoom(current.state, roomId, { themeMode: th }, now),
           }))
         },
         onAck: (id) => { ackRef.current?.(id); setNotifyTick((t) => t + 1); notifyConsole() },
@@ -1534,7 +1563,7 @@ function WorktableSection(props: any) {
           if (!id || !targetId || id === CONSOLE_ID || targetId === CONSOLE_ID || id === targetId) return
           const roomId = currentRoomRef.current?.id
           if (!roomId) return
-          commitControlRooms((current) => {
+          commitUserControlRooms(roomId, 'reorder_projects', `Reordered project ${id}`, (current, now) => {
             const room = current.state.rooms[roomId]
             if (!room) return current
             const candidates = [...projectsRef.current.aliveRegisteredIds, ...projectsRef.current.projects.layouts.map((layout) => layout.id)]
@@ -1544,7 +1573,7 @@ function WorktableSection(props: any) {
             if (from < 0 || to < 0) return current
             order.splice(from, 1)
             order.splice(to, 0, id)
-            return { ...current, state: reorderProjectsInRoom(current.state, roomId, order, Date.now()) }
+            return { ...current, state: reorderProjectsInRoom(current.state, roomId, order, now) }
           })
         },
         onOpen: (id) => {
@@ -1882,9 +1911,9 @@ function buildCustomLayoutPrompt(req: string): string {
   const bindControlRoomExisting = (sid: string) => {
     const roomId = consoleBind?.roomId
     if (!roomId) return
-    commitControlRooms((current) => ({
+    commitUserControlRooms(roomId, 'bind_session', `Bound management session ${sid}`, (current, now) => ({
       ...current,
-      state: updateControlRoom(current.state, roomId, { boundSessionId: sid }, Date.now()),
+      state: updateControlRoom(current.state, roomId, { boundSessionId: sid }, now),
     }))
     setConsoleBind(null)
     openControlRoom(roomId)
@@ -1893,9 +1922,9 @@ function buildCustomLayoutPrompt(req: string): string {
   const clearControlRoomBinding = () => {
     const roomId = consoleBind?.roomId
     if (!roomId) return
-    commitControlRooms((current) => ({
+    commitUserControlRooms(roomId, 'bind_session', 'Unbound management session', (current, now) => ({
       ...current,
-      state: updateControlRoom(current.state, roomId, { boundSessionId: null }, Date.now()),
+      state: updateControlRoom(current.state, roomId, { boundSessionId: null }, now),
     }))
   }
 
@@ -1931,9 +1960,9 @@ function buildCustomLayoutPrompt(req: string): string {
       markPluginSessionOpen(sessionId)
       const roomId = consoleBind?.roomId
       if (!roomId) throw new Error('control room closed')
-      commitControlRooms((current) => ({
+      commitUserControlRooms(roomId, 'bind_session', `Bound new management session ${sessionId}`, (current, now) => ({
         ...current,
-        state: updateControlRoom(current.state, roomId, { boundSessionId: sessionId }, Date.now()),
+        state: updateControlRoom(current.state, roomId, { boundSessionId: sessionId }, now),
       }))
       setConsoleBind(null)
       openControlRoom(roomId)
@@ -2304,7 +2333,7 @@ function buildCustomLayoutPrompt(req: string): string {
       icon: projects.iconOverrides[id] ?? metas[id]?.icon ?? layout?.icon ?? '📦',
     }
   }), [allIds, projects.layouts, projects.nameOverrides, projects.iconOverrides, metas])
-  const roomSearchResponse = useMemo(() => {
+  const buildControlRoomSearchResponse = (query: string, limit?: number) => {
     const factsById = new Map(roomRuleRefresh.facts.map((fact) => [fact.id, fact]))
     const knownSessions = knownSessionIds()
     return searchControlRooms({
@@ -2335,7 +2364,11 @@ function buildCustomLayoutPrompt(req: string): string {
         lastUsedAt: projects.lastUsed[project.id] ?? project.lastActiveAt ?? 0,
         status: factsById.get(project.id)?.status ?? 'idle',
       })),
-    }, view.query)
+      ...(limit === undefined ? {} : { limit }),
+    }, query)
+  }
+  const roomSearchResponse = useMemo(() => {
+    return buildControlRoomSearchResponse(view.query)
   }, [controlRooms.state, projects.lastUsed, roomRuleRefresh, ruleProjectInputs, view.query, notifyTick])
   const groupedSearchResults = useMemo(
     () => SEARCH_KIND_ORDER.flatMap((kind) => roomSearchResponse.results.filter((result) => result.kind === kind)),
@@ -2363,9 +2396,9 @@ function buildCustomLayoutPrompt(req: string): string {
     const name = rawName.trim()
     if (!name) return
     const id = createRoomId()
-    commitControlRooms((current) => {
-      const created = createControlRoom(current.state, { name }, { id, now: Date.now() })
-      return { ...current, state: selectControlRoom(created, id, Date.now()) }
+    commitUserControlRooms(id, 'create', 'Created control room', (current, now) => {
+      const created = createControlRoom(current.state, { name }, { id, now })
+      return { ...current, state: selectControlRoom(created, id, now) }
     })
   }
 
@@ -2415,46 +2448,59 @@ function buildCustomLayoutPrompt(req: string): string {
   }
   const renameRoom = (roomId: string, name: string) => {
     if (!name.trim()) return
-    commitControlRooms((current) => ({
+    commitUserControlRooms(roomId, 'update', 'Renamed control room', (current, now) => ({
       ...current,
-      state: updateControlRoom(current.state, roomId, { name: name.trim() }, Date.now()),
+      state: updateControlRoom(current.state, roomId, { name: name.trim() }, now),
     }))
   }
   const copyRoom = (roomId: string) => {
     const source = controlRoomsRef.current.state.rooms[roomId]
     if (!source) return
     const id = createRoomId()
-    commitControlRooms((current) => ({
+    commitUserControlRooms(id, 'copy', `Copied control room from ${roomId}`, (current, now) => ({
       ...current,
-      state: copyControlRoom(current.state, roomId, { id, now: Date.now(), name: source.name + t('rooms.copySuffix') }),
+      state: copyControlRoom(current.state, roomId, { id, now, name: source.name + t('rooms.copySuffix') }),
     }))
     setRoomManageId(id)
   }
   const toggleRoomHidden = (roomId: string) => {
     const room = controlRoomsRef.current.state.rooms[roomId]
     if (!room) return
-    commitControlRooms((current) => ({
+    commitUserControlRooms(roomId, 'update', room.sidebarVisible ? 'Hid control room from navigation' : 'Showed control room in navigation', (current, now) => ({
       ...current,
-      state: updateControlRoom(current.state, roomId, { sidebarVisible: !room.sidebarVisible }, Date.now()),
+      state: updateControlRoom(current.state, roomId, { sidebarVisible: !room.sidebarVisible }, now),
     }))
   }
   const updateRoomPresentation = (roomId: string, patch: Partial<ControlRoom>) => {
-    commitControlRooms((current) => ({
+    commitUserControlRooms(roomId, 'update', `Updated control-room fields: ${Object.keys(patch).join(', ')}`, (current, now) => ({
       ...current,
-      state: updateControlRoom(current.state, roomId, patch, Date.now()),
+      state: updateControlRoom(current.state, roomId, patch, now),
     }))
   }
   const confirmDeleteRoom = () => {
     if (!roomDeleteId) return
     const openLayoutId = splitStore.active ? splitStore.spec?.id ?? null : null
+    const now = Date.now()
     const transition = deleteControlRoomAndPlanNextOpen(
       controlRoomsRef.current.state,
       controlRoomsRef.current.trash,
       roomDeleteId,
       openLayoutId,
-      Date.now(),
+      now,
     )
-    commitControlRooms(() => ({ state: transition.state, trash: transition.trash }))
+    commitControlRooms(() => ({
+      state: transition.state,
+      trash: {
+        ...transition.trash,
+        audit: appendControlRoomAudit(transition.trash.audit, {
+          actor: 'user',
+          timestamp: now,
+          action: 'archive',
+          controlRoomId: roomDeleteId,
+          summary: 'Archived control-room configuration; project, file, and session data were not deleted',
+        }),
+      },
+    }))
     if (transition.closeOpenLayout) {
       splitStore.close()
       if (transition.openRoomId) openControlRoom(transition.openRoomId)
@@ -2468,10 +2514,20 @@ function buildCustomLayoutPrompt(req: string): string {
   const restoreRoomFromTrash = (roomId: string) => {
     const sourceLayoutId = controlRoomsRef.current.trash.deleted.find((entry) => entry.room.id === roomId)?.room.layoutId
     let restoredId: string | null = null
+    const now = Date.now()
     commitControlRooms((current) => {
-      const result = restoreControlRoom(current.state, current.trash, roomId, Date.now())
+      const result = restoreControlRoom(current.state, current.trash, roomId, now)
       restoredId = result.restoredId
-      return { state: result.state, trash: result.trash }
+      if (!restoredId) return { state: result.state, trash: result.trash }
+      return {
+        state: result.state,
+        trash: {
+          ...result.trash,
+          audit: appendControlRoomAudit(result.trash.audit, {
+            actor: 'user', timestamp: now, action: 'restore', controlRoomId: restoredId, summary: 'Restored archived control-room configuration',
+          }),
+        },
+      }
     })
     if (sourceLayoutId && restoredId) {
       const targetLayoutId = `wt-console:${restoredId}`
@@ -2482,10 +2538,10 @@ function buildCustomLayoutPrompt(req: string): string {
     }
   }
   const toggleRoomProject = (roomId: string, projectId: string, checked: boolean) => {
-    commitControlRooms((current) => ({
+    commitUserControlRooms(roomId, checked ? 'add_projects' : 'remove_projects', `${checked ? 'Added' : 'Removed'} project reference ${projectId}`, (current, now) => ({
       ...current,
       state: checked
-        ? addProjectToRoom(current.state, roomId, projectId, Date.now())
+        ? addProjectToRoom(current.state, roomId, projectId, now)
         : (() => {
             const room = current.state.rooms[roomId]
             if (!room) return current.state
@@ -2494,14 +2550,14 @@ function buildCustomLayoutPrompt(req: string): string {
               projectOrder: room.fixedProjectIds.includes(projectId)
                 ? room.projectOrder
                 : room.projectOrder.filter((id) => id !== projectId),
-            }, Date.now())
+            }, now)
           })(),
     }))
   }
   const updateRoomRules = (roomId: string, rules: ControlRoomRule[]) => {
-    commitControlRooms((current) => ({
+    commitUserControlRooms(roomId, 'set_rule', `Updated control-room rules (${rules.length})`, (current, now) => ({
       ...current,
-      state: updateControlRoom(current.state, roomId, { rules }, Date.now()),
+      state: updateControlRoom(current.state, roomId, { rules }, now),
     }))
   }
   const addRoomRule = (room: ControlRoom) => {
@@ -2523,11 +2579,70 @@ function buildCustomLayoutPrompt(req: string): string {
     })
   }
   const toggleRoomFixed = (roomId: string, projectId: string, fixed: boolean) => {
-    commitControlRooms((current) => ({ ...current, state: setProjectFixed(current.state, roomId, projectId, fixed, Date.now()) }))
+    commitUserControlRooms(roomId, 'update_project_policy', `${fixed ? 'Fixed' : 'Unfixed'} project ${projectId}`, (current, now) => ({ ...current, state: setProjectFixed(current.state, roomId, projectId, fixed, now) }))
   }
   const toggleRoomExcluded = (roomId: string, projectId: string, excluded: boolean) => {
-    commitControlRooms((current) => ({ ...current, state: setProjectExcluded(current.state, roomId, projectId, excluded, Date.now()) }))
+    commitUserControlRooms(roomId, 'update_project_policy', `${excluded ? 'Excluded' : 'Included'} project ${projectId}`, (current, now) => ({ ...current, state: setProjectExcluded(current.state, roomId, projectId, excluded, now) }))
   }
+
+  const exportRoomConfiguration = () => {
+    const blob = new Blob([exportControlRooms(controlRoomsRef.current.state, Date.now())], { type: 'application/json' })
+    const href = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = href
+    anchor.download = CONTROL_ROOMS_EXPORT_FORMAT
+    anchor.click()
+    window.setTimeout(() => URL.revokeObjectURL(href), 0)
+  }
+
+  const importRoomConfiguration = async (file: File | undefined) => {
+    if (!file) return
+    try {
+      const serialized = await file.text()
+      commitControlRooms((current) => importControlRoomsWithAudit(current, serialized, Date.now(), 'user').snapshot)
+      setRoomDataNotice('imported')
+    } catch {
+      setRoomDataNotice('importFailed')
+    } finally {
+      if (roomImportInputRef.current) roomImportInputRef.current.value = ''
+    }
+  }
+
+  useEffect(() => {
+    const bridge = createControlRoomCommandBridge({
+      snapshot: () => controlRoomsRef.current,
+      commit: commitControlRooms,
+      now: () => Date.now(),
+      knownProjectIds: () => allIds,
+      isSessionRunning: (sessionId) => sessionsSnapshotStore.snapshot?.byId?.[sessionId]?.running === true,
+      open: openControlRoom,
+      search: (query, limit) => ({ query, ...buildControlRoomSearchResponse(query, limit) }),
+      afterCopy: (sourceControlRoomId, newControlRoomId) => {
+        const sourceLayoutId = controlRoomsRef.current.state.rooms[sourceControlRoomId]?.layoutId ?? `wt-console:${sourceControlRoomId}`
+        const targetLayoutId = `wt-console:${newControlRoomId}`
+        persistProjects((prev) => ({ ...prev, views: copyControlRoomLayoutView(prev.views, sourceLayoutId, targetLayoutId) }))
+        copyControlRoomSplitGeometryInStorage(localStorage, SPLIT_PERSIST_KEY, sourceLayoutId, targetLayoutId)
+      },
+      afterArchive: (controlRoomId, layoutId) => {
+        if (splitStore.active && splitStore.spec?.id === layoutId) {
+          splitStore.close()
+          const nextId = controlRoomsRef.current.state.activeId
+          if (nextId) openControlRoom(nextId)
+        }
+      },
+      afterRestore: (sourceLayoutId, restoredControlRoomId) => {
+        const targetLayoutId = `wt-console:${restoredControlRoomId}`
+        if (sourceLayoutId === targetLayoutId) return
+        persistProjects((prev) => ({ ...prev, views: copyControlRoomLayoutView(prev.views, sourceLayoutId, targetLayoutId) }))
+        copyControlRoomSplitGeometryInStorage(localStorage, SPLIT_PERSIST_KEY, sourceLayoutId, targetLayoutId)
+      },
+    })
+    const debugRoot = ((window as any).__dshWorktable ??= {}) as { splitStore?: typeof splitStore; controlRooms?: ControlRoomCommandBridge }
+    debugRoot.controlRooms = bridge
+    return () => {
+      if (debugRoot.controlRooms === bridge) delete debugRoot.controlRooms
+    }
+  }, [allIds, openControlRoom, roomRuleRefresh, ruleProjectInputs])
 
   const locateSearchTarget = (attribute: 'data-wt-console-project-id' | 'data-wt-room-rule-id', id: string) => {
     window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
@@ -3831,6 +3946,41 @@ function buildCustomLayoutPrompt(req: string): string {
                   <label><input type="checkbox" checked={room.excludedProjectIds.includes(project.id)} onChange={(event) => toggleRoomExcluded(room.id, project.id, event.target.checked)} /> {t('rooms.memberExcluded')}</label>
                 </div>
               )) : <div className="dsh-wt_roomMembersEmpty">{t('rooms.noProjects')}</div>}
+            </fieldset>
+            <fieldset className="dsh-wt_roomData">
+              <legend>{t('rooms.data')}</legend>
+              <div className="dsh-wt_roomDataActions">
+                <button type="button" onClick={exportRoomConfiguration}>{t('rooms.export')}</button>
+                <button type="button" onClick={() => roomImportInputRef.current?.click()}>{t('rooms.import')}</button>
+                <input
+                  ref={roomImportInputRef}
+                  type="file"
+                  accept="application/json,.json"
+                  aria-label={t('rooms.import')}
+                  hidden
+                  onChange={(event) => void importRoomConfiguration(event.target.files?.[0])}
+                />
+              </div>
+              <div className="dsh-wt_roomDataHint">{t('rooms.dataIsolation')}</div>
+              {roomDataNotice && <div className="dsh-wt_roomDataNotice" data-error={roomDataNotice === 'importFailed' ? 'true' : undefined}>
+                {t(roomDataNotice === 'imported' ? 'rooms.imported' : 'rooms.importFailed')}
+              </div>}
+              <details className="dsh-wt_roomAudit">
+                <summary>{t('rooms.audit')} ({controlRooms.trash.audit.length})</summary>
+                {controlRooms.trash.audit.length > 0 ? (
+                  <ol>
+                    {[...controlRooms.trash.audit].reverse().map((entry, index) => (
+                      <li key={`${entry.timestamp}-${entry.actor}-${entry.action}-${entry.controlRoomId}-${index}`}>
+                        <span>{entry.actor === 'deepseek' ? t('rooms.auditDeepseek') : t('rooms.auditUser')}</span>
+                        <time dateTime={new Date(entry.timestamp).toISOString()}>{new Date(entry.timestamp).toLocaleString()}</time>
+                        <strong>{entry.action}</strong>
+                        <code>{entry.controlRoomId}</code>
+                        <span>{entry.summary}</span>
+                      </li>
+                    ))}
+                  </ol>
+                ) : <div className="dsh-wt_roomMembersEmpty">{t('rooms.auditEmpty')}</div>}
+              </details>
             </fieldset>
             <div className="dsh-wt_roomDialogActions dsh-wt_roomManageActions">
               <button type="button" onClick={() => copyRoom(room.id)}>{t('rooms.copy')}</button>

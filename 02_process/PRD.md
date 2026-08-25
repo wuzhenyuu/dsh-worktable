@@ -192,6 +192,24 @@ ctx.slots.register({
 - 不读写任何工作区文件、不请求任何网络资源（除插件自身静态资源）。
 - 更新检查为可关闭的只读 GET（GitHub Releases API，自动每天最多一次 + 手动「立即检查」），不上传任何数据。
 
+### 8.1 控制室命令桥、安全门与恢复语义
+
+- 已安装 DSH 的模型工具注册表是 Host 侧 `ctx.tools.register(...)`；浏览器 Client 侧仅发现工具展示
+  slot 与 `/` 命令贡献注册表，没有可由静态插件注册、又能直接操作该浏览器 `localStorage` 的模型工具面。
+  因此本版不伪造服务端 API，暂以 `window.__dshWorktable.controlRooms` 暴露有类型的浏览器内命令桥；
+  这是待宿主提供正式 Client Tool 扩展点后替换的临时裁定。
+- 命令名固定为 `control_room.*`：list、get、create、update、copy、add_projects、remove_projects、
+  reorder_projects、set_rule、bind_session、open、archive、restore、search。所有目标操作只接受一个精确 `controlRoomId`，
+  不按名称猜测，也不接受多个 ID；所有成功的 DeepSeek 变更与适用的 UI 变更写入最近 100 条审计。
+- 删除控制室在命令面命名为 `archive`：仅把控制室配置移入 30 天回收站，可用 `restore` 恢复；
+  它不会删除项目主数据、项目文件、会话、Token 统计、全局外观或硬件数据。执行前必须用返回的、
+  与动作和参数绑定的确认 token 原样重放。
+- 移除至少 5 个项目引用、替换全部规则、解绑仍在运行的管理会话同样需要精确确认。
+  清空回收站、一次修改至少 3 个控制室、从全部控制室移除项目、删除项目主数据不在本桥执行，
+  即使附带确认 token 也明确返回“不支持的破坏性操作”。
+- 管理 UI 提供固定文件名 `dsh-control-rooms-v1.json` 的导出/导入与审计查看；导入只合并控制室，
+  ID 冲突会重映射，不能修改项目主数据、对话、全局外观或硬件设置。
+
 ## 9. 验收清单（v1）
 
 - [ ] 侧边栏底部出现分隔线 + 「工作台」标题 + 三按钮 + 项目卡片（🌍 旅行 Atlas）；
