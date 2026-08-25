@@ -76,29 +76,59 @@ async function removeDisposableProfile(profilePath) {
   }
 }
 
-function waitForChildExit(child) {
+function waitForChildExit(child, timeoutMs = 10_000) {
   if (!child || child.exitCode !== null || child.signalCode) return Promise.resolve()
-  return new Promise((resolve) => child.once('close', resolve))
+  return new Promise((resolve, reject) => {
+    const onClose = () => {
+      clearTimeout(timer)
+      resolve()
+    }
+    const timer = setTimeout(() => {
+      child.removeListener('close', onClose)
+      reject(new Error(`child process ${child.pid || '<unknown>'} did not exit within ${timeoutMs}ms`))
+    }, timeoutMs)
+    timer.unref?.()
+    child.once('close', onClose)
+  })
+}
+
+function forceChildTree(child, signal = 'SIGTERM') {
+  if (!child || child.exitCode !== null || child.signalCode || !child.pid) return
+  if (process.platform === 'win32') {
+    spawnSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true })
+    return
+  }
+  try { process.kill(-child.pid, signal) } catch (error) { if (error?.code !== 'ESRCH') throw error }
+  try { child.kill(signal) } catch (error) { if (error?.code !== 'ESRCH') throw error }
 }
 
 async function stopChild(child) {
   if (!child) return
   if (child.exitCode === null && !child.signalCode) child.kill()
-  await waitForChildExit(child)
+  try {
+    await waitForChildExit(child)
+  } catch (error) {
+    forceChildTree(child, 'SIGKILL')
+    await waitForChildExit(child, 5_000).catch((forcedError) => {
+      throw new AggregateError([error, forcedError], `failed to stop child process ${child.pid || '<unknown>'}`)
+    })
+  }
 }
 
 /** Stop only the exact disposable runtime PID and its descendants. */
 async function stopChildTree(child) {
   if (!child) return
   if (child.exitCode === null && !child.signalCode && child.pid) {
-    if (process.platform === 'win32') {
-      spawnSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true })
-    } else {
-      try { process.kill(-child.pid, 'SIGTERM') } catch (error) { if (error?.code !== 'ESRCH') throw error }
-      try { child.kill('SIGTERM') } catch (error) { if (error?.code !== 'ESRCH') throw error }
-    }
+    forceChildTree(child)
   }
-  await waitForChildExit(child)
+  try {
+    await waitForChildExit(child)
+  } catch (error) {
+    forceChildTree(child, 'SIGKILL')
+    await waitForChildExit(child, 5_000).catch((forcedError) => {
+      throw new AggregateError([error, forcedError], `failed to stop disposable process tree ${child.pid || '<unknown>'}`)
+    })
+  }
 }
 
 function jsonForBrowser(value) {
