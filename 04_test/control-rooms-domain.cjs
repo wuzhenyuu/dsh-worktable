@@ -248,6 +248,38 @@ async function main() {
     assert.equal(storage.getItem(d.CONTROL_ROOMS_TRASH_KEY), null)
   })
 
+  test('interrupted migration retains the original one-time raw backup', () => {
+    const storage = new MemoryStorage()
+    storage.failKey = d.CONTROL_ROOMS_KEY
+    assert.throws(() => new d.ControlRoomsStorage(storage).load(legacy, NOW), /write failed/)
+    const originalBackup = storage.getItem(d.CONTROL_ROOMS_MIGRATION_BACKUP_KEY)
+    assert.ok(originalBackup)
+
+    storage.failKey = null
+    const changedLegacy = {
+      ...legacy,
+      projectIds: ['replacement'],
+      rawProjects: '{"replacement":true}',
+      rawView: '{"consoleTheme":"light"}',
+    }
+    const writesBeforeRetry = storage.writes.length
+    const result = new d.ControlRoomsStorage(storage).load(changedLegacy, NOW + 1)
+    assert.equal(result.migrated, true)
+    assert.equal(storage.getItem(d.CONTROL_ROOMS_MIGRATION_BACKUP_KEY), originalBackup)
+    assert.equal(storage.writes.slice(writesBeforeRetry).includes(d.CONTROL_ROOMS_MIGRATION_BACKUP_KEY), false)
+    assert.equal(JSON.parse(originalBackup).rawProjects, legacy.rawProjects)
+  })
+
+  test('unknown interrupted-backup version is refused before migration writes', () => {
+    const unknownBackup = '{"version":2,"rawProjects":"original"}'
+    const storage = new MemoryStorage({ [d.CONTROL_ROOMS_MIGRATION_BACKUP_KEY]: unknownBackup })
+    assert.throws(() => new d.ControlRoomsStorage(storage).load(legacy, NOW), d.UnknownControlRoomsVersionError)
+    assert.deepEqual(storage.writes, [])
+    assert.equal(storage.getItem(d.CONTROL_ROOMS_MIGRATION_BACKUP_KEY), unknownBackup)
+    assert.equal(storage.getItem(d.CONTROL_ROOMS_TRASH_KEY), null)
+    assert.equal(storage.getItem(d.CONTROL_ROOMS_KEY), null)
+  })
+
   test('existing versioned state makes migration one-time', () => {
     const existing = create(empty(), 'existing')
     const storage = new MemoryStorage({ [d.CONTROL_ROOMS_KEY]: JSON.stringify(existing) })

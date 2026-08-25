@@ -675,8 +675,13 @@ export class ControlRoomsStorage {
 
     const migration = createLegacyMigration(legacyInput, now)
     const trash = createEmptyControlRoomsTrashState()
-    // Backup must complete first. If it fails, no new-format key is written.
-    this.storage.setItem(CONTROL_ROOMS_MIGRATION_BACKUP_KEY, JSON.stringify(migration.backup))
+    // The backup is one-time: an interrupted migration may have written it without
+    // reaching the main-key completion marker. Validate and retain that original.
+    const existingBackup = this.readMigrationBackup()
+    if (!existingBackup) {
+      // Backup must complete first. If it fails, no new-format key is written.
+      this.storage.setItem(CONTROL_ROOMS_MIGRATION_BACKUP_KEY, JSON.stringify(migration.backup))
+    }
     this.storage.setItem(CONTROL_ROOMS_TRASH_KEY, JSON.stringify(trash))
     // The main key is the migration-complete marker and is deliberately written last.
     this.storage.setItem(CONTROL_ROOMS_KEY, JSON.stringify(migration.state))
