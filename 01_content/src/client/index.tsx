@@ -4,6 +4,24 @@ import { NS, zh, en, type WorktableKey } from './locales'
 import { isAbs, joinPath, parentPathOf, basenameOf } from './pathutil'
 import { splitStore, SplitWorkspace, setSplitT, setSplitEnv, type LayoutSpec, type SplitPane, type ConsoleCardData } from './split'
 import { installAppearance } from './appearance'
+import {
+  CONTROL_ROOMS_KEY,
+  CONTROL_ROOMS_TRASH_KEY,
+  ControlRoomsStorage,
+  addProjectToRoom,
+  copyControlRoom,
+  createControlRoom,
+  deleteControlRoom,
+  removeProjectFromRoom,
+  resolveControlRoomStorageEvent,
+  restoreControlRoom,
+  selectControlRoom,
+  selectControlRoomNavigation,
+  updateControlRoom,
+  type ControlRoom,
+  type ControlRoomsState,
+  type ControlRoomsTrashState,
+} from './controlRooms'
 
 /**
  * dsh-worktable 客户端（v2）：侧边栏底部「工作台」区块。
@@ -15,7 +33,7 @@ import { installAppearance } from './appearance'
  *   - 「管理项目…」编辑模式：改名/隐藏/排序（拖拽 + ↑↓），全存 localStorage。
  *   - 「+」：接入指引 + 本地快捷方式（名称/图标/链接，点击新标签打开）。
  *   - 完整 zh/en 词典接入 dsh-client-locale（NS 'worktable'）。
- * 持久化：dsh.worktable.view.v1（视图）+ dsh.worktable.projects.v1（项目元状态）。
+ * 持久化：view.v1（视图）+ projects.v1（项目元状态）+ controlRooms.v1（控制室配置）。
  */
 
 type OrderBy = 'manual' | 'recent'
@@ -99,6 +117,8 @@ type ProjectsState = {
   /** 项目 → 工作文件夹（绝对路径）：该项目所有产出文件都放这里；新建项目时强制填写。 */
   folders: Record<string, string>
 }
+
+type ControlRoomsSnapshot = { state: ControlRoomsState; trash: ControlRoomsTrashState }
 
 const PERSIST_KEY = 'dsh.worktable.view.v1'
 const PROJECTS_KEY = 'dsh.worktable.projects.v1'
@@ -1045,6 +1065,44 @@ function WorktableSection(props: any) {
   const [view, setView] = useState<ViewState>(loadView)
   const [notifyTick, setNotifyTick] = useState(0)
   const [projects, setProjects] = useState<ProjectsState>(loadProjects)
+  const controlRoomsStorageRef = useRef<ControlRoomsStorage | null>(null)
+  if (!controlRoomsStorageRef.current) controlRoomsStorageRef.current = new ControlRoomsStorage(localStorage)
+  const initialControlRoomsRef = useRef<ControlRoomsSnapshot | null>(null)
+  if (!initialControlRoomsRef.current) {
+    const legacyProjectIds = [...new Set([
+      ...projects.order,
+      ...projects.layouts.map((layout) => layout.id),
+      ...registryStore.ids,
+    ].filter((id) => id !== CONSOLE_ID && !projects.removed.includes(id)))]
+    let rawProjects: string | null = null
+    let rawView: string | null = null
+    try { rawProjects = localStorage.getItem(PROJECTS_KEY) } catch {}
+    try { rawView = localStorage.getItem(PERSIST_KEY) } catch {}
+    const loaded = controlRoomsStorageRef.current.load({
+      projectIds: legacyProjectIds,
+      projectOrder: projects.order.filter((id) => legacyProjectIds.includes(id)),
+      boundSessionId: projects.bindings[CONSOLE_ID] ?? null,
+      layoutId: CONSOLE_ID,
+      themeMode: view.consoleTheme ?? 'system',
+      rawProjects,
+      rawView,
+    })
+    initialControlRoomsRef.current = { state: loaded.state, trash: loaded.trash }
+  }
+  const [controlRooms, setControlRooms] = useState<ControlRoomsSnapshot>(() => initialControlRoomsRef.current!)
+  const controlRoomsRef = useRef(controlRooms)
+  const currentRoomRef = useRef<ControlRoom | null>(
+    controlRooms.state.activeId ? controlRooms.state.rooms[controlRooms.state.activeId] ?? null : null,
+  )
+  controlRoomsRef.current = controlRooms
+  currentRoomRef.current = controlRooms.state.activeId ? controlRooms.state.rooms[controlRooms.state.activeId] ?? null : null
+  const [roomCreateOpen, setRoomCreateOpen] = useState(false)
+  const [roomCreateName, setRoomCreateName] = useState('')
+  const [roomManageId, setRoomManageId] = useState<string | null>(null)
+  const [roomMoreOpen, setRoomMoreOpen] = useState(false)
+  const [roomDeleteId, setRoomDeleteId] = useState<string | null>(null)
+  const [roomReloadNotice, setRoomReloadNotice] = useState(false)
+  const [roomSaveFailed, setRoomSaveFailed] = useState(false)
   const [metas, setMetas] = useState<Record<string, ProjectMeta>>({})
   const [registeredIds, setRegisteredIds] = useState<string[]>(() => [...registryStore.ids])
   const [addOpen, setAddOpen] = useState(false)
@@ -1126,6 +1184,35 @@ function WorktableSection(props: any) {
   const [consoleName, setConsoleName] = useState('')
   const [consoleErr, setConsoleErr] = useState(false)
   const [consoleBusy, setConsoleBusy] = useState(false)
+
+  const commitControlRooms = (mutate: (current: ControlRoomsSnapshot) => ControlRoomsSnapshot): ControlRoomsSnapshot => {
+    const next = mutate(controlRoomsRef.current)
+    const saved = controlRoomsStorageRef.current!.save(next.state, next.trash)
+    setRoomSaveFailed(!saved.ok)
+    controlRoomsRef.current = next
+    currentRoomRef.current = next.state.activeId ? next.state.rooms[next.state.activeId] ?? null : null
+    setControlRooms(next)
+    notifyConsole()
+    return next
+  }
+
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.storageArea !== localStorage || (event.key !== CONTROL_ROOMS_KEY && event.key !== CONTROL_ROOMS_TRASH_KEY)) return
+      let loaded: ReturnType<ControlRoomsStorage['load']>
+      try { loaded = controlRoomsStorageRef.current!.load() } catch { return }
+      const local = controlRoomsRef.current
+      const resolved = resolveControlRoomStorageEvent(local.state, loaded.state, local.state.activeId, loaded.trash)
+      if (resolved.requiresReload) setRoomReloadNotice(true)
+      const next = { state: resolved.state, trash: loaded.trash }
+      controlRoomsRef.current = next
+      currentRoomRef.current = next.state.activeId ? next.state.rooms[next.state.activeId] ?? null : null
+      setControlRooms(next)
+      notifyConsole()
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
 
   /** 自定义布局弹窗（预设网格末尾的 ＋ 磁贴）：描述 → 复制提示词到剪贴板 */
   const [customOpen, setCustomOpen] = useState(false)
@@ -1241,12 +1328,14 @@ function WorktableSection(props: any) {
         glow,
       }
     }
+    const room = currentRoomRef.current
     const cards: ConsoleCardData[] = []
-    cards.push(make(CONSOLE_ID, t('console.name'), CONSOLE_ICON, true))
+    cards.push(make(CONSOLE_ID, room?.name ?? t('console.name'), room?.icon ?? CONSOLE_ICON, true))
     const ids = [...pr.aliveRegisteredIds, ...pr.projects.layouts.map((l) => l.id)]
     const known = new Set(ids)
-    const stored = pr.projects.order.filter((id) => known.has(id))
-    const ordered = [...stored, ...ids.filter((id) => !stored.includes(id))].filter((id) => id !== CONSOLE_ID)
+    const members = new Set(room ? [...room.projectIds, ...room.fixedProjectIds] : [])
+    const stored = (room?.projectOrder ?? []).filter((id) => known.has(id) && members.has(id))
+    const ordered = [...stored, ...ids.filter((id) => members.has(id) && !stored.includes(id))].filter((id) => id !== CONSOLE_ID)
     for (const id of ordered) {
       const meta = pr.metas[id]
       const layout = pr.projects.layouts.find((l) => l.id === id)
@@ -1321,8 +1410,15 @@ function WorktableSection(props: any) {
       console: {
         subscribe: (fn) => { consoleListeners.add(fn); return () => { consoleListeners.delete(fn) } },
         getCards: () => getConsoleCards(),
-        getTheme: () => viewRef.current.consoleTheme ?? 'system',
-        setTheme: (th: 'dark' | 'light' | 'system') => persistView({ consoleTheme: th }),
+        getTheme: () => currentRoomRef.current?.themeMode ?? viewRef.current.consoleTheme ?? 'system',
+        setTheme: (th: 'dark' | 'light' | 'system') => {
+          const roomId = currentRoomRef.current?.id
+          if (!roomId) return
+          commitControlRooms((current) => ({
+            ...current,
+            state: updateControlRoom(current.state, roomId, { themeMode: th }, Date.now()),
+          }))
+        },
         onAck: (id) => { ackRef.current?.(id); setNotifyTick((t) => t + 1); notifyConsole() },
         refreshPreviews: () => {
           if (previewTimer != null) { window.clearTimeout(previewTimer); previewTimer = null }
@@ -1936,6 +2032,28 @@ function buildCustomLayoutPrompt(req: string): string {
     return map
   }, [projects.bindings, notifyTick, collectKids])
 
+  /** Room navigation counts unresolved needs even after the sidebar glow was acknowledged. */
+  const projectNeedMap: Record<string, true> = useMemo(() => {
+    const map: Record<string, true> = {}
+    const byId = sessionsSnapshotStore.snapshot?.byId ?? {}
+    for (const [projectId, sessionId] of Object.entries(projects.bindings)) {
+      let needsAttention = sessionNotifyState(byId[sessionId]) === 'need'
+      if (!needsAttention) {
+        for (const childId of collectKids(sessionId)) {
+          if (sessionNotifyState(byId[childId]) === 'need') { needsAttention = true; break }
+        }
+      }
+      if (!needsAttention) {
+        try {
+          const face = sessionBridge?.sessions?.binding?.(sessionId)?.session?.getSnapshot?.()
+          needsAttention = Array.isArray(face?.pending) && face.pending.length > 0
+        } catch {}
+      }
+      if (needsAttention) map[projectId] = true
+    }
+    return map
+  }, [projects.bindings, notifyTick, collectKids])
+
   /** 点开项目 = 确认提醒：ack 当前会话（含子代理）的待决/完成状态，圆点恢复常态实心 */
   const ackProjectNotify = (projectId: string) => {
     const sid = projectsRef.current.projects.bindings[projectId]
@@ -1983,6 +2101,131 @@ function buildCustomLayoutPrompt(req: string): string {
     }
     return list
   }, [allIds, projects.order, projects.lastUsed, view.orderBy])
+
+  const needRoomIds = useMemo(() => {
+    const ids = new Set<string>()
+    for (const roomId of controlRooms.state.order) {
+      const room = controlRooms.state.rooms[roomId]
+      if (room?.projectIds.some((projectId) => projectNeedMap[projectId])) ids.add(roomId)
+    }
+    return ids
+  }, [controlRooms.state, projectNeedMap])
+  const roomNavigation = useMemo(
+    () => selectControlRoomNavigation(controlRooms.state, needRoomIds),
+    [controlRooms.state, needRoomIds],
+  )
+  const roomMoreIds = useMemo(() => {
+    const primary = new Set(roomNavigation.primaryIds)
+    return controlRooms.state.order.filter((id) => !primary.has(id))
+  }, [controlRooms.state.order, roomNavigation.primaryIds])
+  const roomProjectOptions = useMemo(() => allIds.map((id) => {
+    const layout = projects.layouts.find((item) => item.id === id)
+    return {
+      id,
+      name: projects.nameOverrides[id] ?? metas[id]?.name ?? layout?.title ?? id,
+      icon: projects.iconOverrides[id] ?? metas[id]?.icon ?? layout?.icon ?? '📦',
+    }
+  }), [allIds, projects.layouts, projects.nameOverrides, projects.iconOverrides, metas])
+
+  const createRoomId = (): string => {
+    const base = 'room-' + Date.now().toString(36)
+    let id = base
+    let suffix = 2
+    while (controlRoomsRef.current.state.rooms[id]) id = `${base}-${suffix++}`
+    return id
+  }
+  const createNamedRoom = (rawName: string) => {
+    const name = rawName.trim()
+    if (!name) return
+    const id = createRoomId()
+    commitControlRooms((current) => {
+      const created = createControlRoom(current.state, { name }, { id, now: Date.now() })
+      return { ...current, state: selectControlRoom(created, id, Date.now()) }
+    })
+  }
+  const createRoomFromDialog = () => {
+    if (!roomCreateName.trim()) return
+    createNamedRoom(roomCreateName)
+    setRoomCreateName(''); setRoomCreateOpen(false)
+  }
+  const selectRoomFromNavigation = (roomId: string, anchor: HTMLElement) => {
+    commitControlRooms((current) => ({ ...current, state: selectControlRoom(current.state, roomId, Date.now()) }))
+    setRoomMoreOpen(false)
+    clickConsoleCard(anchor)
+  }
+  const renameRoom = (roomId: string, name: string) => {
+    if (!name.trim()) return
+    commitControlRooms((current) => ({
+      ...current,
+      state: updateControlRoom(current.state, roomId, { name: name.trim() }, Date.now()),
+    }))
+  }
+  const copyRoom = (roomId: string) => {
+    const source = controlRoomsRef.current.state.rooms[roomId]
+    if (!source) return
+    const id = createRoomId()
+    commitControlRooms((current) => ({
+      ...current,
+      state: copyControlRoom(current.state, roomId, { id, now: Date.now(), name: source.name + t('rooms.copySuffix') }),
+    }))
+    setRoomManageId(id)
+  }
+  const toggleRoomHidden = (roomId: string) => {
+    const room = controlRoomsRef.current.state.rooms[roomId]
+    if (!room) return
+    commitControlRooms((current) => ({
+      ...current,
+      state: updateControlRoom(current.state, roomId, { sidebarVisible: !room.sidebarVisible }, Date.now()),
+    }))
+  }
+  const confirmDeleteRoom = () => {
+    if (!roomDeleteId) return
+    commitControlRooms((current) => {
+      const result = deleteControlRoom(current.state, current.trash, roomDeleteId, Date.now())
+      return { state: result.state, trash: result.trash }
+    })
+    if (roomManageId === roomDeleteId) setRoomManageId(null)
+    setRoomDeleteId(null)
+  }
+  const restoreRoomFromTrash = (roomId: string) => {
+    commitControlRooms((current) => {
+      const result = restoreControlRoom(current.state, current.trash, roomId, Date.now())
+      return { state: result.state, trash: result.trash }
+    })
+  }
+  const toggleRoomProject = (roomId: string, projectId: string, checked: boolean) => {
+    commitControlRooms((current) => ({
+      ...current,
+      state: checked
+        ? addProjectToRoom(current.state, roomId, projectId, Date.now())
+        : removeProjectFromRoom(current.state, roomId, projectId, Date.now()),
+    }))
+  }
+
+  const renderRoomNavItem = (roomId: string, inMore = false) => {
+    const room = controlRooms.state.rooms[roomId]
+    if (!room) return null
+    const needCount = room.projectIds.filter((projectId) => projectNeedMap[projectId]).length
+    return (
+      <div key={roomId} className="dsh-wt_roomNavWrap" data-on={controlRooms.state.activeId === roomId ? 'true' : 'false'} data-hidden={room.sidebarVisible ? undefined : 'true'}>
+        <button
+          type="button"
+          className="dsh-wt_roomNav"
+          data-on={controlRooms.state.activeId === roomId ? 'true' : 'false'}
+          aria-current={controlRooms.state.activeId === roomId ? 'page' : undefined}
+          aria-label={t('rooms.navLabel', { name: room.name, projects: String(room.projectIds.length), need: String(needCount) })}
+          onClick={(event) => selectRoomFromNavigation(roomId, event.currentTarget)}
+        >
+          <span className="dsh-wt_roomIcon" aria-hidden>{room.icon}</span>
+          <span className="dsh-wt_roomName">{room.name}</span>
+          <span className="dsh-wt_roomCount" title={t('rooms.projectCount', { count: String(room.projectIds.length) })}>{room.projectIds.length}</span>
+          {needCount > 0 && <span className="dsh-wt_roomNeed" title={t('rooms.needCount', { count: String(needCount) })}>{needCount}</span>}
+          {inMore && !room.sidebarVisible && <span className="dsh-wt_roomHidden">{t('rooms.hidden')}</span>}
+        </button>
+        <button type="button" className="dsh-wt_roomMenuBtn" aria-label={t('rooms.manageRoom', { name: room.name })} onClick={() => setRoomManageId(roomId)}>•••</button>
+      </div>
+    )
+  }
 
   const ownerProps = {
     query: view.query.trim(),
@@ -2234,6 +2477,7 @@ function buildCustomLayoutPrompt(req: string): string {
       if (!box) return
       // 子座位把所有卡片包在一个无类容器里：直接取卡片按钮（DOM 序 = 注册序），排除自渲染的布局卡
       const cards = Array.from(box.querySelectorAll<HTMLElement>('button:not(.dsh-wt_layout)'))
+        .filter((element) => !element.closest('.dsh-wt_roomNavigation'))
       cards.forEach((el, i) => {
         const id = aliveRegisteredIds[i]
         if (id) {
@@ -2447,7 +2691,16 @@ function buildCustomLayoutPrompt(req: string): string {
   if (!wide) {
     // 收起态 = 等行高的正方形圆角按钮，中间只留 emoji；点击 = 进入对应项目
     const railItems: { icon: string; name: string; onClick: (e: any) => void }[] = [
-      { icon: CONSOLE_ICON, name: t('console.name'), onClick: (e) => clickConsoleCard(e.currentTarget as HTMLElement) },
+      ...roomNavigation.primaryIds.map((roomId) => {
+        const room = controlRooms.state.rooms[roomId]
+        return { icon: room.icon, name: room.name, onClick: (e: any) => selectRoomFromNavigation(roomId, e.currentTarget as HTMLElement) }
+      }),
+      ...(controlRooms.state.order.length === 0
+        ? [{ icon: '＋', name: t('rooms.create'), onClick: () => {
+            const name = window.prompt(t('rooms.namePh'))
+            if (name) createNamedRoom(name)
+          } }]
+        : []),
       ...aliveRegisteredIds.map((id) => ({
         icon: projects.iconOverrides[id] ?? metas[id]?.icon ?? '📦',
         name: projects.nameOverrides[id] ?? metas[id]?.name ?? id,
@@ -2960,35 +3213,99 @@ function buildCustomLayoutPrompt(req: string): string {
         </div>
       )}
 
+      {roomReloadNotice && (
+        <div className="dsh-wt_roomReload" role="status">
+          <span>{t('rooms.reloadNotice')}</span>
+          <button type="button" onClick={() => window.location.reload()}>{t('rooms.reload')}</button>
+        </div>
+      )}
+      {roomSaveFailed && <div className="dsh-wt_roomError" role="alert">{t('rooms.saveFailed')}</div>}
+
+      {roomCreateOpen && <div className="dsh-wt_popBackdrop" style={{ zIndex: 87 }} onClick={() => setRoomCreateOpen(false)} />}
+      {roomCreateOpen && (
+        <div className="dsh-wt_roomDialog" role="dialog" aria-modal="true" aria-labelledby="dsh-wt_roomCreateTitle">
+          <h3 id="dsh-wt_roomCreateTitle">{t('rooms.create')}</h3>
+          <label>
+            <span>{t('rooms.name')}</span>
+            <input autoFocus value={roomCreateName} placeholder={t('rooms.namePh')} onChange={(event) => setRoomCreateName(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') createRoomFromDialog() }} />
+          </label>
+          <div className="dsh-wt_roomDialogActions">
+            <button type="button" onClick={() => setRoomCreateOpen(false)}>{t('confirm.cancel')}</button>
+            <button type="button" disabled={!roomCreateName.trim()} onClick={createRoomFromDialog}>{t('rooms.create')}</button>
+          </div>
+        </div>
+      )}
+
+      {roomManageId && controlRooms.state.rooms[roomManageId] && <div className="dsh-wt_popBackdrop" style={{ zIndex: 87 }} onClick={() => setRoomManageId(null)} />}
+      {roomManageId && controlRooms.state.rooms[roomManageId] && (() => {
+        const room = controlRooms.state.rooms[roomManageId]
+        return (
+          <div className="dsh-wt_roomDialog dsh-wt_roomManageDialog" role="dialog" aria-modal="true" aria-labelledby="dsh-wt_roomManageTitle">
+            <button type="button" className="dsh-wt_settingsClose" aria-label={t('manage.done')} onClick={() => setRoomManageId(null)}>✕</button>
+            <h3 id="dsh-wt_roomManageTitle">{t('rooms.manage')}</h3>
+            <label>
+              <span>{t('rooms.name')}</span>
+              <RenameInput key={room.id + ':' + room.name} initial={room.name} placeholder={t('rooms.namePh')} onCommit={(name) => renameRoom(room.id, name)} />
+            </label>
+            <fieldset className="dsh-wt_roomMembers">
+              <legend>{t('rooms.members')}</legend>
+              {roomProjectOptions.length > 0 ? roomProjectOptions.map((project) => (
+                <label key={project.id}>
+                  <input type="checkbox" checked={room.projectIds.includes(project.id)} onChange={(event) => toggleRoomProject(room.id, project.id, event.target.checked)} />
+                  <span aria-hidden>{project.icon}</span>
+                  <span>{project.name}</span>
+                </label>
+              )) : <div className="dsh-wt_roomMembersEmpty">{t('rooms.noProjects')}</div>}
+            </fieldset>
+            <div className="dsh-wt_roomDialogActions dsh-wt_roomManageActions">
+              <button type="button" onClick={() => copyRoom(room.id)}>{t('rooms.copy')}</button>
+              <button type="button" onClick={() => toggleRoomHidden(room.id)}>{room.sidebarVisible ? t('rooms.hide') : t('rooms.show')}</button>
+              <button type="button" className="dsh-wt_roomDanger" onClick={() => setRoomDeleteId(room.id)}>{t('rooms.delete')}</button>
+            </div>
+          </div>
+        )
+      })()}
+
+      {roomDeleteId && controlRooms.state.rooms[roomDeleteId] && <div className="dsh-wt_confirmBackdrop" style={{ zIndex: 89 }} onClick={() => setRoomDeleteId(null)} />}
+      {roomDeleteId && controlRooms.state.rooms[roomDeleteId] && (
+        <div className="dsh-wt_confirm dsh-wt_roomDeleteConfirm" role="alertdialog" aria-modal="true" aria-labelledby="dsh-wt_roomDeleteTitle">
+          <div id="dsh-wt_roomDeleteTitle" className="dsh-wt_confirmTitle">⚠️ {t('rooms.deleteTitle')}</div>
+          <div className="dsh-wt_confirmBody">{t('rooms.deleteBody', { name: controlRooms.state.rooms[roomDeleteId].name })}</div>
+          <div className="dsh-wt_confirmActions">
+            <button type="button" className="dsh-wt_confirmCancel" onClick={() => setRoomDeleteId(null)}>{t('confirm.cancel')}</button>
+            <button type="button" className="dsh-wt_confirmDelete" onClick={confirmDeleteRoom}>{t('rooms.delete')}</button>
+          </div>
+        </div>
+      )}
+
       <div className="dsh-wt_projects" data-managing={viewOptionsOpen ? 'true' : undefined}>
-        {/* 「工作台」控制室项目：固定首位、不可删除；未绑定点开 = 强制绑定弹窗 */}
-        <button
-          type="button"
-          className="dsh-wt_layout dsh-wt_consoleEntry"
-          data-on={activeSplitId === CONSOLE_ID ? 'true' : 'false'}
-          style={{ order: 0, position: 'relative' }}
-          title={t('console.name')}
-          onClick={(e) => clickConsoleCard(e.currentTarget as HTMLElement)}
-        >
-          <span className="dsh-wt_layoutIcon">{CONSOLE_ICON}</span>
-          <span className="dsh-wt_layoutText">
-            <span className="dsh-wt_layoutName">{t('console.name')}</span>
-          </span>
-          <span
-            className={'dsh-wt_bindBtn'}
-            role="button"
-            tabIndex={0}
-            data-bound={bindNotifyMap[CONSOLE_ID] ?? (projects.bindings[CONSOLE_ID] ? 'true' : 'false')}
-            data-tip={projects.bindings[CONSOLE_ID]
-              ? t('bind.tipBound', { name: boundSessionTitle(projects.bindings[CONSOLE_ID]) })
-              : t('bind.tipUnbound')}
-            aria-label={projects.bindings[CONSOLE_ID]
-              ? t('bind.tipBound', { name: boundSessionTitle(projects.bindings[CONSOLE_ID]) })
-              : t('bind.tipUnbound')}
-            onClick={(e) => { e.stopPropagation(); openBindPick(CONSOLE_ID, e.currentTarget as HTMLElement) }}
-          ><span className="dsh-wt_bindCircles" aria-hidden /></span>
-          <span className="dsh-wt_layoutArrow" aria-hidden>›</span>
-        </button>
+        <nav className="dsh-wt_roomNavigation" aria-label={t('rooms.navigation')}>
+          {roomNavigation.primaryIds.map((roomId) => renderRoomNavItem(roomId))}
+          <button type="button" className="dsh-wt_roomCreate" onClick={() => setRoomCreateOpen(true)}>＋ {t('rooms.create')}</button>
+          {(roomMoreIds.length > 0 || controlRooms.trash.deleted.length > 0) && (
+            <button type="button" className="dsh-wt_roomMoreBtn" aria-expanded={roomMoreOpen} onClick={() => setRoomMoreOpen((open) => !open)}>
+              {t('rooms.more')} {roomMoreOpen ? '▴' : '▾'}
+            </button>
+          )}
+          {roomMoreOpen && (
+            <section className="dsh-wt_roomMore" aria-label={t('rooms.more')}>
+              {roomMoreIds.map((roomId) => renderRoomNavItem(roomId, true))}
+              {controlRooms.trash.deleted.length > 0 && (
+                <div className="dsh-wt_roomTrash">
+                  <h4>{t('rooms.trash')}</h4>
+                  {controlRooms.trash.deleted.map((entry) => (
+                    <div key={entry.room.id} className="dsh-wt_roomTrashRow">
+                      <span aria-hidden>{entry.room.icon}</span>
+                      <span>{entry.room.name}</span>
+                      <button type="button" onClick={() => restoreRoomFromTrash(entry.room.id)}>{t('rooms.restore')}</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+          {controlRooms.state.order.length === 0 && <div className="dsh-wt_roomEmpty">{t('rooms.empty')}</div>}
+        </nav>
         {renderProjectSlot
           ? renderProjectSlot('sidebar.worktable.project', ownerProps)
           : <div className="dsh-wt_empty">{t('empty')}</div>}

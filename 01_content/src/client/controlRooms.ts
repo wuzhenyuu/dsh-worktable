@@ -404,6 +404,49 @@ export function updateControlRoom(
   return { ...normalized, rooms: { ...normalized.rooms, [roomId]: room } }
 }
 
+/** Select a room and record its recency without changing project/session master data. */
+export function selectControlRoom(state: ControlRoomsState, roomId: string, now: number): ControlRoomsState {
+  const normalized = normalizeControlRoomsState(state)
+  const room = normalized.rooms[roomId]
+  if (!room) return normalized
+  const selected = updateControlRoom(normalized, roomId, { lastOpenedAt: now }, now)
+  return { ...selected, activeId: roomId }
+}
+
+export type ControlRoomNavigation = {
+  primaryIds: string[]
+  moreIds: string[]
+}
+
+/**
+ * Keep small room sets fully visible. Large sets show the six most recently
+ * opened rooms, plus any current/need rooms that would otherwise disappear.
+ */
+export function selectControlRoomNavigation(
+  state: ControlRoomsState,
+  needRoomIds: ReadonlySet<string>,
+): ControlRoomNavigation {
+  const normalized = normalizeControlRoomsState(state)
+  const visibleIds = normalized.order.filter((id) => normalized.rooms[id]?.sidebarVisible !== false)
+  if (normalized.order.length <= 8) return { primaryIds: visibleIds, moreIds: [] }
+
+  const orderIndex = new Map(normalized.order.map((id, index) => [id, index]))
+  const recentIds = [...visibleIds]
+    .sort((a, b) => {
+      const recency = normalized.rooms[b].lastOpenedAt - normalized.rooms[a].lastOpenedAt
+      return recency || (orderIndex.get(a) ?? 0) - (orderIndex.get(b) ?? 0)
+    })
+    .slice(0, 6)
+  const primary = new Set(recentIds)
+  if (normalized.activeId && normalized.rooms[normalized.activeId]) primary.add(normalized.activeId)
+  for (const id of needRoomIds) if (normalized.rooms[id]) primary.add(id)
+  const requiredIds = normalized.order.filter((id) => primary.has(id) && !recentIds.includes(id))
+  return {
+    primaryIds: [...recentIds, ...requiredIds],
+    moreIds: visibleIds.filter((id) => !primary.has(id)),
+  }
+}
+
 export function copyControlRoom(
   state: ControlRoomsState,
   sourceId: string,
@@ -558,6 +601,40 @@ export function mergeControlRoomSummaries(local: ControlRoomsState, incoming: Co
   const order = uniqueStrings([...right.order, ...left.order]).filter((id) => !!rooms[id])
   const activeCandidate = right.activeId && rooms[right.activeId] ? right.activeId : left.activeId
   return { version: CONTROL_ROOMS_VERSION, order, activeId: activeCandidate && rooms[activeCandidate] ? activeCandidate : null, rooms }
+}
+
+export function resolveControlRoomStorageEvent(
+  local: ControlRoomsState,
+  incoming: ControlRoomsState,
+  openRoomId: string | null,
+  incomingTrash?: ControlRoomsTrashState,
+): { state: ControlRoomsState; requiresReload: boolean } {
+  const normalizedLocal = normalizeControlRoomsState(local)
+  const normalizedIncoming = normalizeControlRoomsState(incoming)
+  const deleted = incomingTrash ? normalizeControlRoomsTrashState(incomingTrash).deleted : []
+  const localOpen = openRoomId ? normalizedLocal.rooms[openRoomId] : undefined
+  const incomingOpen = openRoomId ? normalizedIncoming.rooms[openRoomId] : undefined
+  const openTombstone = openRoomId ? deleted.find((entry) => entry.room.id === openRoomId) : undefined
+  const requiresReload = !!localOpen && (
+    (!!incomingOpen && incomingOpen.updatedAt > localOpen.updatedAt)
+    || (!!openTombstone && openTombstone.room.updatedAt > localOpen.updatedAt)
+  )
+  let state = mergeControlRoomSummaries(normalizedLocal, normalizedIncoming)
+  for (const entry of deleted) {
+    const current = state.rooms[entry.room.id]
+    if (!current || entry.room.updatedAt <= current.updatedAt || entry.room.id === openRoomId) continue
+    const rooms = { ...state.rooms }
+    delete rooms[entry.room.id]
+    const order = state.order.filter((id) => id !== entry.room.id)
+    state = { ...state, rooms, order, activeId: state.activeId === entry.room.id ? (order[0] ?? null) : state.activeId }
+  }
+  if (normalizedLocal.activeId && state.rooms[normalizedLocal.activeId]) {
+    state = { ...state, activeId: normalizedLocal.activeId }
+  }
+  if (requiresReload && openRoomId && localOpen) {
+    state = { ...state, activeId: openRoomId, rooms: { ...state.rooms, [openRoomId]: localOpen } }
+  }
+  return { state, requiresReload }
 }
 
 export function exportControlRooms(state: ControlRoomsState, exportedAt: number): string {
