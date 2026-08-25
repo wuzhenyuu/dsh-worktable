@@ -219,8 +219,14 @@ const BOOLEAN_OPERATORS: ControlRoomConditionOperator[] = ['equals', 'notEquals'
 const NUMBER_OPERATORS: ControlRoomConditionOperator[] = ['equals', 'notEquals', 'greaterThanOrEqual', 'lessThanOrEqual']
 const TIME_OPERATORS: ControlRoomConditionOperator[] = ['before', 'after', 'greaterThanOrEqual', 'lessThanOrEqual']
 const TEXT_OPERATORS: ControlRoomConditionOperator[] = ['equals', 'notEquals', 'contains', 'notContains', 'in', 'notIn']
+const CONDITION_FIELDS: ControlRoomConditionField[] = [
+  'status', 'name', 'icon', 'tag', 'workspace', 'hasBoundSession', 'subagentCount',
+  'lastActiveAt', 'lastCompletedAt', 'hidden', 'archived',
+]
+const CONDITION_STATUSES: ControlRoomStatus[] = ['idle', 'busy', 'need', 'done']
 
 export function isControlRoomConditionCompatible(condition: Pick<ControlRoomCondition, 'field' | 'operator' | 'value'>): boolean {
+  if (!CONDITION_FIELDS.includes(condition.field)) return false
   if (BOOLEAN_FIELDS.includes(condition.field)) {
     return typeof condition.value === 'boolean' && BOOLEAN_OPERATORS.includes(condition.operator)
   }
@@ -231,6 +237,14 @@ export function isControlRoomConditionCompatible(condition: Pick<ControlRoomCond
     return typeof condition.value === 'number' && Number.isFinite(condition.value) && TIME_OPERATORS.includes(condition.operator)
   }
   if (!TEXT_OPERATORS.includes(condition.operator)) return false
+  if (condition.field === 'status') {
+    if (condition.operator === 'in' || condition.operator === 'notIn') {
+      return Array.isArray(condition.value)
+        && condition.value.length > 0
+        && condition.value.every((value) => CONDITION_STATUSES.includes(value as ControlRoomStatus))
+    }
+    return typeof condition.value === 'string' && CONDITION_STATUSES.includes(condition.value as ControlRoomStatus)
+  }
   if (condition.operator === 'in' || condition.operator === 'notIn') {
     return Array.isArray(condition.value)
   }
@@ -239,15 +253,11 @@ export function isControlRoomConditionCompatible(condition: Pick<ControlRoomCond
 
 function normalizeCondition(value: unknown, index: number): ControlRoomCondition | null {
   if (!isRecord(value)) return null
-  const fields: ControlRoomConditionField[] = [
-    'status', 'name', 'icon', 'tag', 'workspace', 'hasBoundSession', 'subagentCount',
-    'lastActiveAt', 'lastCompletedAt', 'hidden', 'archived',
-  ]
   const operators: ControlRoomConditionOperator[] = [
     'equals', 'notEquals', 'contains', 'notContains', 'in', 'notIn',
     'greaterThanOrEqual', 'lessThanOrEqual', 'before', 'after',
   ]
-  if (!fields.includes(value.field as ControlRoomConditionField)) return null
+  if (!CONDITION_FIELDS.includes(value.field as ControlRoomConditionField)) return null
   if (!operators.includes(value.operator as ControlRoomConditionOperator)) return null
   const rawValue = value.value
   const validValue = typeof rawValue === 'string' || typeof rawValue === 'number' || typeof rawValue === 'boolean'

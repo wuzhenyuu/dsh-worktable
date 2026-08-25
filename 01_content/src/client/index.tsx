@@ -38,7 +38,12 @@ import {
   prepareControlRoomOpen,
   reconcileNeedAckTransitions,
 } from './controlRoomRuntime'
-import { matchingControlRoomProjectIds, type ControlRoomProjectFacts } from './controlRoomRules'
+import {
+  notifyOpenControlRoomRuleRefresh,
+  refreshControlRoomRuleState,
+  type ControlRoomRuleProjectInput,
+  type ControlRoomRuleRefreshResult,
+} from './controlRoomRules'
 
 /**
  * dsh-worktable 客户端（v2）：侧边栏底部「工作台」区块。
@@ -1138,6 +1143,7 @@ function WorktableSection(props: any) {
   controlRoomsRef.current = controlRooms
   currentRoomRef.current = controlRooms.state.activeId ? controlRooms.state.rooms[controlRooms.state.activeId] ?? null : null
   const roomRuleMatchesRef = useRef<Record<string, string[]>>({})
+  const roomRuleRefreshRef = useRef<ControlRoomRuleRefreshResult | null>(null)
   const [roomCreateOpen, setRoomCreateOpen] = useState(false)
   const [roomCreateName, setRoomCreateName] = useState('')
   const [roomManageId, setRoomManageId] = useState<string | null>(null)
@@ -2168,28 +2174,6 @@ function buildCustomLayoutPrompt(req: string): string {
     return map
   }, [projects.bindings, controlRooms.state, notifyTick, collectKids])
 
-  /** Room navigation counts unresolved needs even after the sidebar glow was acknowledged. */
-  const projectNeedMap: Record<string, true> = useMemo(() => {
-    const map: Record<string, true> = {}
-    const byId = sessionsSnapshotStore.snapshot?.byId ?? {}
-    for (const [projectId, sessionId] of Object.entries(projects.bindings)) {
-      let needsAttention = sessionNotifyState(byId[sessionId]) === 'need'
-      if (!needsAttention) {
-        for (const childId of collectKids(sessionId)) {
-          if (sessionNotifyState(byId[childId]) === 'need') { needsAttention = true; break }
-        }
-      }
-      if (!needsAttention) {
-        try {
-          const face = sessionBridge?.sessions?.binding?.(sessionId)?.session?.getSnapshot?.()
-          needsAttention = Array.isArray(face?.pending) && face.pending.length > 0
-        } catch {}
-      }
-      if (needsAttention) map[projectId] = true
-    }
-    return map
-  }, [projects.bindings, notifyTick, collectKids])
-
   /** 点开项目 = 确认提醒：ack 当前会话（含子代理）的待决/完成状态，圆点恢复常态实心 */
   const ackProjectNotify = (projectId: string) => {
     const sid = projectId === CONSOLE_ID
@@ -2246,73 +2230,53 @@ function buildCustomLayoutPrompt(req: string): string {
     return list
   }, [allIds, projects.order, projects.lastUsed, view.orderBy])
 
-  /** Rule facts are rebuilt only from the existing project/session event render cycle. */
-  const ruleProjectFacts = useMemo<ControlRoomProjectFacts[]>(() => {
-    const snap = sessionsSnapshotStore.snapshot
-    const byId: Record<string, any> = snap?.byId ?? {}
-    const finiteTime = (...values: unknown[]): number => {
-      return Math.max(0, ...values.filter((value): value is number => typeof value === 'number' && Number.isFinite(value)))
-    }
-    return allIds.map((id) => {
+  /** Project state is adapted once, then the shared production refresh seam consumes session events. */
+  const ruleProjectInputs = useMemo<ControlRoomRuleProjectInput[]>(() => allIds.map((id) => {
       const meta = metas[id]
       const layout = projects.layouts.find((item) => item.id === id)
-      const sessionId = projects.bindings[id]
-      const entry = sessionId ? byId[sessionId] : null
-      const children = sessionId ? collectKids(sessionId) : new Set<string>()
-      let needsAttention = sessionNotifyState(entry) === 'need'
-      if (!needsAttention) {
-        for (const childId of children) {
-          if (sessionNotifyState(byId[childId]) === 'need') { needsAttention = true; break }
-        }
-      }
-      if (!needsAttention && sessionId) {
-        try {
-          const face = sessionBridge?.sessions?.binding?.(sessionId)?.session?.getSnapshot?.()
-          needsAttention = Array.isArray(face?.pending) && face.pending.length > 0
-        } catch {}
-      }
-      const status = needsAttention
-        ? 'need'
-        : entry?.completed === true
-          ? 'done'
-          : entry?.running === true
-            ? 'busy'
-            : 'idle'
-      const sessionTags = Array.isArray(entry?.tags) ? entry.tags.filter((tag: unknown): tag is string => typeof tag === 'string') : []
       return {
         id,
-        status,
         name: projects.nameOverrides[id] ?? meta?.name ?? layout?.title ?? id,
         icon: projects.iconOverrides[id] ?? meta?.icon ?? layout?.icon ?? '📦',
-        tags: [...new Set([...(meta?.tags ?? []), ...sessionTags])],
-        workspace: meta?.workspace ?? entry?.workspaceId ?? entry?.workspace ?? entry?.cwd ?? projects.folders[id] ?? '',
-        hasBoundSession: !!sessionId,
-        subagentCount: children.size,
-        lastActiveAt: finiteTime(meta?.lastActiveAt, entry?.lastActiveAt, entry?.lastActivityAt, entry?.lastMessageAt, entry?.updatedAt, projects.lastUsed[id]),
-        lastCompletedAt: finiteTime(meta?.lastCompletedAt, entry?.lastCompletedAt, entry?.completedAt, entry?.completed === true ? entry?.updatedAt : undefined),
+        tags: meta?.tags,
+        workspace: meta?.workspace ?? projects.folders[id],
+        boundSessionId: projects.bindings[id] ?? null,
+        lastActiveAt: Math.max(meta?.lastActiveAt ?? 0, projects.lastUsed[id] ?? 0),
+        lastCompletedAt: meta?.lastCompletedAt,
         hidden: projects.hidden.includes(id),
-        archived: meta?.archived === true || entry?.archived === true || entry?.status === 'archived',
+        archived: meta?.archived === true,
       }
-    })
-  }, [allIds, metas, projects.bindings, projects.folders, projects.hidden, projects.iconOverrides, projects.lastUsed, projects.layouts, projects.nameOverrides, notifyTick, collectKids])
-
-  const roomRuleMatches = useMemo(() => Object.fromEntries(
-    controlRooms.state.order.map((roomId) => {
-      const room = controlRooms.state.rooms[roomId]
-      return [roomId, room ? matchingControlRoomProjectIds(room.rules, ruleProjectFacts) : []]
-    }),
-  ), [controlRooms.state, ruleProjectFacts])
+    }), [allIds, metas, projects.bindings, projects.folders, projects.hidden, projects.iconOverrides, projects.lastUsed, projects.layouts, projects.nameOverrides])
+  const rulePendingSessionIds = useMemo(() => {
+    const pending = new Set<string>()
+    for (const sessionId of Object.values(projects.bindings)) {
+      try {
+        const face = sessionBridge?.sessions?.binding?.(sessionId)?.session?.getSnapshot?.()
+        if (Array.isArray(face?.pending) && face.pending.length > 0) pending.add(sessionId)
+      } catch {}
+    }
+    return pending
+  }, [projects.bindings, notifyTick])
+  const roomRuleRefresh = useMemo(() => refreshControlRoomRuleState({
+    rooms: controlRooms.state.order.map((roomId) => controlRooms.state.rooms[roomId]).filter((room): room is ControlRoom => !!room),
+    activeRoomId: controlRooms.state.activeId,
+    projects: ruleProjectInputs,
+    sessionSnapshot: sessionsSnapshotStore.snapshot,
+    pendingSessionIds: rulePendingSessionIds,
+  }), [controlRooms.state, ruleProjectInputs, rulePendingSessionIds, notifyTick])
+  const roomRuleMatches = roomRuleRefresh.matchesByRoom
   roomRuleMatchesRef.current = roomRuleMatches
-  useEffect(() => { notifyConsole() }, [roomRuleMatches])
+  useEffect(() => {
+    roomRuleRefreshRef.current = notifyOpenControlRoomRuleRefresh(roomRuleRefreshRef.current, roomRuleRefresh, notifyConsole)
+  }, [roomRuleRefresh])
 
   const needRoomIds = useMemo(() => {
     const ids = new Set<string>()
     for (const roomId of controlRooms.state.order) {
-      const room = controlRooms.state.rooms[roomId]
-      if (room && effectiveControlRoomProjectIds(room, allIds, roomRuleMatches[roomId] ?? []).some((projectId) => projectNeedMap[projectId])) ids.add(roomId)
+      if ((roomRuleRefresh.summariesByRoom[roomId]?.needCount ?? 0) > 0) ids.add(roomId)
     }
     return ids
-  }, [controlRooms.state, projectNeedMap, allIds, roomRuleMatches])
+  }, [controlRooms.state.order, roomRuleRefresh])
   const roomNavigation = useMemo(
     () => selectControlRoomNavigation(controlRooms.state, needRoomIds),
     [controlRooms.state, needRoomIds],
@@ -2475,8 +2439,9 @@ function buildCustomLayoutPrompt(req: string): string {
   const renderRoomNavItem = (roomId: string, inMore = false) => {
     const room = controlRooms.state.rooms[roomId]
     if (!room) return null
-    const effectiveMembers = effectiveControlRoomProjectIds(room, allIds, roomRuleMatches[roomId] ?? [])
-    const needCount = effectiveMembers.filter((projectId) => projectNeedMap[projectId]).length
+    const summary = roomRuleRefresh.summariesByRoom[roomId]
+    const effectiveMembers = summary?.memberIds ?? effectiveControlRoomProjectIds(room, allIds, roomRuleMatches[roomId] ?? [])
+    const needCount = summary?.needCount ?? 0
     return (
       <div key={roomId} className="dsh-wt_roomNavWrap" data-on={controlRooms.state.activeId === roomId ? 'true' : 'false'} data-hidden={room.sidebarVisible ? undefined : 'true'}>
         <button

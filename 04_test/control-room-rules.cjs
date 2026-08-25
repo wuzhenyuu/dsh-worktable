@@ -92,6 +92,28 @@ async function main() {
   assert.equal(normalized.rules[1].name, 'Builder rule', 'optional rule names survive normalization')
   assert.deepEqual(rules.matchingControlRoomProjectIds(normalized.rules, [facts()]), ['alpha'], 'a corrupt rule cannot block a valid sibling')
   assert.deepEqual(rules.evaluateControlRoomRule({ id: 'raw-bad', enabled: true, mode: 'all', conditions: [null] }, facts()), { matched: false, disabled: true }, 'raw corrupt input is isolated')
+  for (const rawCondition of [
+    condition('unknownTextField', 'notEquals', 'anything'),
+    condition('status', 'notEquals', 'garbage'),
+    condition('status', 'in', ['busy', 'garbage']),
+    condition('status', 'notIn', ['garbage']),
+  ]) {
+    const rawRule = rule([rawCondition])
+    assert.deepEqual(rules.evaluateControlRoomRule(rawRule, facts()), { matched: false, disabled: true }, `corrupt ${rawCondition.field}/${rawCondition.operator} is disabled`)
+    assert.deepEqual(rules.matchingControlRoomProjectIds([rawRule], [facts()]), [], `corrupt ${rawCondition.field}/${rawCondition.operator} cannot match`)
+  }
+  assert.deepEqual(rules.evaluateControlRoomRule(rule([]), facts()), { matched: false, disabled: true }, 'enabled zero-condition rule is defensively disabled')
+
+  const corruptFamilyRoom = domain.normalizeControlRoom({
+    id: 'corrupt-families',
+    rules: [
+      rule([condition('unknownTextField', 'notEquals', 'anything')]),
+      rule([condition('status', 'notIn', ['garbage'])]),
+      rule([condition('status', 'equals', 'busy')]),
+    ],
+  })
+  assert.deepEqual(corruptFamilyRoom.rules.map((item) => item.enabled), [false, false, true], 'each corrupt rule is disabled without affecting a valid sibling')
+  assert.deepEqual(rules.matchingControlRoomProjectIds(corruptFamilyRoom.rules, [facts()]), ['alpha'], 'valid sibling still matches after corrupt status/text rules')
 
   assert.equal(rules.evaluateControlRoomRule(rule([condition('status', 'equals', 'busy')]), facts()).matched, true, 'status family')
   assert.equal(rules.evaluateControlRoomRule(rule([condition('name', 'contains', 'PHA BUIL')]), facts()).matched, true, 'name keyword is case-insensitive')
@@ -123,7 +145,7 @@ async function main() {
   assert.equal(repository.save(persistedState, domain.createEmptyControlRoomsTrashState()).ok, true, 'rule configuration persists')
   assert.equal(repository.load().state.rooms['rules-room'].rules[1].name, 'Builder rule', 'rule display name survives storage reload')
 
-  process.stdout.write('control-room-rules: PASS (24 assertions across every Task 4 family)\n')
+  process.stdout.write('control-room-rules: PASS (35 assertions across every Task 4 family and corrupt-rule defenses)\n')
 }
 
 main()
