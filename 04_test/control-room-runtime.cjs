@@ -96,6 +96,7 @@ async function main() {
     assert.deepEqual(opened.room.cardLayout, { columns: index % 4 + 1, cardSize: sizes[index] })
     assert.equal(opened.state.activeId, id)
     assert.equal(opened.state.rooms[id].lastOpenedAt, 2_000 + index)
+    state = opened.state
   }
 
   const membershipRoom = {
@@ -166,6 +167,86 @@ async function main() {
   const collisionViews = runtime.copyControlRoomLayoutView(views, 'wt-console:room-3', 'wt-console:room-3-2')
   assert.equal(collisionViews['wt-console:room-3-2'].id, 'wt-console:room-3-2')
   assert.equal(collisionViews['wt-console:room-3-2'].main[0].id, 'pane-2', 'collision restore clones the original saved layout under the remapped ID')
+  const collisionGeometry = runtime.copyControlRoomSplitGeometry({
+    'wt-console:room-3': { chatW: 417, topH: 233, leftW: 261, paneWs: [509], topWs: [], leftWs: [] },
+    'unrelated-project': { chatW: 305, topH: 180, leftW: 200, paneWs: [333], topWs: [], leftWs: [] },
+  }, 'wt-console:room-3', 'wt-console:room-3-2')
+  assert.deepEqual(collisionGeometry['wt-console:room-3-2'], {
+    chatW: 417, topH: 233, leftW: 261, paneWs: [509], topWs: [], leftWs: [],
+  }, 'collision restore clones split widths and heights to the remapped layout ID')
+  assert.deepEqual(collisionGeometry['unrelated-project'], {
+    chatW: 305, topH: 180, leftW: 200, paneWs: [333], topWs: [], leftWs: [],
+  }, 'geometry cloning does not overwrite unrelated layout records')
+  const geometryStorage = new MemoryStorage()
+  geometryStorage.setItem('dsh.worktable.split.v2', JSON.stringify({
+    'wt-console:room-3': { chatW: 417, topH: 233, leftW: 261, paneWs: [509], topWs: [], leftWs: [] },
+    'unrelated-project': { chatW: 305, topH: 180, leftW: 200, paneWs: [333], topWs: [], leftWs: [] },
+  }))
+  assert.equal(runtime.copyControlRoomSplitGeometryInStorage(
+    geometryStorage,
+    'dsh.worktable.split.v2',
+    'wt-console:room-3',
+    'wt-console:room-3-2',
+  ), true)
+  const persistedGeometry = JSON.parse(geometryStorage.getItem('dsh.worktable.split.v2'))
+  assert.equal(persistedGeometry['wt-console:room-3-2'].chatW, 417, 'cloned geometry survives storage reload')
+  assert.equal(persistedGeometry['unrelated-project'].paneWs[0], 333)
+
+  let ackLifecycle = runtime.reconcileNeedAckTransitions({}, { 'room-only-session': true })
+  assert.deepEqual(ackLifecycle.clearSessionIds, [], 'the first observed need does not clear an ack')
+  ackLifecycle = runtime.reconcileNeedAckTransitions(ackLifecycle.seen, { 'room-only-session': false })
+  assert.deepEqual(ackLifecycle.clearSessionIds, ['room-only-session'], 'need resolution clears the stale ack')
+  ackLifecycle = runtime.reconcileNeedAckTransitions(ackLifecycle.seen, { 'room-only-session': true })
+  assert.deepEqual(ackLifecycle.clearSessionIds, ['room-only-session'], 'a new need transition clears the prior lifecycle ack so glow can relight')
+
+  let autoBindState = domain.createControlRoom(domain.createEmptyControlRoomsState(), {
+    name: 'Auto bind room',
+  }, { id: 'auto-bind-room', now: 5_000 })
+  const preservedSessions = new Set(['fresh-session', 'later-session'])
+  let autoBind = runtime.autoBindControlRoomSession(
+    autoBindState,
+    'wt-console:auto-bind-room',
+    'fresh-session',
+    5_001,
+  )
+  assert.equal(autoBind.result, 'auto', 'an unbound active control room auto-binds the newly sent session')
+  assert.equal(autoBind.state.rooms['auto-bind-room'].boundSessionId, 'fresh-session')
+  autoBindState = autoBind.state
+  autoBind = runtime.autoBindControlRoomSession(
+    autoBindState,
+    'wt-console:auto-bind-room',
+    'later-session',
+    5_002,
+  )
+  assert.equal(autoBind.result, 'kept', 'an existing room management binding is retained')
+  assert.equal(autoBind.state.rooms['auto-bind-room'].boundSessionId, 'fresh-session')
+  assert.equal(runtime.autoBindControlRoomSession(autoBindState, 'ordinary-project', 'later-session', 5_003).result, 'none')
+  assert.deepEqual([...preservedSessions], ['fresh-session', 'later-session'], 'auto-binding only changes room references and never deletes sessions')
+
+  let deleteState = domain.createControlRoom(domain.createEmptyControlRoomsState(), { name: 'Delete me' }, { id: 'delete-me', now: 6_000 })
+  deleteState = domain.createControlRoom(deleteState, { name: 'Replacement' }, { id: 'replacement', now: 6_001 })
+  deleteState = domain.selectControlRoom(deleteState, 'delete-me', 6_002)
+  let deletePlan = runtime.deleteControlRoomAndPlanNextOpen(
+    deleteState,
+    domain.createEmptyControlRoomsTrashState(),
+    'delete-me',
+    'wt-console:delete-me',
+    6_003,
+  )
+  assert.equal(deletePlan.closeOpenLayout, true, 'deleting the room whose layout is open closes that exact layout')
+  assert.equal(deletePlan.openRoomId, 'replacement', 'the replacement active room must be reopened through the room-open seam')
+  assert.equal(deletePlan.state.activeId, 'replacement')
+  assert.equal(deletePlan.state.rooms['delete-me'], undefined, 'deleted-room cards and theme cannot remain the current room')
+  deletePlan = runtime.deleteControlRoomAndPlanNextOpen(
+    deletePlan.state,
+    deletePlan.trash,
+    'replacement',
+    'wt-console:replacement',
+    6_004,
+  )
+  assert.equal(deletePlan.closeOpenLayout, true)
+  assert.equal(deletePlan.openRoomId, null, 'deleting the final room leaves the empty create state')
+  assert.equal(deletePlan.state.activeId, null)
 
   process.stdout.write('control-room-runtime: PASS (five independent rooms and sessions)\n')
 }

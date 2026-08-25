@@ -2,7 +2,7 @@ import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, use
 import { css } from './styles'
 import { NS, zh, en, type WorktableKey } from './locales'
 import { isAbs, joinPath, parentPathOf, basenameOf } from './pathutil'
-import { splitStore, SplitWorkspace, setSplitT, setSplitEnv, type LayoutSpec, type SplitPane, type ConsoleCardData } from './split'
+import { splitStore, SplitWorkspace, SPLIT_PERSIST_KEY, setSplitT, setSplitEnv, type LayoutSpec, type SplitPane, type ConsoleCardData } from './split'
 import { installAppearance } from './appearance'
 import { installModalFocusGuard } from './modalFocus'
 import {
@@ -12,7 +12,6 @@ import {
   addProjectToRoom,
   copyControlRoom,
   createControlRoom,
-  deleteControlRoom,
   removeProjectFromRoom,
   reorderProjectsInRoom,
   resolveControlRoomStorageEvent,
@@ -25,10 +24,14 @@ import {
   type ControlRoomsTrashState,
 } from './controlRooms'
 import {
+  autoBindControlRoomSession,
   controlRoomBindingState,
   copyControlRoomLayoutView,
+  copyControlRoomSplitGeometryInStorage,
+  deleteControlRoomAndPlanNextOpen,
   effectiveControlRoomProjectIds,
   prepareControlRoomOpen,
+  reconcileNeedAckTransitions,
 } from './controlRoomRuntime'
 
 /**
@@ -1413,7 +1416,13 @@ function WorktableSection(props: any) {
         autoBind: (sessionId: string): 'auto' | 'kept' | 'none' => {
           const pid = splitStore.active && splitStore.spec ? splitStore.spec.id : null
           if (!pid || typeof sessionId !== 'string' || !sessionId) return 'none'
-          if (pid.startsWith('wt-console:')) return currentRoomRef.current?.boundSessionId ? 'kept' : 'none'
+          if (pid.startsWith('wt-console:')) {
+            const outcome = autoBindControlRoomSession(controlRoomsRef.current.state, pid, sessionId, Date.now())
+            if (outcome.result === 'auto') {
+              commitControlRooms((current) => ({ ...current, state: outcome.state }))
+            }
+            return outcome.result
+          }
           const already = projectsRef.current.projects.bindings[pid]
           if (already) return 'kept'
           persistProjects((prev) => (prev.bindings[pid] ? prev : { ...prev, bindings: { ...prev.bindings, [pid]: sessionId } }))
@@ -2061,8 +2070,12 @@ function buildCustomLayoutPrompt(req: string): string {
     const map: Record<string, 'done' | 'need' | 'busy'> = {}
     const byId = sessionsSnapshotStore.snapshot?.byId ?? {}
     const ack = loadNotifyAck()
-    const seen = notifyStateSeenRef.current
-    for (const [pid, sid] of Object.entries(projects.bindings)) {
+    const trackedSessionIds = new Set<string>(Object.values(projects.bindings))
+    for (const room of Object.values(controlRooms.state.rooms)) {
+      if (room.boundSessionId) trackedSessionIds.add(room.boundSessionId)
+    }
+    const needBySession: Record<string, boolean> = {}
+    for (const sid of trackedSessionIds) {
       const e = byId[sid]
       if (!e) continue
       // 是否需要判断：自身列表字段 / 子代理 / 会话面兜底，三通道聚合
@@ -2079,17 +2092,24 @@ function buildCustomLayoutPrompt(req: string): string {
           if (Array.isArray(face?.pending) && face.pending.length > 0) needNow = true
         } catch {}
       }
-      // 状态转移 → 清除旧 ack（新一轮待决重新点亮）
-      if (needNow !== seen[sid]) {
-        if (seen[sid] !== undefined) clearNotifyAck(sid)
-        seen[sid] = needNow
-      }
+      needBySession[sid] = needNow
+    }
+    const transitions = reconcileNeedAckTransitions(notifyStateSeenRef.current, needBySession)
+    notifyStateSeenRef.current = transitions.seen
+    for (const sid of transitions.clearSessionIds) {
+      clearNotifyAck(sid)
+      delete ack[sid]
+    }
+    for (const [pid, sid] of Object.entries(projects.bindings)) {
+      const e = byId[sid]
+      if (!e) continue
+      const needNow = needBySession[sid] ?? false
       if (needNow) { if (ack[sid] !== 'need') map[pid] = 'need'; continue }
       if (sessionNotifyState(e) === 'done' && ack[sid] !== 'done') { map[pid] = 'done'; continue }
       if (e.running === true) map[pid] = 'busy'
     }
     return map
-  }, [projects.bindings, notifyTick, collectKids])
+  }, [projects.bindings, controlRooms.state, notifyTick, collectKids])
 
   /** Room navigation counts unresolved needs even after the sidebar glow was acknowledged. */
   const projectNeedMap: Record<string, true> = useMemo(() => {
@@ -2253,10 +2273,19 @@ function buildCustomLayoutPrompt(req: string): string {
   }
   const confirmDeleteRoom = () => {
     if (!roomDeleteId) return
-    commitControlRooms((current) => {
-      const result = deleteControlRoom(current.state, current.trash, roomDeleteId, Date.now())
-      return { state: result.state, trash: result.trash }
-    })
+    const openLayoutId = splitStore.active ? splitStore.spec?.id ?? null : null
+    const transition = deleteControlRoomAndPlanNextOpen(
+      controlRoomsRef.current.state,
+      controlRoomsRef.current.trash,
+      roomDeleteId,
+      openLayoutId,
+      Date.now(),
+    )
+    commitControlRooms(() => ({ state: transition.state, trash: transition.trash }))
+    if (transition.closeOpenLayout) {
+      splitStore.close()
+      if (transition.openRoomId) openControlRoom(transition.openRoomId)
+    }
     if (roomManageId === roomDeleteId) setRoomManageId(null)
     setRoomDeleteId(null)
     window.requestAnimationFrame(() => {
@@ -2275,6 +2304,7 @@ function buildCustomLayoutPrompt(req: string): string {
       const targetLayoutId = `wt-console:${restoredId}`
       if (sourceLayoutId !== targetLayoutId) {
         persistProjects((prev) => ({ ...prev, views: copyControlRoomLayoutView(prev.views, sourceLayoutId, targetLayoutId) }))
+        copyControlRoomSplitGeometryInStorage(localStorage, SPLIT_PERSIST_KEY, sourceLayoutId, targetLayoutId)
       }
     }
   }

@@ -121,7 +121,7 @@ type SplitState = {
 const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi)
 const DIVIDER = 4
 const BAR_H = 26
-const PERSIST_KEY = 'dsh.worktable.split.v2'
+export const SPLIT_PERSIST_KEY = 'dsh.worktable.split.v2'
 
 /** 内置内容窗图标 */
 const BUILTIN_ICONS: Record<BuiltinType, string> = {
@@ -294,7 +294,7 @@ function findConversationRoot(): HTMLElement | null {
 
 function loadSaved(layoutId: string): { chatW: number; topH: number; leftW: number; paneWs: number[]; topWs: number[]; leftWs: number[] } | null {
   try {
-    const raw = localStorage.getItem(PERSIST_KEY)
+    const raw = localStorage.getItem(SPLIT_PERSIST_KEY)
     if (!raw) return null
     const s = JSON.parse(raw)?.[layoutId]
     if (!s || typeof s !== 'object') return null
@@ -313,10 +313,10 @@ function loadSaved(layoutId: string): { chatW: number; topH: number; leftW: numb
 
 function persistSaved(layoutId: string, s: { chatW: number; topH: number; leftW: number; paneWs: number[]; topWs: number[]; leftWs: number[] }) {
   try {
-    const raw = localStorage.getItem(PERSIST_KEY)
+    const raw = localStorage.getItem(SPLIT_PERSIST_KEY)
     const all = raw ? JSON.parse(raw) : {}
     all[layoutId] = s
-    localStorage.setItem(PERSIST_KEY, JSON.stringify(all))
+    localStorage.setItem(SPLIT_PERSIST_KEY, JSON.stringify(all))
   } catch {}
 }
 

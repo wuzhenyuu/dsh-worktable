@@ -1,7 +1,11 @@
 import {
+  deleteControlRoom,
   selectControlRoom,
+  updateControlRoom,
   type ControlRoom,
   type ControlRoomsState,
+  type ControlRoomsTrashState,
+  type StorageCompatible,
 } from './controlRooms'
 import type { LayoutSpec, PaneTab } from './split'
 
@@ -68,6 +72,93 @@ export function copyControlRoomLayoutView(
   const copy = JSON.parse(JSON.stringify(source)) as LayoutSpec
   copy.id = targetLayoutId
   return { ...views, [targetLayoutId]: copy }
+}
+
+export function copyControlRoomSplitGeometry<T extends Record<string, unknown>>(
+  geometry: T,
+  sourceLayoutId: string,
+  targetLayoutId: string,
+): T {
+  const source = geometry[sourceLayoutId]
+  if (source == null || sourceLayoutId === targetLayoutId) return geometry
+  return {
+    ...geometry,
+    [targetLayoutId]: JSON.parse(JSON.stringify(source)) as unknown,
+  }
+}
+
+export function copyControlRoomSplitGeometryInStorage(
+  storage: StorageCompatible,
+  storageKey: string,
+  sourceLayoutId: string,
+  targetLayoutId: string,
+): boolean {
+  try {
+    const raw = storage.getItem(storageKey)
+    if (!raw) return false
+    const parsed: unknown = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return false
+    const current = parsed as Record<string, unknown>
+    if (current[sourceLayoutId] == null) return false
+    const next = copyControlRoomSplitGeometry(current, sourceLayoutId, targetLayoutId)
+    storage.setItem(storageKey, JSON.stringify(next))
+    return true
+  } catch {
+    return false
+  }
+}
+
+export function reconcileNeedAckTransitions(
+  seen: Readonly<Record<string, boolean>>,
+  current: Readonly<Record<string, boolean>>,
+): { seen: Record<string, boolean>; clearSessionIds: string[] } {
+  const next = { ...seen }
+  const clearSessionIds: string[] = []
+  for (const [sessionId, needNow] of Object.entries(current)) {
+    if (seen[sessionId] !== undefined && seen[sessionId] !== needNow) clearSessionIds.push(sessionId)
+    next[sessionId] = needNow
+  }
+  return { seen: next, clearSessionIds }
+}
+
+export function autoBindControlRoomSession(
+  state: ControlRoomsState,
+  activeLayoutId: string | null,
+  sessionId: string,
+  now: number,
+): { state: ControlRoomsState; result: 'auto' | 'kept' | 'none'; roomId: string | null } {
+  if (!activeLayoutId || !sessionId) return { state, result: 'none', roomId: null }
+  const room = Object.values(state.rooms).find((candidate) => candidate.layoutId === activeLayoutId)
+  if (!room) return { state, result: 'none', roomId: null }
+  if (room.boundSessionId) return { state, result: 'kept', roomId: room.id }
+  return {
+    state: updateControlRoom(state, room.id, { boundSessionId: sessionId }, now),
+    result: 'auto',
+    roomId: room.id,
+  }
+}
+
+export function deleteControlRoomAndPlanNextOpen(
+  state: ControlRoomsState,
+  trash: ControlRoomsTrashState,
+  roomId: string,
+  openLayoutId: string | null,
+  now: number,
+): {
+  state: ControlRoomsState
+  trash: ControlRoomsTrashState
+  closeOpenLayout: boolean
+  openRoomId: string | null
+} {
+  const room = state.rooms[roomId]
+  const result = deleteControlRoom(state, trash, roomId, now)
+  const closeOpenLayout = Boolean(result.deleted && room && room.layoutId === openLayoutId)
+  return {
+    state: result.state,
+    trash: result.trash,
+    closeOpenLayout,
+    openRoomId: closeOpenLayout ? result.state.activeId : null,
+  }
 }
 
 function defaultTabs(room: ControlRoom, labels: ControlRoomLabels): { tabs: PaneTab[]; active: number } {
