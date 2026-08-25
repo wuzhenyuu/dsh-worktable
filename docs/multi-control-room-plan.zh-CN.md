@@ -148,6 +148,8 @@ control_room.search
 
 DeepSeek 可以直接创建、改名、改图标、添加或移除项目、排序、创建规则、复制、绑定对话、打开和归档控制室。
 
+实现边界：当前分支提供的 `window.__dshWorktable.controlRooms` 是由浏览器 `localStorage` 支持的类型化手动/调试 seam，不是自动注册到 DeepSeek/Host 模型工具目录的 Client Tool。除非宿主另行提供官方 Client Tool surface 或显式 adapter，DeepSeek 不能自动发现或直接调用这些命令。
+
 以下操作必须确认：删除控制室、清空回收站、一次移除 5 个以上项目、覆盖全部规则、解绑运行中的管理对话、批量修改 3 个以上控制室、从所有控制室移除项目以及删除项目主数据。每次工具操作都必须使用明确的 `controlRoomId`，不能只用名称猜测目标。
 
 ## 7. 侧边栏
@@ -296,13 +298,10 @@ DeepSeek 可以直接创建、改名、改图标、添加或移除项目、排�
 - 修改 `dsh-usage` 的硬件采集方式。
 - 按控制室分别保存硬件监控数据。
 
-
-
 ## 实现验证记录（Task 7）
 
 - 已完成控制室仓库、迁移、导航、独立绑定/布局、规则、全局搜索和类型化客户端命令桥接。
 - 持久化键为 `dsh.worktable.controlRooms.v1`、`dsh.worktable.controlRooms.trash.v1`、`dsh.worktable.controlRooms.migrationBackup.v1`；项目主数据、对话、外观和硬件监控数据不进入控制室配置。
-- 已加入最终 bundle / domain acceptance probe：node 04_test/control-room-acceptance.cjs。当前环境可执行最终客户端 bundle 的 ModuleLoader 握手；未发现可安全启动的 disposable DSH service，因此服务重启持久化标记为 SKIPPED，不作为通过项。
+- 已加入最终 bundle / domain acceptance probe：node 04_test/control-room-acceptance.cjs。当前环境以 disposable loopback HTTP fixture + headless Chrome 加载当前分支 final bundle，真实挂载生产 WorktableSection/bridge 并完成 138 项浏览器检查；未发现可安全启动的 disposable DSH service，因此服务重启持久化标记为 SKIPPED，不作为通过项。
 - 04_test 的 Chrome 探针使用临时 headless profile；不会启动可见浏览器，也不会修改活动 DSH profile、官方插件或 dsh-usage。
 - 手动视觉验收仍待用户在 disposable DSH web profile 中重启服务并刷新 GUI 后确认。
-

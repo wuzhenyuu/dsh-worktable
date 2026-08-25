@@ -8,6 +8,7 @@ const {
   resolveChromePath,
   createDisposableProfile,
   removeDisposableProfile,
+  stopChild,
   jsonForBrowser,
 } = require('./test-harness.cjs');
 const WebSocket = requireLocalDependency('ws');
@@ -25,12 +26,12 @@ const TEST_PATHS = {
 const chromePath = resolveChromePath();
 if (!chromePath) {
   console.log('functional-diag: SKIPPED (Chrome executable not found; set CHROME_PATH)');
-  removeDisposableProfile(TEMP_ROOT);
+  fs.rmSync(TEMP_ROOT, { recursive: true, force: true });
   process.exit(0);
 }
 if (process.env.DSH_DISPOSABLE_SERVICE !== '1') {
   console.log('functional-diag: SKIPPED (active DSH service is not treated as disposable; set DSH_DISPOSABLE_SERVICE=1 only for an explicitly disposable runtime)');
-  removeDisposableProfile(TEMP_ROOT);
+  fs.rmSync(TEMP_ROOT, { recursive: true, force: true });
   process.exit(0);
 }
 
@@ -749,10 +750,17 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     : 'LOG: ' + (e.params.entry ? e.params.entry.text : '').slice(0, 200) + (e.params.entry && e.params.entry.url ? ' @ ' + e.params.entry.url : ''));
   console.log('ERRORS_COUNT:', errors.length);
   errors.forEach((x) => console.log(x));
-  ws.close();
-  proc.kill();
-  await new Promise((resolve) => setTimeout(resolve, 600));
-  removeDisposableProfile(profile);
-  removeDisposableProfile(TEMP_ROOT);
+  if (ws.readyState === WebSocket.OPEN) await new Promise((resolve) => { ws.once('close', resolve); ws.close() });
+  await stopChild(proc);
+  await removeDisposableProfile(profile);
+  await removeDisposableProfile(TEMP_ROOT);
   process.exit(errors.length === 0 ? 0 : 1); // 严格门禁：发现错误即非零退出
-})().catch(async (e) => { console.log('SCRIPT_FAIL:', e); proc.kill(); await new Promise((resolve) => setTimeout(resolve, 600)); removeDisposableProfile(profile); removeDisposableProfile(TEMP_ROOT); process.exit(1); });
+})().catch(async (e) => {
+  console.log('SCRIPT_FAIL:', e);
+  let cleanupError = null;
+  try { await stopChild(proc); } catch (error) { cleanupError = error; }
+  try { await removeDisposableProfile(profile); } catch (error) { cleanupError = cleanupError || error; }
+  try { await removeDisposableProfile(TEMP_ROOT); } catch (error) { cleanupError = cleanupError || error; }
+  if (cleanupError) console.error('CLEANUP_FAIL:', cleanupError);
+  process.exit(1);
+});

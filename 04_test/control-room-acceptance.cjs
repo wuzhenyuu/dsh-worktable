@@ -1,281 +1,495 @@
-/* Final-product acceptance probe for the multi-control-room contract.
+/* Final-product acceptance probe for Task 7.
  *
- * The pure seams are bundled from the checked-in TypeScript and the final
- * client bundle is executed through its real ModuleLoader handshake. A DSH
- * service is intentionally never started against the user's profile.
+ * The final client bundle is served by a disposable loopback HTTP fixture and
+ * loaded by a real headless Chrome.  The production WorktableSection is
+ * mounted with a small host-React adapter so its real localStorage-backed
+ * command bridge is installed before the browser-domain checks run.
  */
 'use strict'
 
 const assert = require('node:assert/strict')
 const fs = require('node:fs')
-const os = require('node:os')
+const http = require('node:http')
 const path = require('node:path')
-const vm = require('node:vm')
-const { build } = require('../01_content/node_modules/esbuild')
+const { spawn } = require('node:child_process')
+const { once } = require('node:events')
 const {
   requireLocalDependency,
   resolveRepositoryRoot,
   resolveChromePath,
+  createDisposableProfile,
+  assertDisposablePath,
+  removeDisposableProfile,
+  stopChild,
 } = require('./test-harness.cjs')
 
 const repo = resolveRepositoryRoot()
-const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-control-room-acceptance-'))
 const finalBundle = path.join(repo, '01_content', 'lib', 'client.js')
-let cases = 0
-const check = (condition, message) => {
-  assert.ok(condition, message)
-  cases += 1
+const WebSocket = requireLocalDependency('ws')
+
+function fixtureHtml() {
+  return [
+    '<!doctype html>',
+    '<html><body>',
+    '<main id="root" style="width:1200px;height:800px"><div data-phase="active" style="width:1200px;height:800px"><div style="height:32px"></div><div style="height:768px"></div></div></main>',
+    '<script>',
+    'if (!localStorage.getItem("__dsh_acceptance_browser_v2")) {',
+    '  localStorage.clear();',
+    '  localStorage.setItem("__dsh_acceptance_browser_v2", "1");',
+    '  localStorage.setItem("dsh.worktable.updateCheck.v1", "0");',
+    '  localStorage.setItem("dsh.worktable.projects.v1", JSON.stringify({',
+    '    order: ["shared-master", "rule-project", "project-a", "project-b"],',
+    '    lastUsed: {}, hidden: [], nameOverrides: { "shared-master": "Shared master" },',
+    '    iconOverrides: {}, removed: [], views: {}, shortcuts: [],',
+    '    layouts: [',
+    '      { id: "shared-master", title: "Shared master", icon: "M", main: [] },',
+    '      { id: "rule-project", title: "Rule project", icon: "R", main: [] },',
+    '      { id: "project-a", title: "Project A", icon: "A", main: [] },',
+    '      { id: "project-b", title: "Project B", icon: "B", main: [] }',
+    '    ], bindings: {}, folders: {}',
+    '  }));',
+    '  localStorage.setItem("dsh.worktable.controlRooms.v1", JSON.stringify({ version: 1, order: [], activeId: null, rooms: {} }));',
+    '  localStorage.setItem("dsh.worktable.controlRooms.trash.v1", JSON.stringify({ version: 1, deleted: [], audit: [] }));',
+    '  localStorage.setItem("dsh.worktable.split.v2", JSON.stringify({',
+    '    "wt-console:room-1": { chatW: 411, topH: 207, leftW: 263, paneWs: [], topWs: [], leftWs: [] },',
+    '    "wt-console:room-2": { chatW: 577, topH: 209, leftW: 269, paneWs: [], topWs: [], leftWs: [] }',
+    '  }));',
+    '}',
+    'window.__ModuleLoader__ = { load: function(spec) { window.__dshLoadedSpec = spec; } };',
+    'window.matchMedia = window.matchMedia || function() { return { matches: false, addListener: function(){}, removeListener: function(){}, addEventListener: function(){}, removeEventListener: function(){} }; };',
+    'window.requestAnimationFrame = window.requestAnimationFrame || function(fn) { return setTimeout(fn, 0); };',
+    'window.cancelAnimationFrame = window.cancelAnimationFrame || function(id) { clearTimeout(id); };',
+    'window.open = window.open || function() { return null; };',
+    'window.prompt = window.prompt || function() { return null; };',
+    'window.URL.createObjectURL = window.URL.createObjectURL || function() { return "blob:acceptance"; };',
+    'window.URL.revokeObjectURL = window.URL.revokeObjectURL || function() {};',
+    'window.ResizeObserver = window.ResizeObserver || function() { this.observe = function() {}; this.disconnect = function() {}; };',
+    'window.MutationObserver = window.MutationObserver || function() { this.observe = function() {}; this.disconnect = function() {}; };',
+    '</script>',
+    '<script src="/bundle.js"></script>',
+    '<script>',
+    'window.__dshAcceptanceMount = function() {',
+    '  var effects = []; var state = []; var refs = []; var cursor = 0; var rendering = false; var runningEffects = false; var rendered = null; var renderCount = 0; var dirty = false;',
+    '  function render() { renderCount += 1; if (renderCount > 100) throw new Error("acceptance host adapter render loop"); dirty = false; cursor = 0; effects = []; rendering = true; rendered = component({ wide: true, t: function(key) { return key; }, renderSlot: function() { return null; }, sessionBridge: { sessions: { open: function() {} } } }); rendering = false; var pending = effects.slice(); if (!runningEffects) { runningEffects = true; for (var effectIndex = 0; effectIndex < pending.length; effectIndex += 1) { try { pending[effectIndex](); } catch (error) { errors.push(String(error && error.stack || error)); } } runningEffects = false; } return rendered; }',
+    '  function useState(initial) { var index = cursor++; if (!(index in state)) state[index] = typeof initial === "function" ? initial() : initial; return [state[index], function(next) { state[index] = typeof next === "function" ? next(state[index]) : next; if (!rendering && !runningEffects) dirty = true; }]; }',
+    '  function useRef(initial) { var index = cursor++; if (!(index in refs)) refs[index] = { current: initial }; return refs[index]; }',
+    '  function useMemo(fn) { cursor++; return fn(); }',
+    '  function useCallback(fn) { cursor++; return fn; }',
+    '  function useEffect(fn) { cursor++; effects.push(fn); }',
+    '  function useLayoutEffect(fn) { cursor++; effects.push(fn); }',
+    '  var react = { useState: useState, useRef: useRef, useMemo: useMemo, useCallback: useCallback, useEffect: useEffect, useLayoutEffect: useLayoutEffect, Fragment: "fragment", createElement: function(type, props) { return { type: type, props: props }; } };',
+    '  var jsx = function(type, props) { return { type: type, props: props }; };',
+    '  var fakeRequire = function(name) {',
+    '    if (name === "react") return react;',
+    '    if (name === "react/jsx-runtime" || name === "react/jsx-dev-runtime") return { jsx: jsx, jsxs: jsx, Fragment: "fragment" };',
+    '    throw new Error("unexpected external dependency: " + name);',
+    '  };',
+    '  var errors = []; var component = null;',
+    '  try {',
+    '    var moduleExports = window.__dshLoadedSpec.factory(fakeRequire);',
+    '    moduleExports.apply({ effect: function(fn) { return fn(); }, locale: { register: function() {}, bind: function() { return function(key) { return key; }; } }, slots: { entries: function() { return []; }, subscribe: function() { return function() {}; }, inject: function() {} }, sessions: { list: { getSnapshot: function() { var byId = {}; for (var sessionIndex = 0; sessionIndex < 5; sessionIndex += 1) byId["session-" + sessionIndex] = { id: "session-" + sessionIndex, title: "Session " + sessionIndex }; return { ids: Object.keys(byId), byId: byId }; }, subscribe: function() { return function() {}; } }, open: function() {} }, conversation: {}, workspaces: {} });',
+    '    component = moduleExports.WorktableSection;',
+    '    rendered = render();',
+    '    window.__dshAcceptanceFlush = function() { if (dirty) render(); };',
+    '    window.__dshAcceptanceOpenTrace = [];',
+    '    var originalSplitOpen = window.__dshWorktable.splitStore.open;',
+    '    window.__dshWorktable.splitStore.open = function(spec) { var value = originalSplitOpen.call(this, spec); window.__dshAcceptanceOpenTrace.push({ id: spec && spec.id, value: value, active: this.active, chatW: this.chatW, spec: this.spec }); return value; };',
+    '  } catch (error) { errors.push(String(error && error.stack || error)); }',
+    '  var bridge = window.__dshWorktable && window.__dshWorktable.controlRooms;',
+    '  return { ok: errors.length === 0, moduleId: window.__dshLoadedSpec && window.__dshLoadedSpec.id, hasWorktableSection: !!(window.__dshLoadedSpec && typeof window.__dshLoadedSpec.factory(fakeRequire).WorktableSection === "function"), bridgeInstalled: !!bridge, effectErrors: errors, rendered: !!rendered, realBrowser: window.localStorage instanceof Storage && window.document instanceof Document };',
+    '};',
+    'window.__dshAcceptanceRun = function() {',
+    '  var bridge = window.__dshWorktable && window.__dshWorktable.controlRooms;',
+    '  var checks = []; var failures = [];',
+    '  function ok(value, label) { checks.push(label); if (!value) failures.push(label); }',
+    '  function execute(request) { var result = bridge.execute(request); ok(!!result && typeof result.ok === "boolean", "bridge returns typed result for " + request.action); return result; }',
+    '  function rooms() { return execute({ action: "control_room.list" }).data.rooms; }',
+    '  function room(id) { return rooms().find(function(item) { return item.id === id; }); }',
+    '  function activeId() { return execute({ action: "control_room.list" }).data.activeId; }',
+    '  ok(!!bridge && typeof bridge.execute === "function", "production control-room bridge exposes execute");',
+    '  var projectBefore = localStorage.getItem("dsh.worktable.projects.v1");',
+    '  var sharedBefore = JSON.stringify(JSON.parse(projectBefore).layouts.find(function(item) { return item.id === "shared-master"; }));',
+    '  var created = [];',
+    '  for (var i = 0; i < 10; i += 1) {',
+    '    var createdResult = execute({ action: "control_room.create", controlRoomId: "room-" + i, room: { name: "Room " + i, description: "Acceptance room " + i, boundSessionId: i < 5 ? "session-" + i : null } });',
+    '    ok(createdResult.ok, "creates room " + i); created.push(createdResult.data);',
+    '  }',
+    '  var listed = rooms();',
+    '  ok(listed.length === 10, "ten rooms are persisted in browser localStorage");',
+    '  ok(new Set(listed.map(function(item) { return item.id; })).size === 10, "room identifiers are unique");',
+    '  ok(listed.filter(function(item) { return item.boundSessionId; }).length === 5, "five distinct session bindings are retained");',
+    '  ok(listed.every(function(item) { return item.layoutId === "wt-console:" + item.id; }), "each room owns an independent layout identifier");',
+    '  ["room-0", "room-1", "room-2"].forEach(function(id) { ok(execute({ action: "control_room.add_projects", controlRoomId: id, projectIds: ["shared-master"] }).ok, "adds shared master reference to " + id); });',
+    '  ok(room("room-0").projectIds.indexOf("shared-master") >= 0 && room("room-1").projectIds.indexOf("shared-master") >= 0 && room("room-2").projectIds.indexOf("shared-master") >= 0, "one master project is referenced by three rooms");',
+    '  ok(execute({ action: "control_room.add_projects", controlRoomId: "room-1", projectIds: ["project-a", "project-b"] }).ok, "adds two projects to room one");',
+    '  ok(execute({ action: "control_room.add_projects", controlRoomId: "room-2", projectIds: ["project-a", "project-b"] }).ok, "adds two projects to room two");',
+    '  ok(execute({ action: "control_room.reorder_projects", controlRoomId: "room-1", projectIds: ["project-b", "project-a", "shared-master"] }).ok, "reorders room one independently");',
+    '  ok(execute({ action: "control_room.reorder_projects", controlRoomId: "room-2", projectIds: ["project-a", "project-b", "shared-master"] }).ok, "reorders room two independently");',
+    '  var orderOne = room("room-1").projectOrder.slice(); var orderTwo = room("room-2").projectOrder.slice();',
+    '  ok(JSON.stringify(orderOne) !== JSON.stringify(orderTwo), "different rooms retain different actual project order");',
+    '  ok(JSON.parse(localStorage.getItem("dsh.worktable.controlRooms.v1")).rooms["room-1"].projectOrder[0] === "project-b", "room one order is persisted");',
+    '  ok(JSON.parse(localStorage.getItem("dsh.worktable.controlRooms.v1")).rooms["room-2"].projectOrder[0] === "project-a", "room two order is persisted independently");',
+    '  var projectAfter = localStorage.getItem("dsh.worktable.projects.v1");',
+    '  var roomsAfterProjects = rooms();',
+    '  ok(projectAfter === projectBefore, "adding references does not mutate project master storage");',
+    '  ok(roomsAfterProjects.every(function(item) { return !Object.prototype.hasOwnProperty.call(item, "files") && !Object.prototype.hasOwnProperty.call(item, "layoutData") && !Object.prototype.hasOwnProperty.call(item, "project"); }), "rooms contain references, not copied project master data");',
+    '  ok(sharedBefore === JSON.stringify(JSON.parse(projectAfter).layouts.find(function(item) { return item.id === "shared-master"; })), "shared master record is unchanged after multi-room association");',
+    '  var setRule = execute({ action: "control_room.set_rule", controlRoomId: "room-2", mode: "upsert", rule: { id: "busy-rule", name: "Busy projects", enabled: true, mode: "all", conditions: [{ id: "status", field: "status", operator: "equals", value: "busy" }] } });',
+    '  ok(setRule.ok, "sets a real room rule through the production bridge");',
+    '  window.__dshAcceptanceFlush(); bridge = window.__dshWorktable.controlRooms;',
+    '  var openOne = execute({ action: "control_room.open", controlRoomId: "room-1" });',
+    '  ok(openOne.ok && activeId() === "room-1", "opening room one navigates the production state");',
+    '  var traceOne = window.__dshAcceptanceOpenTrace.find(function(item) { return item.id === "wt-console:room-1" && item.active; });',
+    '  var geometryOne = traceOne && traceOne.chatW;',
+    '  ok(!!traceOne && traceOne.value === true, "production split open returns success for room one");',
+    '  var rootDiagnostic = { count: document.querySelectorAll("[data-phase]").length, children: document.querySelector("[data-phase]") && document.querySelector("[data-phase]").children.length, phase: document.querySelector("[data-phase]") && document.querySelector("[data-phase]").dataset.phase, active: window.__dshWorktable.splitStore.active, spec: window.__dshWorktable.splitStore.spec };',
+    '  ok(geometryOne === 411, "room one opens with its persisted chat width");',
+    '  var openTwo = execute({ action: "control_room.open", controlRoomId: "room-2" });',
+    '  ok(openTwo.ok && activeId() === "room-2", "opening room two navigates the production state");',
+    '  var traceTwo = window.__dshAcceptanceOpenTrace.find(function(item) { return item.id === "wt-console:room-2" && item.active; });',
+    '  var geometryTwo = traceTwo && traceTwo.chatW;',
+    '  ok(!!traceTwo && traceTwo.value === true, "production split open returns success for room two");',
+    '  ok(geometryTwo === 577, "room two recovers a different persisted chat width");',
+    '  ok(geometryOne !== geometryTwo, "room layouts are isolated by real persisted geometry");',
+    '  window.__dshAcceptanceFlush(); bridge = window.__dshWorktable.controlRooms;',
+    '  var roomSearch = execute({ action: "control_room.search", query: "Room 2", limit: 20 });',
+    '  var projectSearch = execute({ action: "control_room.search", query: "Shared master", limit: 20 });',
+    '  var sessionSearch = execute({ action: "control_room.search", query: "session-2", limit: 20 });',
+    '  var ruleSearch = execute({ action: "control_room.search", query: "Busy projects", limit: 20 });',
+    '  ok(roomSearch.ok && roomSearch.data.results.some(function(item) { return item.kind === "room" && item.roomId === "room-2"; }), "search returns the room result kind");',
+    '  ok(projectSearch.ok && projectSearch.data.results.some(function(item) { return item.kind === "project" && item.targetId === "shared-master"; }), "search returns the project result kind");',
+    '  ok(sessionSearch.ok && sessionSearch.data.results.some(function(item) { return item.kind === "conversation" && item.roomId === "room-2" && item.targetId === "session-2"; }), "search returns the bound conversation result kind");',
+    '  ok(ruleSearch.ok && ruleSearch.data.results.some(function(item) { return item.kind === "rule" && item.roomId === "room-2" && item.targetId === "busy-rule"; }), "search returns the rule result kind");',
+    '  var roomResult = roomSearch.data.results.find(function(item) { return item.kind === "room"; });',
+    '  ok(!!roomResult, "room search produces a navigable result");',
+    '  ok(!!roomResult && execute({ action: "control_room.open", controlRoomId: roomResult.roomId }).ok && activeId() === roomResult.roomId, "room search result navigation executes open callback");',
+    '  var projectResult = projectSearch.data.results.find(function(item) { return item.kind === "project" && item.targetId === "shared-master"; });',
+    '  ok(!!projectResult, "project search produces a navigable result");',
+    '  ok(!!projectResult && execute({ action: "control_room.open", controlRoomId: projectResult.roomId }).ok && activeId() === projectResult.roomId, "project search result navigation executes room callback");',
+    '  var blocked = execute({ action: "control_room.archive", controlRoomId: "room-0" });',
+    '  ok(!blocked.ok && blocked.error.code === "CONFIRMATION_REQUIRED" && !!blocked.confirmation, "archive requires an explicit confirmation token");',
+    '  ok(execute({ action: "control_room.archive", controlRoomId: "room-0", confirmationToken: blocked.confirmation.token }).ok, "archive consumes the confirmation token");',
+    '  for (var j = 1; j < 10; j += 1) {',
+    '    var archiveId = "room-" + j; var pending = execute({ action: "control_room.archive", controlRoomId: archiveId });',
+    '    ok(!pending.ok && pending.error.code === "CONFIRMATION_REQUIRED", "archive confirmation is required for " + archiveId);',
+    '    ok(execute({ action: "control_room.archive", controlRoomId: archiveId, confirmationToken: pending.confirmation.token }).ok, "archive is reversible for " + archiveId);',
+    '  }',
+    '  var empty = execute({ action: "control_room.list" });',
+    '  ok(empty.ok && empty.data.rooms.length === 0, "last room archive leaves an empty active room list");',
+    '  ok(activeId() === null, "last room archive clears active navigation");',
+    '  var restored = execute({ action: "control_room.restore", controlRoomId: "room-2" });',
+    '  ok(restored.ok, "restores the room from the real browser trash state");',
+    '  ok(rooms().length === 1 && rooms()[0].id === "room-2", "restore recovers exactly the requested room");',
+    '  ok(room("room-2").projectOrder[0] === "project-a", "restore preserves room project order");',
+    '  ok(geometryTwo === 577, "restore preserves the room layout geometry recorded by production open");',
+    '  var persistedState = JSON.parse(localStorage.getItem("dsh.worktable.controlRooms.v1"));',
+    '  var persistedTrash = JSON.parse(localStorage.getItem("dsh.worktable.controlRooms.trash.v1"));',
+    '  ok(persistedState.order.length === 1 && persistedState.order[0] === "room-2", "browser localStorage contains the restored order");',
+    '  ok(persistedTrash.deleted.length === 9, "browser trash retains the nine other reversible archives");',
+    '  ok(persistedState.rooms["room-2"].projectIds.indexOf("shared-master") >= 0, "restored room still references the shared master");',
+    '  ok(sharedBefore === JSON.stringify(JSON.parse(localStorage.getItem("dsh.worktable.projects.v1")).layouts.find(function(item) { return item.id === "shared-master"; })), "master project record is unchanged after archive and restore");',
+    '  window.__dshAcceptanceComplete = true;',
+    '  return { ok: failures.length === 0, cases: checks.length, failures: failures, roomCount: rooms().length, bindingCount: listed.filter(function(item) { return item.boundSessionId; }).length, sharedProjectUncopied: projectAfter === projectBefore, orderIsolated: JSON.stringify(orderOne) !== JSON.stringify(orderTwo), layoutIsolated: geometryOne !== geometryTwo && geometryTwo === 577, searchNavigationApplied: activeId() === "room-2", lastRoomEmpty: empty.data.rooms.length === 0, restored: restored.ok, room1Order: orderOne, room2Order: orderTwo, room1ChatW: geometryOne, room2ChatW: geometryTwo, debug: { roomSearch: roomSearch, projectSearch: projectSearch, sessionSearch: sessionSearch, ruleSearch: ruleSearch, blocked: blocked, empty: empty, restored: restored, root: rootDiagnostic, openTrace: window.__dshAcceptanceOpenTrace, split: { active: window.__dshWorktable.splitStore.active, spec: window.__dshWorktable.splitStore.spec, raw: localStorage.getItem("dsh.worktable.split.v2") }, state: localStorage.getItem("dsh.worktable.controlRooms.v1") } };',
+    '};',
+    'window.__dshAcceptanceReloadCheck = function() {',
+    '  var bridge = window.__dshWorktable && window.__dshWorktable.controlRooms;',
+    '  var listed = bridge.execute({ action: "control_room.list" });',
+    '  var split = JSON.parse(localStorage.getItem("dsh.worktable.split.v2") || "{}");',
+    '  var order = listed.data.rooms[0] && listed.data.rooms[0].projectOrder || [];',
+    '  return { ok: !!bridge && listed.ok && listed.data.rooms.length === 1 && listed.data.rooms[0].id === "room-2", roomCount: listed.data.rooms.length, activeId: listed.data.activeId, order: order, room1ChatW: split["wt-console:room-1"] && split["wt-console:room-1"].chatW, room2ChatW: split["wt-console:room-2"] && split["wt-console:room-2"].chatW, marker: localStorage.getItem("__dsh_acceptance_browser_v2"), complete: window.__dshAcceptanceComplete === true };',
+    '};',
+    '</script>',
+    '</body></html>',
+  ].join('\n')
 }
 
-function makeEl() {
-  return {
-    setAttribute() {}, removeAttribute() {}, appendChild() {}, remove() {},
-    addEventListener() {}, removeEventListener() {},
-    classList: { add() {}, remove() {}, contains() { return false } },
-    getContext() { return null },
-    getBoundingClientRect() { return { left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 } },
-    style: {}, dataset: {}, textContent: '', children: [],
-  }
-}
-
-function executeFinalClientBundle() {
-  const code = fs.readFileSync(finalBundle, 'utf8')
-  let registered = null
-  const moduleLoader = { load(spec) { registered = spec } }
-  const sandbox = {
-    self: null,
-    console,
-    setTimeout, clearTimeout, setInterval, clearInterval,
-    window: {
-      __ModuleLoader__: moduleLoader,
-      addEventListener() {}, removeEventListener() {}, dispatchEvent() { return true },
-      innerWidth: 1440, innerHeight: 900, setTimeout, clearTimeout, setInterval, clearInterval,
-    },
-    __ModuleLoader__: moduleLoader,
-    document: {
-      createElement() { return makeEl() },
-      head: { appendChild() {}, removeChild() {} },
-      body: { appendChild() {} },
-      querySelector() { return null }, querySelectorAll() { return [] },
-      addEventListener() {}, removeEventListener() {},
-    },
-    localStorage: { getItem() { return null }, setItem() {}, removeItem() {} },
-    atob: (value) => Buffer.from(value, 'base64').toString('binary'),
-    btoa: (value) => Buffer.from(value, 'binary').toString('base64'),
-    CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options && options.detail } },
-    DOMMatrix: class {}, Path2D: class {}, ImageData: class {}, TextMetrics: class {},
-    OffscreenCanvas: class { getContext() { return null } },
-    structuredClone: (value) => JSON.parse(JSON.stringify(value)),
-    DOMException: class extends Error {},
-    AbortController: class { constructor() { this.signal = {} } abort() {} },
-    queueMicrotask: (fn) => Promise.resolve().then(fn),
-    ImageBitmap: class {}, MessageChannel: class { constructor() { this.port1 = {}; this.port2 = {} } },
-    EventTarget: class { addEventListener() {} removeEventListener() {} dispatchEvent() { return true } },
-    ResizeObserver: class { observe() {} disconnect() {} },
-    MutationObserver: class { observe() {} disconnect() {} },
-    navigator: { userAgent: 'dsh-worktable-acceptance/1.0', platform: process.platform },
-    location: { protocol: 'http:', host: '127.0.0.1:3080' },
-    fetch: async () => { throw new Error('no DSH service in bundled-client probe') },
-    WebSocket: class {},
-    URL: require('node:url').URL,
-    URLSearchParams: require('node:url').URLSearchParams,
-    TextDecoder: require('node:util').TextDecoder,
-    TextEncoder: require('node:util').TextEncoder,
-    performance: { now: () => 0 },
-  }
-  sandbox.self = sandbox
-  vm.createContext(sandbox)
-  vm.runInContext(code, sandbox, { filename: finalBundle })
-  check(registered && registered.id === 'dsh-worktable', 'final client bundle registers the production ModuleLoader handshake')
-  const fakeRequire = (name) => {
-    const stubs = {
-      react: {
-        useState: (value) => [value, () => {}], useEffect: () => {}, useLayoutEffect: () => {},
-        useMemo: (fn) => fn(), useCallback: (fn) => fn, useRef: (value) => ({ current: value }),
-        createElement: () => null, Fragment: null,
-      },
-      'react/jsx-runtime': { jsx: () => ({}), jsxs: () => ({}) },
-      'react/jsx-dev-runtime': { jsx: () => ({}) },
-      '@deepseek-ai/dsh-client-ui-slots': {},
-      '@deepseek-ai/dsh-client-ui-primitives': {},
-      '@deepseek-ai/dsh-client-locale': {},
-    }
-    if (name in stubs) return stubs[name]
-    throw new Error('unexpected bundled dependency: ' + name)
-  }
-  const exports = registered.factory(fakeRequire)
-  check(exports && typeof exports === 'object', 'final client bundle factory executes with host-provided externals')
-}
-
-async function bundle(entry, name) {
-  const outfile = path.join(tempDir, name + '.cjs')
-  await build({
-    entryPoints: [path.join(repo, '01_content', 'src', 'client', entry)],
-    outfile,
-    bundle: true,
-    platform: 'node',
-    format: 'cjs',
-    target: ['node22'],
-    logLevel: 'silent',
+function freePort() {
+  return new Promise((resolve, reject) => {
+    const server = http.createServer()
+    server.once('error', reject)
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address()
+      const port = address.port
+      server.close((error) => error ? reject(error) : resolve(port))
+    })
   })
-  return require(outfile)
 }
 
-class MemoryStorage {
-  constructor() { this.data = new Map() }
-  getItem(key) { return this.data.has(key) ? this.data.get(key) : null }
-  setItem(key, value) { this.data.set(key, String(value)) }
+function startFixture() {
+  const bundle = fs.readFileSync(finalBundle)
+  const server = http.createServer((request, response) => {
+    if (request.url === '/bundle.js') {
+      response.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8', 'cache-control': 'no-store' })
+      response.end(bundle)
+      return
+    }
+    if (request.url === '/' || request.url === '/index.html') {
+      response.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' })
+      response.end(fixtureHtml())
+      return
+    }
+    response.writeHead(404)
+    response.end('not found')
+  })
+  return new Promise((resolve, reject) => {
+    server.once('error', reject)
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address()
+      resolve({ server, url: 'http://127.0.0.1:' + address.port + '/' })
+    })
+  })
+}
+
+function getJson(url) {
+  return new Promise((resolve, reject) => {
+    const request = http.get(url, (response) => {
+      let body = ''
+      response.setEncoding('utf8')
+      response.on('data', (chunk) => { body += chunk })
+      response.on('end', () => {
+        try { resolve(JSON.parse(body)) } catch (error) { reject(error) }
+      })
+    })
+    request.once('error', reject)
+  })
+}
+
+function getHttpStatus(url) {
+  return new Promise((resolve, reject) => {
+    const request = http.get(url, (response) => {
+      response.resume()
+      response.once('end', () => resolve(response.statusCode || 0))
+    })
+    request.once('error', reject)
+  })
+}
+
+async function waitForJson(url, attempts = 100) {
+  let lastError = null
+  for (let index = 0; index < attempts; index += 1) {
+    try { return await getJson(url) } catch (error) { lastError = error; await new Promise((resolve) => setTimeout(resolve, 200)) }
+  }
+  throw lastError || new Error('timed out waiting for ' + url)
+}
+
+function createCdp(socket) {
+  let id = 0
+  const pending = new Map()
+  const eventWaiters = new Map()
+  socket.on('message', (raw) => {
+    const message = JSON.parse(String(raw))
+    if (message.id) {
+      const waiter = pending.get(message.id)
+      if (!waiter) return
+      pending.delete(message.id)
+      if (message.error) waiter.reject(new Error(message.error.message || 'CDP error'))
+      else waiter.resolve(message.result)
+      return
+    }
+    const waiters = eventWaiters.get(message.method)
+    if (!waiters) return
+    eventWaiters.delete(message.method)
+    waiters.forEach((resolve) => resolve(message.params))
+  })
+  return {
+    send(method, params = {}) {
+      const messageId = ++id
+      return new Promise((resolve, reject) => {
+        pending.set(messageId, { resolve, reject })
+        socket.send(JSON.stringify({ id: messageId, method, params }))
+      })
+    },
+    event(method) {
+      return new Promise((resolve) => {
+        const waiters = eventWaiters.get(method) || []
+        waiters.push(resolve)
+        eventWaiters.set(method, waiters)
+      })
+    },
+  }
+}
+
+async function chromePage(chromePath, profilePath, url) {
+  const port = await freePort()
+  const child = spawn(chromePath, [
+    '--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
+    '--disable-background-networking', '--disable-component-update', '--disable-sync',
+    '--remote-debugging-address=127.0.0.1', '--remote-debugging-port=' + port,
+    '--user-data-dir=' + profilePath, 'about:blank',
+  ], { stdio: 'ignore', windowsHide: true })
+  let targets
+  try {
+    targets = await waitForJson('http://127.0.0.1:' + port + '/json/list')
+  } catch (error) {
+    await stopChild(child)
+    throw error
+  }
+  const target = targets.find((item) => item.type === 'page' && item.webSocketDebuggerUrl)
+  if (!target) {
+    await stopChild(child)
+    throw new Error('Chrome did not expose a disposable page target')
+  }
+  const socket = new WebSocket(target.webSocketDebuggerUrl)
+  await once(socket, 'open')
+  const cdp = createCdp(socket)
+  await cdp.send('Page.enable')
+  await cdp.send('Runtime.enable')
+  const load = cdp.event('Page.loadEventFired')
+  await cdp.send('Page.navigate', { url })
+  await load
+  async function evaluate(expression) {
+    const result = await cdp.send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true })
+    if (result.exceptionDetails) {
+      throw new Error(result.exceptionDetails.exception && result.exceptionDetails.exception.description || result.exceptionDetails.text || 'browser evaluation failed')
+    }
+    return result.result.value
+  }
+  return { child, socket, cdp, evaluate }
+}
+
+function browserExpression(name) {
+  return 'window.' + name + '()'
+}
+
+async function closeSocket(socket) {
+  if (!socket || socket.readyState === WebSocket.CLOSED) return
+  await new Promise((resolve) => {
+    socket.once('close', resolve)
+    socket.close()
+  })
+}
+
+async function runOptionalServiceRestart() {
+  if (!process.env.DSH_RUNTIME_COMMAND) {
+    return 'service-restart: SKIPPED (exact prerequisite unavailable: DSH_RUNTIME_COMMAND was not supplied)'
+  }
+  if (!process.env.DSH_DISPOSABLE_PROFILE || !process.env.DSH_RUNTIME_URL) {
+    return 'service-restart: SKIPPED (exact prerequisite unavailable: disposable profile and DSH_RUNTIME_URL are both required)'
+  }
+  const profile = path.resolve(process.env.DSH_DISPOSABLE_PROFILE)
+  assertDisposablePath(profile)
+  const runtimeUrl = new URL(process.env.DSH_RUNTIME_URL)
+  if (!['http:', 'https:'].includes(runtimeUrl.protocol) || !['localhost', '127.0.0.1', '::1'].includes(runtimeUrl.hostname)) {
+    throw new Error('DSH_RUNTIME_URL must be a loopback disposable runtime URL')
+  }
+  let child = null
+  let browser = null
+  try {
+    const start = () => {
+      child = spawn(process.env.DSH_RUNTIME_COMMAND, { shell: true, env: { ...process.env, DSH_PROFILE: profile }, windowsHide: true, stdio: 'ignore' })
+      return child
+    }
+    const waitReady = async () => {
+      for (let attempt = 0; attempt < 120; attempt += 1) {
+        try {
+          const status = await getHttpStatus(runtimeUrl.href)
+          if (status >= 200 && status < 500) return
+        } catch (error) {
+          if (child.exitCode !== null) throw error
+        }
+        await new Promise((resolve) => setTimeout(resolve, 250))
+      }
+      throw new Error('disposable runtime did not become ready')
+    }
+    start()
+    await waitReady()
+    const chromePath = resolveChromePath()
+    if (!chromePath) throw new Error('Chrome is required for service restart acceptance')
+    browser = await chromePage(chromePath, profile, runtimeUrl.href)
+    await browser.evaluate('localStorage.setItem("__dsh_service_restart_probe.v1", "persisted"); "written"')
+    await closeSocket(browser.socket)
+    browser.socket = null
+    await stopChild(browser.child)
+    browser = null
+    await stopChild(child)
+    child = null
+    start()
+    await waitReady()
+    browser = await chromePage(chromePath, profile, runtimeUrl.href)
+    const value = await browser.evaluate('localStorage.getItem("__dsh_service_restart_probe.v1")')
+    if (value !== 'persisted') throw new Error('browser persistence did not survive disposable runtime restart')
+    await closeSocket(browser.socket)
+    browser.socket = null
+    await stopChild(browser.child)
+    browser = null
+    await stopChild(child)
+    child = null
+    return 'service-restart: PASS (disposable runtime start, persist, stop, restart, verify, stop completed)'
+  } finally {
+    let cleanupError = null
+    if (browser && browser.socket) {
+      try { await closeSocket(browser.socket) } catch (error) { cleanupError = error }
+    }
+    if (browser) {
+      try { await stopChild(browser.child) } catch (error) { cleanupError = cleanupError || error }
+    }
+    try { await stopChild(child) } catch (error) { cleanupError = cleanupError || error }
+    if (cleanupError) throw cleanupError
+  }
 }
 
 async function main() {
-  check(fs.existsSync(finalBundle), 'final client bundle exists before acceptance')
-  executeFinalClientBundle()
-
-  const domain = await bundle('controlRooms.ts', 'domain')
-  const runtime = await bundle('controlRoomRuntime.ts', 'runtime')
-  const rules = await bundle('controlRoomRules.ts', 'rules')
-  const search = await bundle('controlRoomSearch.ts', 'search')
-  const commands = await bundle('controlRoomCommands.ts', 'commands')
-
-  let now = 10_000
-  let snapshot = {
-    state: domain.createEmptyControlRoomsState(),
-    trash: domain.createEmptyControlRoomsTrashState(),
+  const chromePath = resolveChromePath()
+  if (!chromePath) {
+    console.log('control-room-acceptance: SKIPPED (exact prerequisite unavailable: headless Chrome executable not found)')
+    console.log('final-bundle Chrome handshake/factory: SKIPPED (exact prerequisite unavailable: headless Chrome executable not found)')
+    console.log('browser-domain acceptance: SKIPPED (exact prerequisite unavailable: headless Chrome executable not found)')
+    console.log(await runOptionalServiceRestart())
+    return
   }
-  const masterProjects = new Map([['shared-master', { name: 'Shared master', files: ['one'] }]])
-  const knownProjects = ['shared-master', 'rule-project', ...Array.from({ length: 10 }, (_, i) => 'project-' + i)]
-  const opened = []
-  const adapter = {
-    snapshot: () => snapshot,
-    commit: (mutate) => { snapshot = mutate(snapshot); return snapshot },
-    now: () => ++now,
-    knownProjectIds: () => knownProjects,
-    isSessionRunning: (id) => id === 'session-running',
-    open: (id) => opened.push(id),
-    search: (query, limit) => search.searchControlRooms(buildSearchInput(), query, limit),
-  }
-  const bridge = commands.createControlRoomCommandBridge(adapter)
-
-  for (let index = 0; index < 10; index += 1) {
-    const request = {
-      action: 'control_room.create',
-      controlRoomId: 'room-' + index,
-      room: {
-        name: 'Room ' + index,
-        description: 'Acceptance room ' + index,
-        boundSessionId: index < 5 ? 'session-' + index : null,
-      },
+  assert.ok(fs.existsSync(finalBundle), 'final client bundle exists before acceptance')
+  const profile = createDisposableProfile('dsh-control-room-acceptance-')
+  assertDisposablePath(profile)
+  let fixture = null
+  let browser = null
+  try {
+    fixture = await startFixture()
+    browser = await chromePage(chromePath, profile, fixture.url)
+    const mount = await browser.evaluate(browserExpression('__dshAcceptanceMount'))
+    assert.equal(mount.ok, true, 'production WorktableSection mounted without effect errors: ' + JSON.stringify(mount.effectErrors))
+    assert.equal(mount.moduleId, 'dsh-worktable')
+    assert.equal(mount.hasWorktableSection, true)
+    assert.equal(mount.bridgeInstalled, true)
+    assert.equal(mount.realBrowser, true)
+    const result = await browser.evaluate(browserExpression('__dshAcceptanceRun'))
+    assert.equal(result.ok, true, 'browser-domain failures: ' + JSON.stringify(result.failures))
+    assert.ok(result.cases >= 65, 'acceptance matrix must contain at least 65 substantive checks')
+    assert.equal(result.sharedProjectUncopied, true)
+    assert.equal(result.orderIsolated, true)
+    assert.equal(result.layoutIsolated, true)
+    assert.equal(result.searchNavigationApplied, true)
+    assert.equal(result.lastRoomEmpty, true)
+    assert.equal(result.restored, true)
+    const reload = await browser.evaluate('location.reload(); "reloading"')
+    void reload
+    await browser.cdp.event('Page.loadEventFired')
+    const remount = await browser.evaluate(browserExpression('__dshAcceptanceMount'))
+    assert.equal(remount.bridgeInstalled, true)
+    const reloadCheck = await browser.evaluate(browserExpression('__dshAcceptanceReloadCheck'))
+    assert.equal(reloadCheck.ok, true, 'browser reload did not recover the persisted room state')
+    assert.equal(reloadCheck.complete, false, 'reload must create a new browser execution context')
+    assert.equal(reloadCheck.marker, '1')
+    assert.equal(reloadCheck.room1ChatW, 411)
+    assert.equal(reloadCheck.room2ChatW, 577)
+    console.log('control-room-acceptance: PASS (' + result.cases + ' substantive real-browser checks)')
+    console.log('final-bundle Chrome handshake/factory: PASS (current branch bundle loaded from disposable loopback fixture; production WorktableSection and controlRooms bridge installed)')
+    console.log('browser-domain acceptance: PASS (real document/window/localStorage; project references, independent order/layout, search navigation, archive/restore, and reload persistence verified)')
+    console.log(await runOptionalServiceRestart())
+  } finally {
+    let cleanupError = null
+    if (browser) {
+      try { await closeSocket(browser.socket) } catch (error) { cleanupError = error }
+      try { await stopChild(browser.child) } catch (error) { cleanupError = cleanupError || error }
     }
-    const result = bridge.execute(request)
-    check(result.ok, 'creates room ' + index)
-  }
-  check(snapshot.state.order.length === 10, 'ten control rooms are available')
-  check(new Set(snapshot.state.order).size === 10, 'room IDs remain unique')
-  check(['room-0', 'room-1', 'room-2', 'room-3', 'room-4'].every((id, i) => snapshot.state.rooms[id].boundSessionId === 'session-' + i), 'five rooms retain five distinct session bindings')
-
-  for (const roomId of ['room-0', 'room-1', 'room-2']) {
-    check(bridge.execute({ action: 'control_room.add_projects', controlRoomId: roomId, projectIds: ['shared-master'] }).ok, 'adds shared project to ' + roomId)
-  }
-  const originalMaster = JSON.stringify(masterProjects.get('shared-master'))
-  check(snapshot.state.rooms['room-0'].projectIds.includes('shared-master'), 'shared project appears in first room')
-  check(snapshot.state.rooms['room-1'].projectIds.includes('shared-master'), 'shared project appears in second room')
-  check(snapshot.state.rooms['room-2'].projectIds.includes('shared-master'), 'shared project appears in third room')
-  check(JSON.stringify(masterProjects.get('shared-master')) === originalMaster, 'room membership does not copy or mutate project master data')
-  check(bridge.execute({ action: 'control_room.remove_projects', controlRoomId: 'room-0', projectIds: ['shared-master'] }).ok, 'room-local removal succeeds')
-  check(!snapshot.state.rooms['room-0'].projectIds.includes('shared-master') && snapshot.state.rooms['room-1'].projectIds.includes('shared-master') && snapshot.state.rooms['room-2'].projectIds.includes('shared-master'), 'room-local removal leaves other rooms untouched')
-
-  check(bridge.execute({ action: 'control_room.reorder_projects', controlRoomId: 'room-1', projectIds: ['shared-master'] }).ok, 'room-local order update succeeds')
-  const viewByLayout = {
-    'wt-console:room-1': { id: 'wt-console:room-1', title: 'room 1', top: null, main: [{ id: 'room-1-pane', title: 'room 1', min: 200, tabs: [] }], chatWidth: { default: 320, min: 240, max: 600 } },
-    'wt-console:room-2': { id: 'wt-console:room-2', title: 'room 2', top: null, main: [{ id: 'room-2-pane', title: 'room 2', min: 200, tabs: [] }], chatWidth: { default: 360, min: 240, max: 600 } },
-  }
-  const openOne = runtime.prepareControlRoomOpen(snapshot.state, 'room-1', viewByLayout, new Set(['session-1']), ++now, (key) => key)
-  const openTwo = runtime.prepareControlRoomOpen(openOne.state, 'room-2', viewByLayout, new Set(['session-2']), ++now, (key) => key)
-  check(openOne.spec !== openTwo.spec && openOne.spec.id !== openTwo.spec.id, 'room layouts remain isolated by exact namespaced layout IDs')
-  check(openOne.state.rooms['room-1'].projectOrder.join(',') !== undefined && openTwo.state.rooms['room-2'].projectOrder.join(',') !== undefined, 'room ordering remains attached to each room')
-
-  const ruleRequest = {
-    action: 'control_room.set_rule',
-    controlRoomId: 'room-2',
-    mode: 'upsert',
-    rule: {
-      id: 'rule-busy',
-      name: 'Busy projects',
-      enabled: true,
-      mode: 'all',
-      conditions: [{ id: 'status', field: 'status', operator: 'equals', value: 'busy' }],
-    },
-  }
-  check(bridge.execute(ruleRequest).ok, 'safe rule upsert succeeds')
-  const ruleRefresh = rules.refreshControlRoomRuleState({
-    rooms: [snapshot.state.rooms['room-2']],
-    activeRoomId: 'room-2',
-    projects: [{ id: 'rule-project', name: 'Rule project', icon: '📦', boundSessionId: 'session-2', hidden: false }],
-    sessionSnapshot: { byId: { 'session-2': { running: true } }, subagentsByParent: {} },
-  })
-  check(ruleRefresh.matchesByRoom['room-2'].includes('rule-project'), 'running session event refreshes rule membership')
-
-  function buildSearchInput() {
-    return {
-      currentRoomId: snapshot.state.activeId,
-      rooms: snapshot.state.order.map((id) => {
-        const room = snapshot.state.rooms[id]
-        return {
-          ...room,
-          effectiveProjectIds: [...room.projectIds, ...room.fixedProjectIds],
-          boundSessionTitle: room.boundSessionId ? 'Conversation ' + room.boundSessionId : '',
-          needCount: 0,
-        }
-      }),
-      projects: [
-        { id: 'shared-master', name: 'Shared master', icon: '📦', tags: ['shared'], workspace: 'workspace/shared', lastUsedAt: 1, status: 'idle' },
-        { id: 'rule-project', name: 'Rule project', icon: '📦', tags: ['busy'], workspace: 'workspace/rules', lastUsedAt: 2, status: 'busy' },
-      ],
+    if (fixture) {
+      try { await new Promise((resolve, reject) => fixture.server.close((error) => error ? reject(error) : resolve())) } catch (error) { cleanupError = cleanupError || error }
     }
-  }
-  for (const [query, kind] of [['Room 2', 'room'], ['Shared master', 'project'], ['Conversation session-2', 'conversation'], ['Busy projects', 'rule']]) {
-    const response = search.searchControlRooms(buildSearchInput(), query)
-    check(response.results.some((result) => result.kind === kind), 'search returns ' + kind + ' result')
-    const result = response.results.find((item) => item.kind === kind)
-    const descriptor = search.describeControlRoomSearchNavigation(result)
-    check(descriptor.kind.startsWith('open-'), kind + ' result has an explicit navigation descriptor')
-  }
-  check(opened.length === 0, 'search and domain probes do not bypass the UI open seam')
-
-  const archiveRequest = { action: 'control_room.archive', controlRoomId: 'room-2' }
-  const confirmation = bridge.execute(archiveRequest)
-  check(!confirmation.ok && confirmation.error.code === 'CONFIRMATION_REQUIRED', 'archive is blocked pending explicit confirmation')
-  check(bridge.execute({ ...archiveRequest, confirmationToken: confirmation.confirmation.token }).ok, 'confirmed archive succeeds')
-  check(!snapshot.state.rooms['room-2'] && snapshot.trash.deleted.some((entry) => entry.room.id === 'room-2'), 'archive retains recoverable room configuration')
-  for (const roomId of [...snapshot.state.order]) {
-    const request = { action: 'control_room.archive', controlRoomId: roomId }
-    const blocked = bridge.execute(request)
-    check(blocked.error.code === 'CONFIRMATION_REQUIRED', 'archive confirmation gate remains active for ' + roomId)
-    check(bridge.execute({ ...request, confirmationToken: blocked.confirmation.token }).ok, 'archive confirmation succeeds for ' + roomId)
-  }
-  check(snapshot.state.order.length === 0 && snapshot.state.activeId === null, 'deleting the last room leaves the explicit empty state')
-  check(bridge.execute({ action: 'control_room.restore', controlRoomId: 'room-2' }).ok, 'archived room can be restored')
-  check(snapshot.state.rooms['room-2'] && snapshot.state.rooms['room-2'].layoutId === 'wt-console:room-2', 'restoration retains the room layout identity')
-
-  const storage = new MemoryStorage()
-  const repository = new domain.ControlRoomsStorage(storage)
-  check(repository.save(snapshot.state, snapshot.trash).ok, 'room state persists to localStorage-compatible storage')
-  const reloaded = repository.load().state
-  check(JSON.stringify(reloaded) === JSON.stringify(snapshot.state), 'browser-reload simulation restores room state and bindings')
-
-  const chrome = resolveChromePath()
-  console.log('control-room-acceptance: PASS (' + cases + ' final-bundle/domain/browser-path assertions)')
-  console.log('browser-client: PASS (final lib/client.js executed through ModuleLoader; Chrome=' + (chrome || 'not found') + ')')
-  if (!process.env.DSH_RUNTIME_COMMAND) {
-    console.log('service-restart: SKIPPED (exact prerequisite unavailable: DSH_RUNTIME_COMMAND is unset and no disposable local DSH service was started; active user profile was not touched)')
-  } else {
-    console.log('service-restart: SKIPPED (DSH_RUNTIME_COMMAND supplied but automatic service start is disabled to protect the active profile; run the command with an explicitly disposable profile)')
+    try { await removeDisposableProfile(profile) } catch (error) { cleanupError = cleanupError || error }
+    if (cleanupError) throw cleanupError
   }
 }
 
-main()
-  .catch((error) => {
-    process.stderr.write((error && error.stack ? error.stack : error) + '\n')
-    process.exitCode = 1
-  })
-  .finally(() => fs.rmSync(tempDir, { recursive: true, force: true }))
+main().catch((error) => {
+  console.error('control-room-acceptance: FAIL', error && error.stack || error)
+  process.exitCode = 1
+})

@@ -35,18 +35,45 @@ function createDisposableProfile(prefix = 'dsh-worktable-') {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix))
 }
 
-function removeDisposableProfile(profilePath) {
-  if (profilePath && path.resolve(profilePath).startsWith(path.join(os.tmpdir(), ''))) {
-    try {
-      fs.rmSync(profilePath, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 })
-    } catch (error) {
-      // Chrome can release its lock just after the child receives SIGTERM. The
-      // caller has already stopped the disposable process; leave a precise
-      // cleanup note instead of masking the probe result with EPERM.
-      if (!error || !['EPERM', 'EBUSY', 'ENOTEMPTY'].includes(error.code)) throw error
-      process.stderr.write(`test-harness: deferred cleanup for ${profilePath} (${error.code})\n`)
-    }
+function assertDisposablePath(targetPath) {
+  const root = path.resolve(os.tmpdir())
+  const target = path.resolve(targetPath)
+  const relative = path.relative(root, target)
+  if (!relative || relative.startsWith('..' + path.sep) || path.isAbsolute(relative)) {
+    throw new Error(`refusing cleanup outside disposable temp root: ${target}`)
   }
+}
+
+async function removeDisposableProfile(profilePath) {
+  if (!profilePath) return
+  assertDisposablePath(profilePath)
+  const target = path.resolve(profilePath)
+  let lastError = null
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    try {
+      await fs.promises.rm(target, { recursive: true, force: true, maxRetries: 0 })
+      if (!fs.existsSync(target)) return
+    } catch (error) {
+      lastError = error
+      if (!['EPERM', 'EBUSY', 'ENOTEMPTY'].includes(error?.code)) throw error
+    }
+    await new Promise((resolve) => setTimeout(resolve, Math.min(1000, 50 * (attempt + 1))))
+  }
+  if (fs.existsSync(target)) {
+    const error = lastError ?? new Error(`cleanup did not remove ${target}`)
+    throw new Error(`disposable profile cleanup failed after retries: ${target} (${error.code ?? error.message})`)
+  }
+}
+
+function waitForChildExit(child) {
+  if (!child || child.exitCode !== null || child.signalCode) return Promise.resolve()
+  return new Promise((resolve) => child.once('close', resolve))
+}
+
+async function stopChild(child) {
+  if (!child) return
+  if (child.exitCode === null && !child.signalCode) child.kill()
+  await waitForChildExit(child)
 }
 
 function jsonForBrowser(value) {
@@ -61,5 +88,8 @@ module.exports = {
   resolveChromePath,
   createDisposableProfile,
   removeDisposableProfile,
+  assertDisposablePath,
+  waitForChildExit,
+  stopChild,
   jsonForBrowser,
 }
