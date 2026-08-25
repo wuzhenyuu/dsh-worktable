@@ -58,18 +58,18 @@ async function main() {
   let notifications = 0
   const notify = () => { notifications += 1 }
   let previous = null
-  const refresh = (room, projectInput, sessionSnapshot) => {
+  const refresh = (rooms, projects, sessionSnapshot) => {
     const current = production.refreshControlRoomRuleState({
-      rooms: [room],
+      rooms,
       activeRoomId: 'ops',
-      projects: [projectInput],
+      projects,
       sessionSnapshot,
     })
     previous = production.notifyOpenControlRoomRuleRefresh(previous, current, notify)
     return current
   }
 
-  let current = refresh(makeRoom(), project(), {
+  let current = refresh([makeRoom()], [project()], {
     byId: { 'session-alpha': { running: false } },
     subagentsByParent: {},
   })
@@ -78,7 +78,7 @@ async function main() {
   assert.equal(current.facts[0].subagentCount, 0)
   assert.deepEqual(current.summariesByRoom.ops, { memberIds: [], needCount: 0 })
 
-  current = refresh(makeRoom(), project(), {
+  current = refresh([makeRoom()], [project()], {
     byId: {
       'session-alpha': { running: true, updatedAt: 2_000 },
       'child-1': { parentId: 'session-alpha', running: true },
@@ -91,7 +91,7 @@ async function main() {
   assert.deepEqual(current.summariesByRoom.ops, { memberIds: ['alpha'], needCount: 0 }, 'room summary uses the effective membership seam')
   assert.equal(notifications, 1, 'open room is notified after the event changes facts and membership')
 
-  current = refresh(makeRoom([childCondition]), project(), {
+  current = refresh([makeRoom([childCondition])], [project()], {
     byId: {
       'session-alpha': { running: true },
       'child-1': { parentId: 'session-alpha', pendingInteraction: { type: 'question' } },
@@ -103,7 +103,7 @@ async function main() {
   assert.equal(notifications, 2, 'open-room notification fires when need summary changes')
 
   const hiddenRule = { id: 'hidden', field: 'hidden', operator: 'equals', value: true }
-  current = refresh(makeRoom([hiddenRule]), project({ hidden: true }), {
+  current = refresh([makeRoom([hiddenRule])], [project({ hidden: true })], {
     byId: { 'session-alpha': { completed: true, updatedAt: 3_000 } },
     subagentsByParent: {},
   })
@@ -112,7 +112,38 @@ async function main() {
   assert.deepEqual(current.summariesByRoom.ops, { memberIds: ['alpha'], needCount: 0 }, 'rule and project events recompute the room summary')
   assert.equal(notifications, 3, 'rule/project refresh notifies the open room')
 
-  process.stdout.write('control-room-rule-refresh: PASS (production event seam, summary, and open-room notification)\n')
+  const closedRoom = {
+    ...makeRoom([childCondition]),
+    id: 'closed',
+    name: 'Closed room',
+    layoutId: 'wt-console:closed',
+    rules: [{ id: 'closed-child-rule', enabled: true, mode: 'all', conditions: [childCondition] }],
+  }
+  const beta = project({ id: 'beta', name: 'Beta', boundSessionId: 'session-beta', hidden: false })
+  current = refresh([makeRoom([hiddenRule]), closedRoom], [project({ hidden: true }), beta], {
+    byId: {
+      'session-alpha': { completed: true, updatedAt: 3_000 },
+      'session-beta': { running: false },
+    },
+    subagentsByParent: {},
+  })
+  assert.deepEqual(current.summariesByRoom.closed, { memberIds: [], needCount: 0 }, 'closed room starts with its lightweight empty summary')
+  assert.equal(notifications, 3, 'adding an unchanged closed-room summary does not notify the open room')
+
+  current = refresh([makeRoom([hiddenRule]), closedRoom], [project({ hidden: true }), beta], {
+    byId: {
+      'session-alpha': { completed: true, updatedAt: 3_000 },
+      'session-beta': { running: true },
+      'beta-child': { parentId: 'session-beta', pendingInteraction: { type: 'question' } },
+    },
+    subagentsByParent: { 'session-beta': [{ id: 'beta-child' }] },
+  })
+  assert.equal(current.facts.find((fact) => fact.id === 'beta').status, 'need', 'closed-room session/subagent event flows through the production fact seam')
+  assert.deepEqual(current.summariesByRoom.closed, { memberIds: ['beta'], needCount: 1 }, 'closed room updates effective member and need counts without card construction')
+  assert.deepEqual(current.summariesByRoom.ops, { memberIds: ['alpha'], needCount: 0 }, 'active room summary remains unchanged by the closed-room event')
+  assert.equal(notifications, 3, 'closed-room-only refresh remains scoped away from the open-room notification')
+
+  process.stdout.write('control-room-rule-refresh: PASS (open/closed production summaries and scoped notification)\n')
 }
 
 main()
