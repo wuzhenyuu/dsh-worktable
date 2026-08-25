@@ -294,7 +294,7 @@ export function normalizeControlRoom(value: unknown, fallbackId = 'room'): Contr
     excludedProjectIds,
     boundSessionId: typeof room.boundSessionId === 'string' && room.boundSessionId ? room.boundSessionId : null,
     rules,
-    layoutId: typeof room.layoutId === 'string' && room.layoutId ? room.layoutId : `wt-console:${id}`,
+    layoutId: `wt-console:${id}`,
     themeMode: normalizedTheme(room.themeMode),
     cardLayout: { columns, cardSize },
     filters: {

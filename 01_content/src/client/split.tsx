@@ -211,6 +211,17 @@ export type ConsoleCardData = {
   glow: boolean
 }
 
+export type ConsoleRoomData = {
+  id: string
+  name: string
+  cardLayout: { columns: 1 | 2 | 3 | 4; cardSize: 'compact' | 'comfortable' | 'wide' }
+  defaultPane: 'console' | 'conversation' | 'files' | 'terminal'
+  sidebarVisible: boolean
+  boundSessionId: string | null
+  bindingState: 'unbound' | 'valid' | 'missing'
+  bindingTitle: string
+}
+
 type SplitEnv = {
   getScope: () => SplitScope | null
   getJobs: () => SplitJob[]
@@ -227,6 +238,7 @@ type SplitEnv = {
   console?: {
     subscribe: (fn: () => void) => () => void
     getCards: () => ConsoleCardData[]
+    getRoom: () => ConsoleRoomData | null
     onOpen: (id: string) => void
     onJump: (id: string) => void
     /** 拖动项目卡片后持久化控制室中的手动顺序。 */
@@ -237,6 +249,8 @@ type SplitEnv = {
     refreshPreviews: () => void
     /** 创建卡片：打开「添加项目」流程（同侧栏 ＋） */
     onAdd: () => void
+    /** Missing/unbound management-session recovery. */
+    onManageBinding: () => void
     getTheme: () => 'dark' | 'light' | 'system'
     setTheme: (th: 'dark' | 'light' | 'system') => void
   }
@@ -1025,6 +1039,7 @@ function ConsolePane() {
   void now
   const env = splitEnv?.console
   const cards = env ? env.getCards() : []
+  const room = env?.getRoom?.() ?? null
   const resolvedTheme: 'dark' | 'light' = (() => {
     if (themeMode !== 'system') return themeMode
     try {
@@ -1055,8 +1070,23 @@ function ConsolePane() {
     else env.onOpen(c.id)
   }
   return (
-    <div className="dsh-wt_console" data-wt-theme={resolvedTheme}>
+    <div
+      className="dsh-wt_console"
+      data-wt-theme={resolvedTheme}
+      data-wt-columns={room?.cardLayout.columns ?? 3}
+      data-wt-card-size={room?.cardLayout.cardSize ?? 'comfortable'}
+      data-wt-default-pane={room?.defaultPane ?? 'console'}
+      data-wt-sidebar-visible={room?.sidebarVisible !== false ? 'true' : 'false'}
+    >
       <div className="dsh-wt_consoleHead">
+        {room && room.bindingState !== 'valid' && (
+          <div className="dsh-wt_consoleBindingNotice" data-state={room.bindingState} role={room.bindingState === 'missing' ? 'alert' : 'status'}>
+            <span>{room.bindingState === 'missing'
+              ? T('rooms.bindingMissing', { id: room.boundSessionId ?? '' })
+              : T('rooms.bindingNone')}</span>
+            <button type="button" onClick={() => env?.onManageBinding?.()}>{T('rooms.bindingManage')}</button>
+          </div>
+        )}
         <div className="dsh-wt_consoleTheme" role="group" aria-label={T('console.themeLabel')}>
           {themeOpts.map((o) => (
             <button
@@ -1070,7 +1100,10 @@ function ConsolePane() {
           ))}
         </div>
       </div>
-      <div className="dsh-wt_consoleGrid">
+      <div
+        className="dsh-wt_consoleGrid"
+        style={{ gridTemplateColumns: `repeat(${room?.cardLayout.columns ?? 3}, minmax(0, 1fr))` }}
+      >
         {cards.map((c) => (
           <div
             key={c.id}
@@ -1981,7 +2014,7 @@ function WorkspaceLayer(props: { spec: LayoutSpec; geom: Geom | null; chatW: num
     <>
       {/* 标题栏 */}
       <div className="dsh-wt_splitBar" style={{ position: 'fixed', left: g.left, top: barTop, width: hasLeft || chatFull ? contentW : (hasTop ? colW : contentW), zIndex: 70 }}>
-        {spec.id !== 'wt-console' && <span className="dsh-wt_splitTitle">{spec.title}</span>}
+        {spec.id !== 'wt-console' && !spec.id.startsWith('wt-console:') && <span className="dsh-wt_splitTitle">{spec.title}</span>}
         {!hasLeft && (
           <button
             type="button"
