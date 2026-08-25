@@ -1,6 +1,8 @@
 const fs = require("fs");
+const path = require("path");
 const vm = require("vm");
-const code = fs.readFileSync("E:/AI_Workspace/DeepseekHarness/Projects/dsh-worktable/01_content/lib/client.js", "utf8");
+const { resolveRepositoryRoot } = require("./test-harness.cjs");
+const code = fs.readFileSync(path.join(resolveRepositoryRoot(), "01_content", "lib", "client.js"), "utf8");
 function makeEl() {
   return {
     setAttribute(){}, removeAttribute(){}, appendChild(){}, remove(){}, addEventListener(){},
@@ -10,6 +12,7 @@ function makeEl() {
   };
 }
 let registered = null;
+let factoryError = null;
 const moduleLoader = { load(spec){ registered = spec; } };
 const sandbox = { self: null,
   console, setTimeout, clearTimeout, setInterval, clearInterval,
@@ -61,10 +64,13 @@ sandbox.self = sandbox; try {
       const exports = registered.factory(fakeRequire);
       console.log("工厂执行 OK, exports keys:", Object.keys(exports || {}));
     } catch (e) {
+      factoryError = e;
       console.log("工厂执行抛错:", e && e.stack ? e.stack.split("\n").slice(0,8).join("\n") : e);
     }
   }
 } catch (e) {
   console.log("模块作用域抛错:", e && e.stack ? e.stack.split("\n").slice(0,10).join("\n") : e);
 }
+if (!registered) throw new Error("client bundle did not register with window.__ModuleLoader__.load");
+if (factoryError) throw factoryError;
 

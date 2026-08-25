@@ -1,18 +1,49 @@
 const http = require('http');
 const { spawn } = require('child_process');
-const WebSocket = require('ws');
 const fs = require('fs');
+const path = require('path');
+const {
+  requireLocalDependency,
+  resolveRepositoryRoot,
+  resolveChromePath,
+  createDisposableProfile,
+  removeDisposableProfile,
+  jsonForBrowser,
+} = require('./test-harness.cjs');
+const WebSocket = requireLocalDependency('ws');
+
+const REPO = resolveRepositoryRoot();
+const TEMP_ROOT = createDisposableProfile('dsh-worktable-functional-');
+const TEMP_MD = path.join(TEMP_ROOT, 'wt-edit-test.md');
+const TEST_PATHS = {
+  index: path.join(REPO, '01_content', 'src', 'client', 'index.tsx'),
+  styles: path.join(REPO, '01_content', 'src', 'client', 'styles.ts'),
+  plan: path.join(REPO, '02_process', 'PRD.md'),
+  package: path.join(REPO, '01_content', 'package.json'),
+  fixture: path.join(REPO, '04_test', 'fixture-site'),
+};
+const chromePath = resolveChromePath();
+if (!chromePath) {
+  console.log('functional-diag: SKIPPED (Chrome executable not found; set CHROME_PATH)');
+  removeDisposableProfile(TEMP_ROOT);
+  process.exit(0);
+}
+if (process.env.DSH_DISPOSABLE_SERVICE !== '1') {
+  console.log('functional-diag: SKIPPED (active DSH service is not treated as disposable; set DSH_DISPOSABLE_SERVICE=1 only for an explicitly disposable runtime)');
+  removeDisposableProfile(TEMP_ROOT);
+  process.exit(0);
+}
 
 // MD 编辑模式的临时夹具（保存测试写这个文件，跑完还原，不动仓库文件）
-const TEMP_MD = 'C:\\Users\\SJL\\AppData\\Local\\Temp\\wt-edit-test.md';
 fs.writeFileSync(TEMP_MD, '# ORIG\n', 'utf8');
 
 const PORT = 9335;
-const proc = spawn('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', [
+const profile = createDisposableProfile('dsh-worktable-functional-chrome-');
+const proc = spawn(chromePath, [
   '--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
   '--window-size=1440,900', '--force-device-scale-factor=1',
   '--remote-debugging-port=' + PORT,
-  '--user-data-dir=C:\\Users\\SJL\\AppData\\Local\\Temp\\wt-chrome-func3',
+  '--user-data-dir=' + profile,
   'about:blank',
 ], { stdio: 'ignore' });
 
@@ -279,14 +310,14 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       var st=window.__dshWorktable.splitStore;
       st.open({id:'t-code',title:'code',top:null,main:[{id:'c1',title:'c',min:200,content:null}],chatWidth:{default:320,min:240,max:600}});
       await new Promise(function(r){setTimeout(r,400)});
-      st.openTab('main',0,{kind:'file',path:'E:\\\\AI_Workspace\\\\DeepseekHarness\\\\Projects\\\\dsh-worktable\\\\01_content\\\\src\\\\client\\\\index.tsx'});
+      st.openTab('main',0,{kind:'file',path:${jsonForBrowser(TEST_PATHS.index)}});
       await new Promise(function(r){setTimeout(r,1200)});
       out.tsxTab=st.spec.main[0].tabs[0].title;
       var codeEl=[].slice.call(document.querySelectorAll('.dsh-wt_code')).find(function(el){return (getComputedStyle(el).visibility!=='hidden'&&el.getBoundingClientRect().height>0)});
       out.tsxView=!!codeEl;
       out.tsxHljs=codeEl?codeEl.querySelectorAll('.hljs-keyword').length:0;
       out.tsxHasText=codeEl?String(codeEl.textContent).indexOf('WorktableSection')>=0:false;
-      st.openTab('main',0,{kind:'file',path:'E:\\\\AI_Workspace\\\\DeepseekHarness\\\\Projects\\\\dsh-worktable\\\\01_content\\\\src\\\\client\\\\styles.ts'});
+      st.openTab('main',0,{kind:'file',path:${jsonForBrowser(TEST_PATHS.styles)}});
       await new Promise(function(r){setTimeout(r,900)});
       out.cssTab=st.spec.main[0].tabs[1].title;
       out.tabsCount=st.spec.main[0].tabs.length;
@@ -377,14 +408,14 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     var st=window.__dshWorktable.splitStore;
     st.open({id:'t-file',title:'file',top:null,main:[{id:'f1',title:'f',min:200,content:null}],chatWidth:{default:320,min:240,max:600}});
     await new Promise(function(r){setTimeout(r,400)});
-    st.openTab('main',0,{kind:'file',path:'E:\\\\AI_Workspace\\\\DeepseekHarness\\\\Projects\\\\dsh-worktable\\\\02_process\\\\PRD.md'});
+    st.openTab('main',0,{kind:'file',path:${jsonForBrowser(TEST_PATHS.plan)}});
     await new Promise(function(r){setTimeout(r,1200)});
     out.mdTitle=st.spec.main[0].tabs[0].title;
     out.mdView=!!document.querySelector('.dsh-wt_md');
     out.mdText=document.querySelector('.dsh-wt_md')?String(document.querySelector('.dsh-wt_md').textContent).slice(0,50):null;
-    st.openTab('main',0,{kind:'file',path:'E:\\\\AI_Workspace\\\\DeepseekHarness\\\\Projects\\\\dsh-worktable\\\\02_process\\\\PRD.md'});
+    st.openTab('main',0,{kind:'file',path:${jsonForBrowser(TEST_PATHS.plan)}});
     out.tabsAfterDup=st.spec.main[0].tabs.length;
-    st.openTab('main',0,{kind:'file',path:'E:\\\\AI_Workspace\\\\DeepseekHarness\\\\Projects\\\\dsh-worktable\\\\01_content\\\\package.json'});
+    st.openTab('main',0,{kind:'file',path:${jsonForBrowser(TEST_PATHS.package)}});
     await new Promise(function(r){setTimeout(r,900)});
     out.jsonView=!!document.querySelector('.dsh-wt_code');
     out.jsonHljs=document.querySelectorAll('.dsh-wt_code .hljs-keyword, .dsh-wt_code .hljs-string').length;
@@ -401,7 +432,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       var st=window.__dshWorktable.splitStore;
       st.open({id:'t-site',title:'site',top:null,main:[{id:'s1',title:'s',min:200,content:null}],chatWidth:{default:320,min:240,max:600}});
       await new Promise(function(r){setTimeout(r,400)});
-      var rootToken=encodeURIComponent('E:\\\\AI_Workspace\\\\DeepseekHarness\\\\Projects\\\\dsh-worktable\\\\04_test\\\\fixture-site');
+      var rootToken=encodeURIComponent(${jsonForBrowser(TEST_PATHS.fixture)});
       var pr=await fetch('/api/worktable/site/'+rootToken+'/index.html').catch(function(e){ return null; });
       out.routeReady=!!(pr&&pr.ok);
       out.probeStatus=pr?pr.status:null;
@@ -474,12 +505,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     var out={};
     try{
       var st=window.__dshWorktable.splitStore;
-      var probe=await fetch('/api/worktable/write',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:'C:/Users/SJL/AppData/Local/Temp/wt-edit-test.md',content:'# ORIG'})}).catch(function(){return null;});
+      var probe=await fetch('/api/worktable/write',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:${jsonForBrowser(TEMP_MD)},content:'# ORIG'})}).catch(function(){return null;});
       out.writeRouteReady=!!(probe&&probe.status===200);
       if(out.writeRouteReady){
         st.open({id:'t-mdedit',title:'md',top:null,main:[{id:'m1',title:'m',min:200,content:null}],chatWidth:{default:320,min:240,max:600}});
         await new Promise(function(r){setTimeout(r,400)});
-        st.openTab('main',0,{kind:'file',path:'C:\\\\Users\\\\SJL\\\\AppData\\\\Local\\\\Temp\\\\wt-edit-test.md'});
+        st.openTab('main',0,{kind:'file',path:${jsonForBrowser(TEMP_MD)}});
         await new Promise(function(r){setTimeout(r,1200)});
         out.bar=!![].slice.call(document.querySelectorAll('.dsh-wt_mdBar')).find(function(el){return (getComputedStyle(el).visibility!=='hidden'&&el.getBoundingClientRect().height>0)});
         var bar=[].slice.call(document.querySelectorAll('.dsh-wt_mdBar')).find(function(el){return (getComputedStyle(el).visibility!=='hidden'&&el.getBoundingClientRect().height>0)});
@@ -502,7 +533,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
         if(saveBtn && curTab && String(curTab.content.path).indexOf('wt-edit-test.md')>=0){ saveBtn.click(); }
         await new Promise(function(r){setTimeout(r,900)});
         out.previewBack=!![].slice.call(document.querySelectorAll('.dsh-wt_md')).find(function(el){return (getComputedStyle(el).visibility!=='hidden'&&el.getBoundingClientRect().height>0)});
-        var chk=await fetch('/api/worktable/file?path='+encodeURIComponent('C:\\\\Users\\\\SJL\\\\AppData\\\\Local\\\\Temp\\\\wt-edit-test.md')).then(function(r){return r.text()}).catch(function(){return null});
+        var chk=await fetch('/api/worktable/file?path='+encodeURIComponent(${jsonForBrowser(TEMP_MD)})).then(function(r){return r.text()}).catch(function(){return null});
         out.savedContent=chk?String(chk).indexOf('EDITED_OK')>=0:false;
         st.close();
       }
@@ -519,9 +550,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       var spec={id:'t-pool',title:'pool',top:null,main:[{id:'p1',title:'p',min:200,content:null}],chatWidth:{default:320,min:240,max:600}};
       st.open(spec);
       await new Promise(function(r){setTimeout(r,400)});
-      st.openTab('main',0,{kind:'file',path:'E:\\\\AI_Workspace\\\\DeepseekHarness\\\\Projects\\\\dsh-worktable\\\\02_process\\\\PRD.md'});
+      st.openTab('main',0,{kind:'file',path:${jsonForBrowser(TEST_PATHS.plan)}});
       await new Promise(function(r){setTimeout(r,900)});
-      st.openTab('main',0,{kind:'file',path:'E:\\\\AI_Workspace\\\\DeepseekHarness\\\\Projects\\\\dsh-worktable\\\\01_content\\\\src\\\\client\\\\styles.ts'});
+      st.openTab('main',0,{kind:'file',path:${jsonForBrowser(TEST_PATHS.styles)}});
       await new Promise(function(r){setTimeout(r,900)});
       st.setActiveTab('main',0,st.spec.main[0].tabs[1].id);
       // 轮询等待代码视图渲染（fetch 完成后 .dsh-wt_fileView 才出现；只取可见元素，避开保活池里的隐藏层）
@@ -540,7 +571,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       var fv2=[].slice.call(document.querySelectorAll('.dsh-wt_fileView')).find(function(el){return (getComputedStyle(el).visibility!=='hidden'&&el.getBoundingClientRect().height>0)});
       out.scrollAfter=fv2?fv2.scrollTop:null;
       // iframe 保活：加一个站点 iframe 标签 → 关闭 → 重开 → 同一 DOM 实例
-      var rootToken=encodeURIComponent('E:\\\\AI_Workspace\\\\DeepseekHarness\\\\Projects\\\\dsh-worktable\\\\04_test\\\\fixture-site');
+      var rootToken=encodeURIComponent(${jsonForBrowser(TEST_PATHS.fixture)});
       st.openTab('main',0,{kind:'iframe',url:'/api/worktable/site/'+rootToken+'/index.html',title:'site'});
       await new Promise(function(r){setTimeout(r,1500)});
       var f1=document.querySelector('.dsh-wt_paneFrame');
@@ -611,7 +642,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       var spec={id:'t-webkeep',title:'w',top:null,main:[{id:'p1',title:'p',min:200,content:null}],chatWidth:{default:320,min:240,max:600}};
       st.open(spec);
       await new Promise(function(r){setTimeout(r,400)});
-      var rt=encodeURIComponent('E:\\\\AI_Workspace\\\\DeepseekHarness\\\\Projects\\\\dsh-worktable\\\\04_test\\\\fixture-site');
+      var rt=encodeURIComponent(${jsonForBrowser(TEST_PATHS.fixture)});
       st.openTab('main',0,{kind:'iframe',url:'/api/worktable/site/'+rt+'/index.html',title:'index'});
       await new Promise(function(r){setTimeout(r,1800)});
       var f=[].slice.call(document.querySelectorAll('.dsh-wt_paneFrame')).find(function(el){return (getComputedStyle(el).visibility!=='hidden'&&el.getBoundingClientRect().height>0)});
@@ -720,5 +751,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   errors.forEach((x) => console.log(x));
   ws.close();
   proc.kill();
+  await new Promise((resolve) => setTimeout(resolve, 600));
+  removeDisposableProfile(profile);
+  removeDisposableProfile(TEMP_ROOT);
   process.exit(errors.length === 0 ? 0 : 1); // 严格门禁：发现错误即非零退出
-})().catch((e) => { console.log('SCRIPT_FAIL:', e); proc.kill(); process.exit(1); });
+})().catch(async (e) => { console.log('SCRIPT_FAIL:', e); proc.kill(); await new Promise((resolve) => setTimeout(resolve, 600)); removeDisposableProfile(profile); removeDisposableProfile(TEMP_ROOT); process.exit(1); });

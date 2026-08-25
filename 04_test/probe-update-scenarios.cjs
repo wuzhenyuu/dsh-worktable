@@ -1,13 +1,25 @@
 // probe-update-scenarios.cjs — 更新检查五场景定向验证（CDP Fetch 拦截；fulfill 带 CORS 头）
 const http = require('http');
 const { spawn } = require('child_process');
-const WebSocket = require('ws');
+const {
+  requireLocalDependency,
+  resolveChromePath,
+  createDisposableProfile,
+  removeDisposableProfile,
+} = require('./test-harness.cjs');
+const WebSocket = requireLocalDependency('ws');
 const PORT = 9398;
-const proc = spawn('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', [
+const chromePath = resolveChromePath();
+if (!chromePath) {
+  console.log('probe-update-scenarios: SKIPPED (Chrome executable not found; set CHROME_PATH)');
+  process.exit(0);
+}
+const profile = createDisposableProfile('dsh-worktable-update-');
+const proc = spawn(chromePath, [
   '--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
   '--window-size=1200,800', '--force-device-scale-factor=1',
   '--remote-debugging-port=' + PORT,
-  '--user-data-dir=C:\\Users\\SJL\\AppData\\Local\\Temp\\wt-chrome-updscn2',
+  '--user-data-dir=' + profile,
   'about:blank',
 ], { stdio: 'ignore' });
 const getJSON = (p) => new Promise((res, rej) => {
@@ -113,5 +125,5 @@ let fulfillCount = 0;
   const [, s5] = results[4]; ok(s5.requests === 1, '慢响应期间连点 5 次仅 1 个 in-flight（防重入）'); ok(s5.mid && s5.mid.disabled === true, '请求进行中按钮保持禁用');
   const [, s6] = results[5]; ok(s6.requests >= 1 && hiState && hiState.badge === true && hiCard && hiCard.card === true && /v0\.2\.3/.test(hiCard.text || ''), '更高版本 → 徽标亮起 + 更新卡显示 v0.2.3');
   console.log(pass ? 'ALL SCENARIOS PASS' : 'SCENARIO FAILURES PRESENT');
-  ws.close(); proc.kill(); process.exit(pass ? 0 : 1);
-})().catch((e) => { console.error('PROBE FAIL', e); try { proc.kill(); } catch {} process.exit(1); });
+  ws.close(); proc.kill(); await new Promise((resolve) => setTimeout(resolve, 600)); removeDisposableProfile(profile); process.exit(pass ? 0 : 1);
+})().catch(async (e) => { console.error('PROBE FAIL', e); try { proc.kill(); } catch {} await new Promise((resolve) => setTimeout(resolve, 600)); removeDisposableProfile(profile); process.exit(1); });

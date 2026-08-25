@@ -33,7 +33,11 @@
 
 ### 🖥️ Control room (built-in default project)
 
-- A pinned, undeletable first project — bind one management conversation on first open
+- Multiple named control rooms (the original overview is now an ordinary room): create, rename, copy, hide, archive, restore and delete even the final room
+- Each room keeps only project IDs, ordering, rules, one optional management-conversation binding, layout, theme and card preferences; project master data, files, conversations, Token statistics and hardware data remain global
+- Global search (`Ctrl+K` or `Ctrl+Shift+P`) covers rooms, projects, bound conversations and rules, with direct navigation descriptors
+- Room configuration can be exported/imported as `dsh-control-rooms-v1.json`; imports remap ID collisions and never overwrite project/session/global settings
+- DeepSeek management uses the typed in-client `control_room.*` bridge. It is a safe local-storage fallback, not an automatic Host model-tool catalog registration; destructive actions require an exact confirmation token and are audited locally
 - 3-column card grid mirrors **every** project: working / needs you / done with live runtime, subagent counts and a cleaned message preview
 - Drag project cards to reorder them; click a card to open its project and bound conversation, or click the control-room card to switch to its bound conversation
 - Event-driven host snapshot mirroring — **zero polling, zero tokens**
@@ -49,7 +53,7 @@
 | 🪟 Workspace engine | Self-built split engine rendered into the host shell overlay seat |
 | 💬 Chat pane | Reuses the host conversation — the plugin only selects sessions (`sessions.open`) |
 | 📡 Status data | Mirror of the host session runtime snapshots (subscription-driven) |
-| 💾 State | localStorage only (`dsh.worktable.*`); no workspace files touched |
+| 💾 State | localStorage only (`dsh.worktable.controlRooms.v1`, `.trash.v1`, `.migrationBackup.v1` plus existing view/project keys); no workspace files touched |
 | 🎨 UI | TypeScript + React (host externals) + vanilla CSS, dark-first with light theme |
 
 ---
@@ -101,7 +105,8 @@ node --check lib/index.js
 
 - **Build must run inside `01_content`** — building from the repo root writes `lib/` to the wrong place while the host keeps loading the old bundle
 - The client bundle keeps the `window.__ModuleLoader__.load` handshake; `react` and `@deepseek-ai/*` stay external
-- Regression: `04_test/functional-diag.cjs` (20 steps, strict gate) plus targeted probes (control room, bind panel, collapsed rail, model inheritance), the path matrix (`04_test/pathutil-matrix.cjs`) and update-check scenarios (`04_test/probe-update-scenarios.cjs`)
+- Regression: all `04_test/control-room-*.cjs` probes, `04_test/control-room-acceptance.cjs` (final bundle + domain/browser-path acceptance), `04_test/functional-diag.cjs` (20 steps, strict gate), the path matrix (`04_test/pathutil-matrix.cjs`) and update-check scenarios (`04_test/probe-update-scenarios.cjs`). Chrome probes use disposable headless profiles; a missing DSH service is reported as `SKIPPED`, never as a pass.
+- Manual visual acceptance remains pending: restart the user's disposable DSH web profile, refresh the GUI, and verify room navigation, search focus, archive confirmation, import/export and per-room layout visually.
 
 ---
 

@@ -33,7 +33,11 @@
 
 ### 🖥️ 控制室（内置默认项目）
 
-- 固定在首位的不可删除项目——首次打开绑定一条管理对话即可
+- 支持多个命名控制室（原「总览」现在也是普通控制室）：可创建、改名、复制、隐藏、归档、恢复，最后一个也可以删除
+- 每个控制室只保存项目 ID、排序、规则、一条可选管理对话绑定、布局、主题和卡片偏好；项目主数据、文件、对话、Token 统计和硬件数据仍保持全局
+- 全局搜索支持 `Ctrl+K` / `Ctrl+Shift+P`，覆盖控制室、项目、绑定对话和规则，并提供直接跳转描述
+- 控制室配置可导出/导入为 `dsh-control-rooms-v1.json`；导入会重映射冲突 ID，不覆盖项目/会话/全局设置
+- DeepSeek 管理使用类型化的客户端内 `control_room.*` 桥接。它是安全的 localStorage fallback，并不会自动出现在 Host 模型工具目录；破坏性操作需要精确确认令牌并写入本地审计
 - 三列卡片网格实时镜像**每一个**项目的状态：工作中 / 待你决定 / 已完成，附带运行时长与清洗后的最近消息预览
 - 项目卡可直接拖拽调整顺序；点击卡片打开项目并切换到它绑定的对话，控制室卡片点击后切换到控制室绑定的对话
 - 宿主会话快照的事件订阅镜像——**零轮询、零 Token**
@@ -49,7 +53,7 @@
 | 🪟 工作区引擎 | 自研分栏引擎，渲染进宿主的 shell overlay 座位 |
 | 💬 对话窗 | 复用宿主对话——插件只做会话选择（sessions.open） |
 | 📡 状态数据 | 宿主会话运行时快照的镜像（订阅驱动） |
-| 💾 状态存储 | 仅 localStorage（dsh.worktable.*），不碰工作区文件 |
+| 💾 状态存储 | 仅 localStorage（`dsh.worktable.controlRooms.v1`、`.trash.v1`、`.migrationBackup.v1` 及已有视图/项目键），不碰工作区文件 |
 | 🎨 界面 | TypeScript + React（宿主 external）+ 原生 CSS，暗色优先 + 浅色主题 |
 
 ---
@@ -101,7 +105,8 @@ node --check lib/index.js
 
 - **构建必须在 01_content 内执行**——在仓库根构建会把 lib 写到错误位置，宿主仍加载旧 bundle
 - 客户端 bundle 保持 `window.__ModuleLoader__.load` 握手；react 与 @deepseek-ai/* 全部 external
-- 回归：`04_test/functional-diag.cjs`（20 步）+ 专项探测（控制室、绑定弹窗、收起态贴片、模型继承）
+- 回归：全部 `04_test/control-room-*.cjs`、`04_test/control-room-acceptance.cjs`（最终 bundle + domain/browser 路径验收）、`04_test/functional-diag.cjs`（20 步严格门禁）、路径矩阵和更新检查场景。Chrome 探测使用 disposable headless profile；缺少 DSH 服务时明确记录 `SKIPPED`，不冒充通过。
+- 手动视觉验收仍待用户确认：重启用户的 disposable DSH web profile 并刷新 GUI，检查控制室导航、搜索焦点、归档确认、导入/导出和每个控制室的布局。
 
 ---
 

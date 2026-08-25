@@ -7,6 +7,8 @@
 - **侧边栏「工作台」区块**：收纳用户自建项目与入驻插件项目，支持改名/图标/排序/显示隐藏、项目 × 对话绑定、项目文件夹。
 - **分栏工作区引擎（自研）**：声明式布局预设（左栏/顶行/主行 + 右侧对话窗），窗格可拖拽分割、标签页模型；内置 资源管理器 / 终端 / 浏览器 / 动画 / 自定义窗口。
 - **控制室**：默认自带项目（固定首位、不可删除），项目卡片网格实时监控所有项目的状态（工作中/待你决定/已完成），零轮询零 Token。
+- **多控制室**：控制室配置写入 `dsh.worktable.controlRooms.v1`、`.trash.v1`、`.migrationBackup.v1`；项目只以 ID 引用，可创建 10+ 个控制室、分别绑定会话、规则筛选、独立排序/布局、归档恢复和最后一个控制室的空状态。`Ctrl+K` / `Ctrl+Shift+P` 搜索控制室、项目、对话和规则。
+- **导入/安全**：导出格式为 `dsh-control-rooms-v1.json`，导入只覆盖控制室配置并重映射冲突 ID。DeepSeek 的 `control_room.*` 是类型化的客户端 localStorage fallback，不保证自动注册到 Host 模型工具目录；删除、批量移除和替换规则等破坏性操作需要确认，最近 100 条变更保留在本地审计。
 - **外观与背景**：在左下角“设置”中分别配置 Web 主界面和侧边栏的主题色、背景图片、透明度、遮罩、模糊与图片位置；侧边栏可跟随主界面，也可完全独立。这组设置不控制 dsh-usage 硬件监控台。
 - **自动挂载握手**：项目内 agent 完成窗口任务后写 widget-result.json，产物自动挂进对应窗口。
 - **平台**：Windows 是当前完整验证平台；macOS 为实验性支持（核心文件路径代码已做跨平台适配，尚未真机端到端验证）。
@@ -37,6 +39,19 @@
     npm install
     npm run build   # lib/index.js + lib/client.js
     node --check lib/index.js
+
+回归验收（从仓库根执行）：
+
+    node 04_test/control-room-acceptance.cjs
+    node 04_test/control-rooms-domain.cjs
+    node 04_test/control-rooms-integration.cjs
+    node 04_test/control-room-runtime.cjs
+    node 04_test/control-room-rules.cjs
+    node 04_test/control-room-rule-refresh.cjs
+    node 04_test/control-room-search.cjs
+    node 04_test/control-room-tools.cjs
+
+`control-room-acceptance.cjs` 会执行最终 `lib/client.js` 的 ModuleLoader 握手和生产纯逻辑验收；若当前环境没有可安全启动的 disposable DSH 服务，会精确输出 `service-restart: SKIPPED`。手动 GUI 视觉验收仍需在用户确认后执行。
 
 ## 构建注意事项
 
