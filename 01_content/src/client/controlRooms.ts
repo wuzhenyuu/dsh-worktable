@@ -63,6 +63,8 @@ export type ControlRoomCondition = {
 
 export type ControlRoomRule = {
   id: string
+  /** Optional for backward compatibility with rooms saved before rule names existed. */
+  name?: string
   enabled: boolean
   mode: 'all' | 'any'
   conditions: ControlRoomCondition[]
@@ -210,6 +212,31 @@ const normalizedPane = (value: unknown): ControlRoomDefaultPane =>
 const normalizedStatus = (value: unknown): value is ControlRoomStatus =>
   value === 'idle' || value === 'busy' || value === 'need' || value === 'done'
 
+const BOOLEAN_FIELDS: ControlRoomConditionField[] = ['hasBoundSession', 'hidden', 'archived']
+const NUMBER_FIELDS: ControlRoomConditionField[] = ['subagentCount']
+const TIME_FIELDS: ControlRoomConditionField[] = ['lastActiveAt', 'lastCompletedAt']
+const BOOLEAN_OPERATORS: ControlRoomConditionOperator[] = ['equals', 'notEquals']
+const NUMBER_OPERATORS: ControlRoomConditionOperator[] = ['equals', 'notEquals', 'greaterThanOrEqual', 'lessThanOrEqual']
+const TIME_OPERATORS: ControlRoomConditionOperator[] = ['before', 'after', 'greaterThanOrEqual', 'lessThanOrEqual']
+const TEXT_OPERATORS: ControlRoomConditionOperator[] = ['equals', 'notEquals', 'contains', 'notContains', 'in', 'notIn']
+
+export function isControlRoomConditionCompatible(condition: Pick<ControlRoomCondition, 'field' | 'operator' | 'value'>): boolean {
+  if (BOOLEAN_FIELDS.includes(condition.field)) {
+    return typeof condition.value === 'boolean' && BOOLEAN_OPERATORS.includes(condition.operator)
+  }
+  if (NUMBER_FIELDS.includes(condition.field)) {
+    return typeof condition.value === 'number' && Number.isFinite(condition.value) && NUMBER_OPERATORS.includes(condition.operator)
+  }
+  if (TIME_FIELDS.includes(condition.field)) {
+    return typeof condition.value === 'number' && Number.isFinite(condition.value) && TIME_OPERATORS.includes(condition.operator)
+  }
+  if (!TEXT_OPERATORS.includes(condition.operator)) return false
+  if (condition.operator === 'in' || condition.operator === 'notIn') {
+    return Array.isArray(condition.value)
+  }
+  return typeof condition.value === 'string'
+}
+
 function normalizeCondition(value: unknown, index: number): ControlRoomCondition | null {
   if (!isRecord(value)) return null
   const fields: ControlRoomConditionField[] = [
@@ -226,13 +253,14 @@ function normalizeCondition(value: unknown, index: number): ControlRoomCondition
   const validValue = typeof rawValue === 'string' || typeof rawValue === 'number' || typeof rawValue === 'boolean'
     || (Array.isArray(rawValue) && rawValue.every((item) => typeof item === 'string'))
   if (!validValue) return null
-  return {
+  const condition: ControlRoomCondition = {
     id: typeof value.id === 'string' && value.id ? value.id : `condition-${index + 1}`,
     field: value.field as ControlRoomConditionField,
     operator: value.operator as ControlRoomConditionOperator,
     value: clone(rawValue as ControlRoomConditionValue),
     ...(value.exclude === true ? { exclude: true } : {}),
   }
+  return isControlRoomConditionCompatible(condition) ? condition : null
 }
 
 function normalizeRule(value: unknown, index: number): ControlRoomRule | null {
@@ -243,7 +271,11 @@ function normalizeRule(value: unknown, index: number): ControlRoomRule | null {
     .filter((condition): condition is ControlRoomCondition => !!condition)
   return {
     id: typeof value.id === 'string' && value.id ? value.id : `rule-${index + 1}`,
-    enabled: value.enabled !== false && conditions.length === rawConditions.length,
+    ...(typeof value.name === 'string' && value.name.trim() ? { name: value.name.trim() } : {}),
+    enabled: value.enabled !== false
+      && (value.mode === 'all' || value.mode === 'any')
+      && conditions.length > 0
+      && conditions.length === rawConditions.length,
     mode: value.mode === 'any' ? 'any' : 'all',
     conditions,
   }

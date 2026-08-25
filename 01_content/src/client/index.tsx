@@ -12,14 +12,19 @@ import {
   addProjectToRoom,
   copyControlRoom,
   createControlRoom,
-  removeProjectFromRoom,
   reorderProjectsInRoom,
   resolveControlRoomStorageEvent,
   restoreControlRoom,
   selectControlRoom,
   selectControlRoomNavigation,
+  setProjectExcluded,
+  setProjectFixed,
   updateControlRoom,
   type ControlRoom,
+  type ControlRoomCondition,
+  type ControlRoomConditionField,
+  type ControlRoomConditionOperator,
+  type ControlRoomRule,
   type ControlRoomsState,
   type ControlRoomsTrashState,
 } from './controlRooms'
@@ -33,6 +38,7 @@ import {
   prepareControlRoomOpen,
   reconcileNeedAckTransitions,
 } from './controlRoomRuntime'
+import { matchingControlRoomProjectIds, type ControlRoomProjectFacts } from './controlRoomRules'
 
 /**
  * dsh-worktable 客户端（v2）：侧边栏底部「工作台」区块。
@@ -100,7 +106,16 @@ type ViewState = {
 }
 
 /** 卡片上报的项目元信息（协议 v2）。 */
-export type ProjectMeta = { id: string; name: string; icon?: string }
+export type ProjectMeta = {
+  id: string
+  name: string
+  icon?: string
+  tags?: string[]
+  workspace?: string
+  archived?: boolean
+  lastActiveAt?: number
+  lastCompletedAt?: number
+}
 /** 本地快捷方式（仅存 localStorage）。 */
 export type Shortcut = { id: string; name: string; icon: string; href: string }
 
@@ -130,6 +145,34 @@ type ProjectsState = {
 }
 
 type ControlRoomsSnapshot = { state: ControlRoomsState; trash: ControlRoomsTrashState }
+
+const RULE_FIELDS: ControlRoomConditionField[] = [
+  'status', 'name', 'icon', 'tag', 'workspace', 'hasBoundSession', 'subagentCount',
+  'lastActiveAt', 'lastCompletedAt', 'hidden', 'archived',
+]
+const RULE_TEXT_OPERATORS: ControlRoomConditionOperator[] = ['equals', 'notEquals', 'contains', 'notContains', 'in', 'notIn']
+const RULE_BOOLEAN_OPERATORS: ControlRoomConditionOperator[] = ['equals', 'notEquals']
+const RULE_NUMBER_OPERATORS: ControlRoomConditionOperator[] = ['equals', 'notEquals', 'greaterThanOrEqual', 'lessThanOrEqual']
+const RULE_TIME_OPERATORS: ControlRoomConditionOperator[] = ['before', 'after', 'greaterThanOrEqual', 'lessThanOrEqual']
+const ruleOperatorsFor = (field: ControlRoomConditionField): ControlRoomConditionOperator[] => {
+  if (field === 'hasBoundSession' || field === 'hidden' || field === 'archived') return RULE_BOOLEAN_OPERATORS
+  if (field === 'subagentCount') return RULE_NUMBER_OPERATORS
+  if (field === 'lastActiveAt' || field === 'lastCompletedAt') return RULE_TIME_OPERATORS
+  return RULE_TEXT_OPERATORS
+}
+const defaultRuleConditionValue = (field: ControlRoomConditionField): string | number | boolean => {
+  if (field === 'hasBoundSession' || field === 'hidden' || field === 'archived') return true
+  if (field === 'subagentCount') return 1
+  if (field === 'lastActiveAt' || field === 'lastCompletedAt') return Date.now()
+  if (field === 'status') return 'busy'
+  return ''
+}
+const dateTimeInputValue = (value: unknown): string => {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) return ''
+  const date = new Date(value)
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
+  return local.toISOString().slice(0, 16)
+}
 
 const PERSIST_KEY = 'dsh.worktable.view.v1'
 const PROJECTS_KEY = 'dsh.worktable.projects.v1'
@@ -1094,6 +1137,7 @@ function WorktableSection(props: any) {
   )
   controlRoomsRef.current = controlRooms
   currentRoomRef.current = controlRooms.state.activeId ? controlRooms.state.rooms[controlRooms.state.activeId] ?? null : null
+  const roomRuleMatchesRef = useRef<Record<string, string[]>>({})
   const [roomCreateOpen, setRoomCreateOpen] = useState(false)
   const [roomCreateName, setRoomCreateName] = useState('')
   const [roomManageId, setRoomManageId] = useState<string | null>(null)
@@ -1351,7 +1395,9 @@ function WorktableSection(props: any) {
     const cards: ConsoleCardData[] = []
     cards.push(make(CONSOLE_ID, room?.name ?? t('console.name'), room?.icon ?? CONSOLE_ICON, true, room?.boundSessionId))
     const ids = [...pr.aliveRegisteredIds, ...pr.projects.layouts.map((l) => l.id)]
-    const ordered = room ? effectiveControlRoomProjectIds(room, ids).filter((id) => id !== CONSOLE_ID) : []
+    const ordered = room
+      ? effectiveControlRoomProjectIds(room, ids, roomRuleMatchesRef.current[room.id] ?? []).filter((id) => id !== CONSOLE_ID)
+      : []
     for (const id of ordered) {
       const meta = pr.metas[id]
       const layout = pr.projects.layouts.find((l) => l.id === id)
@@ -1474,7 +1520,8 @@ function WorktableSection(props: any) {
           commitControlRooms((current) => {
             const room = current.state.rooms[roomId]
             if (!room) return current
-            const order = effectiveControlRoomProjectIds(room)
+            const candidates = [...projectsRef.current.aliveRegisteredIds, ...projectsRef.current.projects.layouts.map((layout) => layout.id)]
+            const order = effectiveControlRoomProjectIds(room, candidates, roomRuleMatchesRef.current[roomId] ?? [])
             const from = order.indexOf(id)
             const to = order.indexOf(targetId)
             if (from < 0 || to < 0) return current
@@ -1640,8 +1687,18 @@ function WorktableSection(props: any) {
     if (!meta || typeof meta.id !== 'string' || !meta.id) return
     setMetas((prev) => {
       const cur = prev[meta.id]
-      if (cur && cur.name === meta.name && cur.icon === meta.icon) return prev
-      return { ...prev, [meta.id]: { id: meta.id, name: typeof meta.name === 'string' ? meta.name : meta.id, icon: meta.icon } }
+      const next: ProjectMeta = {
+        id: meta.id,
+        name: typeof meta.name === 'string' ? meta.name : meta.id,
+        icon: meta.icon,
+        tags: Array.isArray(meta.tags) ? meta.tags.filter((tag): tag is string => typeof tag === 'string' && !!tag) : undefined,
+        workspace: typeof meta.workspace === 'string' ? meta.workspace : undefined,
+        archived: meta.archived === true,
+        lastActiveAt: typeof meta.lastActiveAt === 'number' && Number.isFinite(meta.lastActiveAt) ? meta.lastActiveAt : undefined,
+        lastCompletedAt: typeof meta.lastCompletedAt === 'number' && Number.isFinite(meta.lastCompletedAt) ? meta.lastCompletedAt : undefined,
+      }
+      if (cur && JSON.stringify(cur) === JSON.stringify(next)) return prev
+      return { ...prev, [meta.id]: next }
     })
   }, [])
 
@@ -2189,14 +2246,73 @@ function buildCustomLayoutPrompt(req: string): string {
     return list
   }, [allIds, projects.order, projects.lastUsed, view.orderBy])
 
+  /** Rule facts are rebuilt only from the existing project/session event render cycle. */
+  const ruleProjectFacts = useMemo<ControlRoomProjectFacts[]>(() => {
+    const snap = sessionsSnapshotStore.snapshot
+    const byId: Record<string, any> = snap?.byId ?? {}
+    const finiteTime = (...values: unknown[]): number => {
+      return Math.max(0, ...values.filter((value): value is number => typeof value === 'number' && Number.isFinite(value)))
+    }
+    return allIds.map((id) => {
+      const meta = metas[id]
+      const layout = projects.layouts.find((item) => item.id === id)
+      const sessionId = projects.bindings[id]
+      const entry = sessionId ? byId[sessionId] : null
+      const children = sessionId ? collectKids(sessionId) : new Set<string>()
+      let needsAttention = sessionNotifyState(entry) === 'need'
+      if (!needsAttention) {
+        for (const childId of children) {
+          if (sessionNotifyState(byId[childId]) === 'need') { needsAttention = true; break }
+        }
+      }
+      if (!needsAttention && sessionId) {
+        try {
+          const face = sessionBridge?.sessions?.binding?.(sessionId)?.session?.getSnapshot?.()
+          needsAttention = Array.isArray(face?.pending) && face.pending.length > 0
+        } catch {}
+      }
+      const status = needsAttention
+        ? 'need'
+        : entry?.completed === true
+          ? 'done'
+          : entry?.running === true
+            ? 'busy'
+            : 'idle'
+      const sessionTags = Array.isArray(entry?.tags) ? entry.tags.filter((tag: unknown): tag is string => typeof tag === 'string') : []
+      return {
+        id,
+        status,
+        name: projects.nameOverrides[id] ?? meta?.name ?? layout?.title ?? id,
+        icon: projects.iconOverrides[id] ?? meta?.icon ?? layout?.icon ?? '📦',
+        tags: [...new Set([...(meta?.tags ?? []), ...sessionTags])],
+        workspace: meta?.workspace ?? entry?.workspaceId ?? entry?.workspace ?? entry?.cwd ?? projects.folders[id] ?? '',
+        hasBoundSession: !!sessionId,
+        subagentCount: children.size,
+        lastActiveAt: finiteTime(meta?.lastActiveAt, entry?.lastActiveAt, entry?.lastActivityAt, entry?.lastMessageAt, entry?.updatedAt, projects.lastUsed[id]),
+        lastCompletedAt: finiteTime(meta?.lastCompletedAt, entry?.lastCompletedAt, entry?.completedAt, entry?.completed === true ? entry?.updatedAt : undefined),
+        hidden: projects.hidden.includes(id),
+        archived: meta?.archived === true || entry?.archived === true || entry?.status === 'archived',
+      }
+    })
+  }, [allIds, metas, projects.bindings, projects.folders, projects.hidden, projects.iconOverrides, projects.lastUsed, projects.layouts, projects.nameOverrides, notifyTick, collectKids])
+
+  const roomRuleMatches = useMemo(() => Object.fromEntries(
+    controlRooms.state.order.map((roomId) => {
+      const room = controlRooms.state.rooms[roomId]
+      return [roomId, room ? matchingControlRoomProjectIds(room.rules, ruleProjectFacts) : []]
+    }),
+  ), [controlRooms.state, ruleProjectFacts])
+  roomRuleMatchesRef.current = roomRuleMatches
+  useEffect(() => { notifyConsole() }, [roomRuleMatches])
+
   const needRoomIds = useMemo(() => {
     const ids = new Set<string>()
     for (const roomId of controlRooms.state.order) {
       const room = controlRooms.state.rooms[roomId]
-      if (room && effectiveControlRoomProjectIds(room).some((projectId) => projectNeedMap[projectId])) ids.add(roomId)
+      if (room && effectiveControlRoomProjectIds(room, allIds, roomRuleMatches[roomId] ?? []).some((projectId) => projectNeedMap[projectId])) ids.add(roomId)
     }
     return ids
-  }, [controlRooms.state, projectNeedMap])
+  }, [controlRooms.state, projectNeedMap, allIds, roomRuleMatches])
   const roomNavigation = useMemo(
     () => selectControlRoomNavigation(controlRooms.state, needRoomIds),
     [controlRooms.state, needRoomIds],
@@ -2313,14 +2429,53 @@ function buildCustomLayoutPrompt(req: string): string {
       ...current,
       state: checked
         ? addProjectToRoom(current.state, roomId, projectId, Date.now())
-        : removeProjectFromRoom(current.state, roomId, projectId, Date.now()),
+        : (() => {
+            const room = current.state.rooms[roomId]
+            if (!room) return current.state
+            return updateControlRoom(current.state, roomId, {
+              projectIds: room.projectIds.filter((id) => id !== projectId),
+              projectOrder: room.fixedProjectIds.includes(projectId)
+                ? room.projectOrder
+                : room.projectOrder.filter((id) => id !== projectId),
+            }, Date.now())
+          })(),
     }))
+  }
+  const updateRoomRules = (roomId: string, rules: ControlRoomRule[]) => {
+    commitControlRooms((current) => ({
+      ...current,
+      state: updateControlRoom(current.state, roomId, { rules }, Date.now()),
+    }))
+  }
+  const addRoomRule = (room: ControlRoom) => {
+    const stamp = Date.now().toString(36)
+    updateRoomRules(room.id, [...room.rules, {
+      id: `rule-${stamp}`,
+      name: t('rooms.ruleDefaultName', { count: String(room.rules.length + 1) }),
+      enabled: true,
+      mode: 'all',
+      conditions: [{ id: `condition-${stamp}`, field: 'status', operator: 'equals', value: 'busy' }],
+    }])
+  }
+  const patchRoomRule = (room: ControlRoom, ruleId: string, patch: Partial<ControlRoomRule>) => {
+    updateRoomRules(room.id, room.rules.map((rule) => rule.id === ruleId ? { ...rule, ...patch } : rule))
+  }
+  const patchRoomCondition = (room: ControlRoom, rule: ControlRoomRule, conditionId: string, patch: Partial<ControlRoomCondition>) => {
+    patchRoomRule(room, rule.id, {
+      conditions: rule.conditions.map((condition) => condition.id === conditionId ? { ...condition, ...patch } : condition),
+    })
+  }
+  const toggleRoomFixed = (roomId: string, projectId: string, fixed: boolean) => {
+    commitControlRooms((current) => ({ ...current, state: setProjectFixed(current.state, roomId, projectId, fixed, Date.now()) }))
+  }
+  const toggleRoomExcluded = (roomId: string, projectId: string, excluded: boolean) => {
+    commitControlRooms((current) => ({ ...current, state: setProjectExcluded(current.state, roomId, projectId, excluded, Date.now()) }))
   }
 
   const renderRoomNavItem = (roomId: string, inMore = false) => {
     const room = controlRooms.state.rooms[roomId]
     if (!room) return null
-    const effectiveMembers = effectiveControlRoomProjectIds(room)
+    const effectiveMembers = effectiveControlRoomProjectIds(room, allIds, roomRuleMatches[roomId] ?? [])
     const needCount = effectiveMembers.filter((projectId) => projectNeedMap[projectId]).length
     return (
       <div key={roomId} className="dsh-wt_roomNavWrap" data-on={controlRooms.state.activeId === roomId ? 'true' : 'false'} data-hidden={room.sidebarVisible ? undefined : 'true'}>
@@ -3417,14 +3572,107 @@ function buildCustomLayoutPrompt(req: string): string {
                 : t('rooms.bindingNone')}</span>
               <button type="button" onClick={(event) => manageRoomBinding(room.id, event.currentTarget)}>{t('rooms.bindingManage')}</button>
             </div>
+            <fieldset className="dsh-wt_roomRules">
+              <legend>{t('rooms.rules')}</legend>
+              {room.rules.map((rule, ruleIndex) => (
+                <article key={rule.id} className="dsh-wt_roomRule" data-enabled={rule.enabled ? 'true' : undefined}>
+                  <div className="dsh-wt_roomRuleHead">
+                    <input
+                      value={rule.name ?? ''}
+                      aria-label={t('rooms.ruleName')}
+                      placeholder={t('rooms.ruleDefaultName', { count: String(ruleIndex + 1) })}
+                      onChange={(event) => patchRoomRule(room, rule.id, { name: event.target.value })}
+                    />
+                    <label><input type="checkbox" checked={rule.enabled} onChange={(event) => patchRoomRule(room, rule.id, { enabled: event.target.checked })} /> {t('rooms.ruleEnabled')}</label>
+                    <select aria-label={t('rooms.ruleMode')} value={rule.mode} onChange={(event) => patchRoomRule(room, rule.id, { mode: event.target.value as 'all' | 'any' })}>
+                      <option value="all">{t('rooms.ruleAll')}</option>
+                      <option value="any">{t('rooms.ruleAny')}</option>
+                    </select>
+                    <button type="button" aria-label={t('rooms.ruleDelete')} onClick={() => updateRoomRules(room.id, room.rules.filter((item) => item.id !== rule.id))}>✕</button>
+                  </div>
+                  {rule.conditions.map((condition) => (
+                    <div key={condition.id} className="dsh-wt_roomCondition">
+                      <select
+                        aria-label={t('rooms.ruleField')}
+                        value={condition.field}
+                        onChange={(event) => {
+                          const field = event.target.value as ControlRoomConditionField
+                          patchRoomCondition(room, rule, condition.id, {
+                            field,
+                            operator: ruleOperatorsFor(field)[0],
+                            value: defaultRuleConditionValue(field),
+                          })
+                        }}
+                      >
+                        {RULE_FIELDS.map((field) => <option key={field} value={field}>{t(`rooms.ruleField.${field}` as WorktableKey)}</option>)}
+                      </select>
+                      <select
+                        aria-label={t('rooms.ruleOperator')}
+                        value={condition.operator}
+                        onChange={(event) => {
+                          const operator = event.target.value as ControlRoomConditionOperator
+                          const listOperator = operator === 'in' || operator === 'notIn'
+                          const value = listOperator
+                            ? (Array.isArray(condition.value) ? condition.value : [String(condition.value ?? '')])
+                            : (Array.isArray(condition.value) ? condition.value[0] ?? '' : condition.value)
+                          patchRoomCondition(room, rule, condition.id, { operator, value })
+                        }}
+                      >
+                        {ruleOperatorsFor(condition.field).map((operator) => <option key={operator} value={operator}>{t(`rooms.ruleOperator.${operator}` as WorktableKey)}</option>)}
+                      </select>
+                      {condition.field === 'status' && condition.operator !== 'in' && condition.operator !== 'notIn' ? (
+                        <select aria-label={t('rooms.ruleValue')} value={String(condition.value)} onChange={(event) => patchRoomCondition(room, rule, condition.id, { value: event.target.value })}>
+                          {(['idle', 'busy', 'need', 'done'] as const).map((status) => <option key={status} value={status}>{t(`rooms.ruleStatus.${status}` as WorktableKey)}</option>)}
+                        </select>
+                      ) : condition.field === 'hasBoundSession' || condition.field === 'hidden' || condition.field === 'archived' ? (
+                        <select aria-label={t('rooms.ruleValue')} value={condition.value === true ? 'true' : 'false'} onChange={(event) => patchRoomCondition(room, rule, condition.id, { value: event.target.value === 'true' })}>
+                          <option value="true">{t('rooms.ruleTrue')}</option>
+                          <option value="false">{t('rooms.ruleFalse')}</option>
+                        </select>
+                      ) : condition.field === 'subagentCount' ? (
+                        <input aria-label={t('rooms.ruleValue')} type="number" min={0} value={Number(condition.value)} onChange={(event) => patchRoomCondition(room, rule, condition.id, { value: Number(event.target.value) })} />
+                      ) : condition.field === 'lastActiveAt' || condition.field === 'lastCompletedAt' ? (
+                        <input aria-label={t('rooms.ruleValue')} type="datetime-local" value={dateTimeInputValue(condition.value)} onChange={(event) => patchRoomCondition(room, rule, condition.id, { value: new Date(event.target.value).getTime() })} />
+                      ) : (
+                        <input
+                          aria-label={t('rooms.ruleValue')}
+                          value={Array.isArray(condition.value) ? condition.value.join(', ') : String(condition.value)}
+                          placeholder={condition.operator === 'in' || condition.operator === 'notIn' ? t('rooms.ruleListPh') : t('rooms.ruleValuePh')}
+                          onChange={(event) => patchRoomCondition(room, rule, condition.id, {
+                            value: condition.operator === 'in' || condition.operator === 'notIn'
+                              ? event.target.value.split(',').map((item) => item.trim()).filter(Boolean)
+                              : event.target.value,
+                          })}
+                        />
+                      )}
+                      <label className="dsh-wt_roomConditionExclude"><input type="checkbox" checked={condition.exclude === true} onChange={(event) => patchRoomCondition(room, rule, condition.id, { exclude: event.target.checked || undefined })} /> {t('rooms.ruleExclude')}</label>
+                      <button type="button" aria-label={t('rooms.ruleConditionDelete')} onClick={() => patchRoomRule(room, rule.id, { conditions: rule.conditions.filter((item) => item.id !== condition.id) })}>−</button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className="dsh-wt_roomRuleAddCondition"
+                    onClick={() => patchRoomRule(room, rule.id, { conditions: [...rule.conditions, {
+                      id: `condition-${Date.now().toString(36)}`,
+                      field: 'status',
+                      operator: 'equals',
+                      value: 'busy',
+                    }] })}
+                  >＋ {t('rooms.ruleAddCondition')}</button>
+                </article>
+              ))}
+              <button type="button" className="dsh-wt_roomRuleAdd" onClick={() => addRoomRule(room)}>＋ {t('rooms.ruleAdd')}</button>
+            </fieldset>
             <fieldset className="dsh-wt_roomMembers">
               <legend>{t('rooms.members')}</legend>
               {roomProjectOptions.length > 0 ? roomProjectOptions.map((project) => (
-                <label key={project.id}>
-                  <input type="checkbox" checked={room.projectIds.includes(project.id)} onChange={(event) => toggleRoomProject(room.id, project.id, event.target.checked)} />
+                <div key={project.id} className="dsh-wt_roomMemberRow">
                   <span aria-hidden>{project.icon}</span>
                   <span>{project.name}</span>
-                </label>
+                  <label><input type="checkbox" checked={room.projectIds.includes(project.id)} onChange={(event) => toggleRoomProject(room.id, project.id, event.target.checked)} /> {t('rooms.memberManual')}</label>
+                  <label><input type="checkbox" checked={room.fixedProjectIds.includes(project.id)} onChange={(event) => toggleRoomFixed(room.id, project.id, event.target.checked)} /> {t('rooms.memberFixed')}</label>
+                  <label><input type="checkbox" checked={room.excludedProjectIds.includes(project.id)} onChange={(event) => toggleRoomExcluded(room.id, project.id, event.target.checked)} /> {t('rooms.memberExcluded')}</label>
+                </div>
               )) : <div className="dsh-wt_roomMembersEmpty">{t('rooms.noProjects')}</div>}
             </fieldset>
             <div className="dsh-wt_roomDialogActions dsh-wt_roomManageActions">

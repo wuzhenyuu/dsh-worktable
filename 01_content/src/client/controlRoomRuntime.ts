@@ -27,16 +27,17 @@ export function controlRoomLayoutId(roomId: string): string {
 }
 
 /**
- * Task 4 may add rule matches to `candidateIds`. Until then manual and fixed
- * references form membership and explicit exclusions always win.
+ * Manual members, fixed overrides, and rule matches share one ordering seam.
+ * Explicit manual exclusions always win.
  */
 export function effectiveControlRoomProjectIds(
   room: ControlRoom,
   candidateIds?: readonly string[],
+  ruleMatchedIds: readonly string[] = [],
 ): string[] {
   const candidates = candidateIds ? new Set(candidateIds) : null
   const excluded = new Set(room.excludedProjectIds)
-  const members = new Set([...room.projectIds, ...room.fixedProjectIds].filter((id) => !excluded.has(id)))
+  const members = new Set([...room.projectIds, ...room.fixedProjectIds, ...ruleMatchedIds].filter((id) => !excluded.has(id)))
   const result: string[] = []
   const append = (id: string) => {
     if (!members.has(id) || excluded.has(id) || result.includes(id)) return
@@ -46,6 +47,8 @@ export function effectiveControlRoomProjectIds(
   room.projectOrder.forEach(append)
   room.projectIds.forEach(append)
   room.fixedProjectIds.forEach(append)
+  ruleMatchedIds.forEach(append)
+  candidateIds?.forEach(append)
   return result
 }
 
