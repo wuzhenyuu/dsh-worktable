@@ -206,14 +206,16 @@ const HDRS = [{ name: 'Content-Type', value: 'application/json' }, { name: 'Acce
 
 async function runScenarioMatrix(chromePath, hostUrl, profile) {
   const browser = await chromePage(chromePath, profile, hostUrl.href)
-  const mounted = await browser.evaluate('typeof window.__dshUpdateFixtureMount === "function" && !document.querySelector(".dsh-wt_versionRow") ? window.__dshUpdateFixtureMount() : { host: true }')
-  if (mounted && mounted.host !== true && (mounted.ok !== true || mounted.id !== 'dsh-worktable' || mounted.updateUi !== true)) {
-    throw new Error('disposable update fixture could not execute the production WorktableSection DOM harness: ' + JSON.stringify(mounted))
-  }
   let mode = 'success'
   let reqCount = 0
   let fulfillCount = 0
-  const removeFetchHandler = browser.cdp.on('Fetch.requestPaused', (params) => {
+  let removeFetchHandler = () => {}
+  try {
+    const mounted = await browser.evaluate('typeof window.__dshUpdateFixtureMount === "function" && !document.querySelector(".dsh-wt_versionRow") ? window.__dshUpdateFixtureMount() : { host: true }')
+    if (mounted && mounted.host !== true && (mounted.ok !== true || mounted.id !== 'dsh-worktable' || mounted.updateUi !== true)) {
+      throw new Error('disposable update fixture could not execute the production WorktableSection DOM harness: ' + JSON.stringify(mounted))
+    }
+    removeFetchHandler = browser.cdp.on('Fetch.requestPaused', (params) => {
     reqCount += 1
     const requestId = params.requestId
     const send = (body, responseCode = 200) => browser.cdp.send('Fetch.fulfillRequest', { requestId, responseCode, responseHeaders: HDRS, body }).catch(() => {})
@@ -224,13 +226,13 @@ async function runScenarioMatrix(chromePath, hostUrl, profile) {
     } else if (mode === 'slowok') setTimeout(() => send(OK_BODY), 2500)
     else if (mode === 'hiok') send(HI_BODY)
     else send(OK_BODY)
-  })
-  await browser.cdp.send('Fetch.enable', { patterns: [{ urlPattern: '*api.github.com*' }] })
-  const evaluate = browser.evaluate
+    })
+    await browser.cdp.send('Fetch.enable', { patterns: [{ urlPattern: '*api.github.com*' }] })
+    const evaluate = browser.evaluate
   const rowSnap = () => evaluate("(function(){ var r=document.querySelector('.dsh-wt_versionRow'); if(!r) return null; var btn=Array.from(r.querySelectorAll('button')).find(function(b){ return b.textContent.indexOf('检查')>=0 || b.textContent.indexOf('Check')>=0; }); return { text: r.innerText.replace(/\\s+/g,' '), disabled: btn ? btn.disabled : null, label: btn ? btn.textContent.trim() : null }; })()")
   const openSettings = async () => { await evaluate("(function(){ var b=document.querySelector('button[title=\\\"设置\\\"]')||document.querySelector('button[title=\\\"Settings\\\"]'); if(b) b.click(); })()"); await sleep(500) }
   const clickCheck = () => evaluate("(function(){ var r=document.querySelector('.dsh-wt_versionRow'); if(!r) return; var btn=Array.from(r.querySelectorAll('button')).find(function(b){ return b.textContent.indexOf('检查')>=0 || b.textContent.indexOf('Check')>=0; }); if(btn) btn.click(); })()")
-  async function scenario(name, options) {
+    async function scenario(name, options) {
     mode = options.mode
     fulfillCount = 0
     await browser.navigate(hostUrl.href)
@@ -256,7 +258,6 @@ async function runScenarioMatrix(chromePath, hostUrl, profile) {
     console.log('  end:', JSON.stringify(end))
     return { before, mid, end, requests: reqCount }
   }
-  try {
     const results = []
     results.push(['1-success', await scenario('1-success', { mode: 'success', waitMs: 4000 })])
     results.push(['2-pending-timeout', await scenario('2-pending-timeout', { mode: 'pending', waitMs: 26000 })])
@@ -322,8 +323,16 @@ async function main() {
       return
     }
     const hostBrowser = await chromePage(chromePath, profile, hostUrl.href)
-    const hostIdentity = await hostBrowser.evaluate('({ id: window.__dshLoadedSpec && window.__dshLoadedSpec.id, factory: window.__dshLoadedSpec && typeof window.__dshLoadedSpec.factory })')
-    await closeBrowser(hostBrowser)
+    let hostIdentity
+    let hostEvaluationError = null
+    try {
+      hostIdentity = await hostBrowser.evaluate('({ id: window.__dshLoadedSpec && window.__dshLoadedSpec.id, factory: window.__dshLoadedSpec && typeof window.__dshLoadedSpec.factory })')
+    } catch (error) {
+      hostEvaluationError = error
+    }
+    let hostCleanupError = null
+    try { await closeBrowser(hostBrowser) } catch (error) { hostCleanupError = error }
+    if (hostEvaluationError || hostCleanupError) throw new AggregateError([hostEvaluationError, hostCleanupError].filter(Boolean), 'update fixture identity/cleanup failed')
     if (!hostIdentity || hostIdentity.id !== 'dsh-worktable' || hostIdentity.factory !== 'function') {
       console.log('probe-update-scenarios: SKIPPED (exact prerequisite unavailable: supplied disposable fixture did not prove current-branch dsh-worktable factory identity)')
       return
