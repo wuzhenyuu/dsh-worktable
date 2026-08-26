@@ -20622,6 +20622,9 @@ function effectiveControlRoomProjectIds(room, candidateIds, ruleMatchedIds = [])
   candidateIds?.forEach(append);
   return result;
 }
+function isControlRoomProjectMissing(projectId, liveProjectIds) {
+  return !liveProjectIds.has(projectId);
+}
 function controlRoomProjectReferences(room, liveProjectIds) {
   const live = new Set(liveProjectIds);
   const manual = new Set(room.projectIds);
@@ -22451,11 +22454,12 @@ function WorktableSection(props) {
     const cards = [];
     cards.push(make(CONSOLE_ID, room?.name ?? t("console.name"), room?.icon ?? CONSOLE_ICON, true, room?.boundSessionId));
     const ids = [...pr.aliveRegisteredIds, ...pr.projects.layouts.map((l) => l.id)];
+    const liveIds = new Set(ids);
     const ordered = room ? effectiveControlRoomProjectIds(room, ids, roomRuleMatchesRef.current[room.id] ?? []).filter((id) => id !== CONSOLE_ID) : [];
     for (const id of ordered) {
       const meta = pr.metas[id];
       const layout = pr.projects.layouts.find((l) => l.id === id);
-      if (!meta && !layout) {
+      if (isControlRoomProjectMissing(id, liveIds)) {
         cards.push({
           ...make(id, t("rooms.projectMissing"), "\u26A0\uFE0F", false),
           preview: id,
