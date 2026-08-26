@@ -61,6 +61,11 @@ export type ControlRoomProjectReference = {
   excluded: boolean
 }
 
+/** Optional v2 metadata is not liveness; the host registration/layout set is. */
+export function isControlRoomProjectMissing(projectId: string, liveProjectIds: ReadonlySet<string>): boolean {
+  return !liveProjectIds.has(projectId)
+}
+
 /** Explicit stored references are listed independently from the live rule candidate set. */
 export function controlRoomProjectReferences(
   room: Pick<ControlRoom, 'projectIds' | 'projectOrder' | 'fixedProjectIds' | 'excludedProjectIds'>,

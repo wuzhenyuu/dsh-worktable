@@ -47,6 +47,7 @@ import {
   copyControlRoomSplitGeometryInStorage,
   deleteControlRoomAndPlanNextOpen,
   effectiveControlRoomProjectIds,
+  isControlRoomProjectMissing,
   prepareControlRoomOpen,
   reconcileNeedAckTransitions,
 } from './controlRoomRuntime'
@@ -1503,13 +1504,14 @@ function WorktableSection(props: any) {
     const cards: ConsoleCardData[] = []
     cards.push(make(CONSOLE_ID, room?.name ?? t('console.name'), room?.icon ?? CONSOLE_ICON, true, room?.boundSessionId))
     const ids = [...pr.aliveRegisteredIds, ...pr.projects.layouts.map((l) => l.id)]
+    const liveIds = new Set(ids)
     const ordered = room
       ? effectiveControlRoomProjectIds(room, ids, roomRuleMatchesRef.current[room.id] ?? []).filter((id) => id !== CONSOLE_ID)
       : []
     for (const id of ordered) {
       const meta = pr.metas[id]
       const layout = pr.projects.layouts.find((l) => l.id === id)
-      if (!meta && !layout) {
+      if (isControlRoomProjectMissing(id, liveIds)) {
         cards.push({
           ...make(id, t('rooms.projectMissing'), '⚠️', false),
           preview: id,

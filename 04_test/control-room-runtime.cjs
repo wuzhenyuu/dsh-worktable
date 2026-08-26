@@ -129,6 +129,8 @@ async function main() {
     { id: 'manual-a', missing: false, manual: true, fixed: false, excluded: false },
     { id: 'missing-excluded', missing: true, manual: false, fixed: false, excluded: true },
   ], 'member management exposes exact missing IDs and their room-local policy')
+  assert.equal(runtime.isControlRoomProjectMissing('legacy-live', new Set(['legacy-live'])), false, 'a live v1 project remains available even when optional metadata is absent')
+  assert.equal(runtime.isControlRoomProjectMissing('missing-project', new Set(['legacy-live'])), true, 'missing state follows the live project registry rather than optional metadata')
 
   const missingMaster = { projects: { 'manual-a': { name: 'Live master' } } }
   const missingMasterBefore = JSON.stringify(missingMaster)
