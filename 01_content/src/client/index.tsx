@@ -3310,10 +3310,7 @@ function buildCustomLayoutPrompt(req: string): string {
         return { icon: room.icon, name: room.name, onClick: (e: any) => selectRoomFromNavigation(roomId, e.currentTarget as HTMLElement) }
       }),
       ...(controlRooms.state.order.length === 0
-        ? [{ icon: '＋', name: t('rooms.create'), onClick: () => {
-            const name = window.prompt(t('rooms.namePh'))
-            if (name) createNamedRoom(name)
-          } }]
+        ? [{ icon: '＋', name: t('rooms.create'), onClick: (e: any) => openRoomCreate(e.currentTarget as HTMLElement) }]
         : []),
       ...aliveRegisteredIds.map((id) => ({
         icon: projects.iconOverrides[id] ?? metas[id]?.icon ?? '📦',

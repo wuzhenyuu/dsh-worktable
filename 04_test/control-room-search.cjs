@@ -187,7 +187,7 @@ async function main() {
   assert.match(indexSource, /executeControlRoomSearchNavigation\(describeControlRoomSearchNavigation\(result\)/, 'the overlay executes the tested descriptor seam')
   assert.match(indexSource, /openControlRoom,\s*openProjectInRoom: openProjectFromSearch,\s*openRuleEditor: openRuleFromSearch/s, 'the overlay adapter supplies the three production actions used by all four kinds')
   assert.match(indexSource, /const openProjectFromSearch[\s\S]*openControlRoom\(roomId\)[\s\S]*data-wt-console-project-id/, 'project results open a concrete room then locate its card')
-  assert.match(indexSource, /const openRuleFromSearch[\s\S]*setRoomManageId\(roomId\)[\s\S]*data-wt-room-rule-id/, 'rule results open the room editor then locate the rule')
+  assert.match(indexSource, /const openRuleFromSearch[\s\S]*openRoomManage\(roomId,[\s\S]*data-wt-room-rule-id/, 'rule results open the guarded room editor then locate the rule')
   assert.match(splitSource, /data-wt-console-project-id=\{c\.id\}/, 'the production ConsolePane exposes the project locating target')
   assert.match(indexSource, /data-wt-room-rule-id=\{rule\.id\}/, 'the production room editor exposes the rule locating target')
   assert.match(indexSource, /Control\+K Control\+Shift\+P/, 'the visible overlay entry advertises both keyboard shortcuts')

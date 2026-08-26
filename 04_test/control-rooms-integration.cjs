@@ -62,6 +62,7 @@ async function main() {
   assert.match(indexSource, /data-wt-room-manage-field="icon"[\s\S]*data-wt-room-manage-field="description"/, 'the production management dialog renders icon and description controls')
   assert.match(indexSource, /createNamedRoom\(roomCreateName, roomCreateIcon, roomCreateDescription\)/, 'the production create action persists all three rendered fields')
   assert.match(indexSource, /createControlRoom\(current\.state, \{ name, icon, description \}/, 'the create path stores icon and description in the domain model')
+  assert.doesNotMatch(indexSource, /window\.prompt\(t\('rooms\.namePh'\)\)/, 'collapsed navigation does not bypass the three-field create dialog')
   assert.match(indexSource, /data-wt-room-manage-field="icon"[\s\S]*updateRoomPresentation\(room\.id, \{ icon \}\)[\s\S]*data-wt-room-manage-field="description"[\s\S]*updateRoomPresentation\(room\.id, \{ description \}\)/, 'the production management controls commit icon and description edits')
   assert.match(indexSource, /roomCreateDialogRef[\s\S]*installModalFocusGuard\([\s\S]*roomCreateNameRef/, 'the production create dialog installs the shared modal focus guard')
   assert.match(indexSource, /roomManageDialogRef[\s\S]*installModalFocusGuard\([\s\S]*roomDeleteId[\s\S]*\[roomManageId, roomDeleteId\]/, 'the production management guard pauses and resumes around nested deletion')

@@ -969,8 +969,8 @@ export class ControlRoomsStorage {
     // The current valid in-memory state survives quota/security write failures.
     this.lastGoodState = nextState
     this.lastGoodTrash = nextTrash
-    let previousState: string | null
-    let previousTrash: string | null
+    let previousState: string | null | undefined
+    let previousTrash: string | null | undefined
     try {
       previousState = this.storage.getItem(CONTROL_ROOMS_KEY)
       previousTrash = this.storage.getItem(CONTROL_ROOMS_TRASH_KEY)
