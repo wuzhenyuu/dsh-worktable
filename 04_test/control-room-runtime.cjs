@@ -192,6 +192,52 @@ async function main() {
   assert.equal(persistedGeometry['wt-console:room-3-2'].chatW, 417, 'cloned geometry survives storage reload')
   assert.equal(persistedGeometry['unrelated-project'].paneWs[0], 333)
 
+  let uiCopyState = domain.createControlRoom(domain.createEmptyControlRoomsState(), {
+    name: 'UI copy source',
+    boundSessionId: 'source-management-session',
+  }, { id: 'ui-copy-source', now: 4_200 })
+  const uiCopySourceLayoutId = 'wt-console:ui-copy-source'
+  let uiCopyViews = {
+    [uiCopySourceLayoutId]: {
+      id: uiCopySourceLayoutId,
+      title: 'Saved UI source',
+      icon: '🧭',
+      top: null,
+      main: [{
+        id: 'saved-pane',
+        title: 'Saved pane',
+        min: 240,
+        tabs: [
+          { id: 'control-room', title: 'Control room', content: { kind: 'builtin', type: 'console' } },
+          { id: 'saved-files', title: 'Files', content: { kind: 'builtin', type: 'explorer' } },
+        ],
+        active: 1,
+      }],
+      chatWidth: { default: 444, min: 280, max: 600 },
+      chatSide: 'right',
+    },
+  }
+  const uiCopyStorage = new MemoryStorage()
+  uiCopyStorage.setItem('dsh.worktable.split.v2', JSON.stringify({
+    [uiCopySourceLayoutId]: { chatW: 444, topH: 222, leftW: 260, paneWs: [611], topWs: [], leftWs: [] },
+  }))
+  const uiAfterCopy = runtime.createControlRoomAfterCopyCallback({
+    getSourceLayoutId: (roomId) => uiCopyState.rooms[roomId]?.layoutId,
+    updateViews: (update) => { uiCopyViews = update(uiCopyViews) },
+    storage: uiCopyStorage,
+    storageKey: 'dsh.worktable.split.v2',
+  })
+  uiCopyState = domain.copyControlRoom(uiCopyState, 'ui-copy-source', { id: 'ui-copy-target', now: 4_201 })
+  const uiCopyResult = uiAfterCopy('ui-copy-source', 'ui-copy-target')
+  assert.equal(uiCopyResult.geometryCopied, true, 'the executable production after-copy callback copies split geometry')
+  const firstCopyOpen = runtime.prepareControlRoomOpen(uiCopyState, 'ui-copy-target', uiCopyViews, knownSessions, 4_202, labels)
+  assert.equal(firstCopyOpen.spec.main[0].active, 1, 'a human UI copy first opens with the saved active tab')
+  assert.equal(firstCopyOpen.spec.main[0].tabs[1].content.type, 'explorer', 'a human UI copy retains saved pane tabs')
+  assert.equal(JSON.parse(uiCopyStorage.getItem('dsh.worktable.split.v2'))['wt-console:ui-copy-target'].paneWs[0], 611, 'a human UI copy retains persisted pane geometry')
+  assert.equal(firstCopyOpen.room.boundSessionId, null, 'copying presentation never copies the management-session binding')
+  const indexSource = fs.readFileSync(path.join(repo, '01_content/src/client/index.tsx'), 'utf8')
+  assert.match(indexSource, /const copyRoom = [\s\S]*afterControlRoomCopy\(roomId, id\)[\s\S]*afterCopy: afterControlRoomCopy/, 'human UI and command copies share the executable after-copy callback')
+
   let ackLifecycle = runtime.reconcileNeedAckTransitions({}, { 'room-only-session': true })
   assert.deepEqual(ackLifecycle.clearSessionIds, [], 'the first observed need does not clear an ack')
   ackLifecycle = runtime.reconcileNeedAckTransitions(ackLifecycle.seen, { 'room-only-session': false })

@@ -111,6 +111,32 @@ export function copyControlRoomSplitGeometryInStorage(
   }
 }
 
+export type ControlRoomAfterCopyOptions = {
+  getSourceLayoutId(sourceControlRoomId: string): string | undefined
+  updateViews(update: (views: Readonly<Record<string, LayoutSpec>>) => Record<string, LayoutSpec>): void
+  storage: StorageCompatible
+  storageKey: string
+}
+
+/** Shared executable callback for both the human copy button and the command bridge. */
+export function createControlRoomAfterCopyCallback(options: ControlRoomAfterCopyOptions): (
+  sourceControlRoomId: string,
+  newControlRoomId: string,
+) => { sourceLayoutId: string; targetLayoutId: string; geometryCopied: boolean } {
+  return (sourceControlRoomId, newControlRoomId) => {
+    const sourceLayoutId = options.getSourceLayoutId(sourceControlRoomId) ?? controlRoomLayoutId(sourceControlRoomId)
+    const targetLayoutId = controlRoomLayoutId(newControlRoomId)
+    options.updateViews((views) => copyControlRoomLayoutView(views, sourceLayoutId, targetLayoutId))
+    const geometryCopied = copyControlRoomSplitGeometryInStorage(
+      options.storage,
+      options.storageKey,
+      sourceLayoutId,
+      targetLayoutId,
+    )
+    return { sourceLayoutId, targetLayoutId, geometryCopied }
+  }
+}
+
 export function reconcileNeedAckTransitions(
   seen: Readonly<Record<string, boolean>>,
   current: Readonly<Record<string, boolean>>,

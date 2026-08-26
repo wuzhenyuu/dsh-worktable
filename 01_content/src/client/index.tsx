@@ -40,6 +40,7 @@ import {
 import {
   autoBindControlRoomSession,
   controlRoomBindingState,
+  createControlRoomAfterCopyCallback,
   copyControlRoomLayoutView,
   copyControlRoomSplitGeometryInStorage,
   deleteControlRoomAndPlanNextOpen,
@@ -2406,6 +2407,12 @@ function buildCustomLayoutPrompt(req: string): string {
       return { ...current, state: selectControlRoom(created, id, now) }
     })
   }
+  const afterControlRoomCopy = createControlRoomAfterCopyCallback({
+    getSourceLayoutId: (sourceControlRoomId) => controlRoomsRef.current.state.rooms[sourceControlRoomId]?.layoutId,
+    updateViews: (update) => persistProjects((prev) => ({ ...prev, views: update(prev.views) })),
+    storage: localStorage,
+    storageKey: SPLIT_PERSIST_KEY,
+  })
 
   const closeGlobalSearch = () => persistView({ searchOpen: false, query: '' })
   const openGlobalSearch = (returnFocus?: HTMLElement | null) => {
@@ -2466,6 +2473,7 @@ function buildCustomLayoutPrompt(req: string): string {
       ...current,
       state: copyControlRoom(current.state, roomId, { id, now, name: source.name + t('rooms.copySuffix') }),
     }))
+    afterControlRoomCopy(roomId, id)
     setRoomManageId(id)
   }
   const toggleRoomHidden = (roomId: string) => {
@@ -2622,12 +2630,7 @@ function buildCustomLayoutPrompt(req: string): string {
       isSessionRunning: (sessionId) => sessionsSnapshotStore.snapshot?.byId?.[sessionId]?.running === true,
       open: openControlRoom,
       search: (query, limit) => ({ query, ...buildControlRoomSearchResponse(query, limit) }),
-      afterCopy: (sourceControlRoomId, newControlRoomId) => {
-        const sourceLayoutId = controlRoomsRef.current.state.rooms[sourceControlRoomId]?.layoutId ?? `wt-console:${sourceControlRoomId}`
-        const targetLayoutId = `wt-console:${newControlRoomId}`
-        persistProjects((prev) => ({ ...prev, views: copyControlRoomLayoutView(prev.views, sourceLayoutId, targetLayoutId) }))
-        copyControlRoomSplitGeometryInStorage(localStorage, SPLIT_PERSIST_KEY, sourceLayoutId, targetLayoutId)
-      },
+      afterCopy: afterControlRoomCopy,
       afterArchive: (controlRoomId, layoutId) => {
         if (splitStore.active && splitStore.spec?.id === layoutId) {
           splitStore.close()
