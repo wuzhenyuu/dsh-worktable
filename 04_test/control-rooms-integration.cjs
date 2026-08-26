@@ -18,6 +18,11 @@ class MemoryStorage {
   setItem(key, value) { this.data.set(key, String(value)) }
 }
 
+class ThrowingMigrationStorage extends MemoryStorage {
+  setItem(key) { throw new Error(`SecurityError: blocked ${key}`) }
+  removeItem(key) { this.data.delete(key) }
+}
+
 async function main() {
   await build({
     entryPoints: [path.join(repo, '01_content/src/client/controlRooms.ts')],
@@ -39,6 +44,20 @@ async function main() {
   })
   const d = require(bundle)
   const modal = require(modalBundle)
+  const throwingInitialization = new d.ControlRoomsStorage(new ThrowingMigrationStorage()).load({
+    projectIds: ['legacy-project'],
+    projectOrder: ['legacy-project'],
+    boundSessionId: 'legacy-session',
+    layoutId: 'wt-console',
+    themeMode: 'dark',
+    rawProjects: '{"legacy":true}',
+    rawView: '{"consoleTheme":"dark"}',
+  }, 900)
+  assert.equal(throwingInitialization.migrated, false, 'production initialization stays in compatibility mode after a storage security failure')
+  assert.ok(throwingInitialization.state.rooms['room-default'], 'production initialization still returns a renderable legacy room')
+  assert.match(String(throwingInitialization.persistenceError), /SecurityError/, 'production initialization exposes the persistence failure')
+  const indexSource = fs.readFileSync(path.join(repo, '01_content/src/client/index.tsx'), 'utf8')
+  assert.match(indexSource, /initialControlRoomsPersistenceErrorRef\.current = loaded\.persistenceError != null/, 'React initialization wires the repository failure into visible UI state')
   const storage = new MemoryStorage()
   const repository = new d.ControlRoomsStorage(storage)
   let { state, trash } = repository.load()

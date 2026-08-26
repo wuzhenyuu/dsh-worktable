@@ -15,7 +15,9 @@ class MemoryStorage {
   constructor(seed = {}) {
     this.data = new Map(Object.entries(seed))
     this.writes = []
+    this.removals = []
     this.failKey = null
+    this.failures = new Map()
   }
 
   getItem(key) {
@@ -23,9 +25,23 @@ class MemoryStorage {
   }
 
   setItem(key, value) {
+    const remaining = this.failures.get(key) || 0
+    if (remaining > 0) {
+      this.failures.set(key, remaining - 1)
+      throw new Error(`write failed once: ${key}`)
+    }
     if (key === this.failKey) throw new Error(`write failed: ${key}`)
     this.writes.push(key)
     this.data.set(key, String(value))
+  }
+
+  removeItem(key) {
+    this.removals.push(key)
+    this.data.delete(key)
+  }
+
+  failNext(key, count = 1) {
+    this.failures.set(key, count)
   }
 }
 
@@ -240,34 +256,37 @@ async function main() {
     assert.ok(storage.getItem(d.CONTROL_ROOMS_KEY))
   })
 
-  test('backup failure prevents any new-format state write', () => {
+  test('backup failure returns a visible compatibility state without new-format writes', () => {
     const storage = new MemoryStorage()
     storage.failKey = d.CONTROL_ROOMS_MIGRATION_BACKUP_KEY
-    assert.throws(() => new d.ControlRoomsStorage(storage).load(legacy, NOW), /write failed/)
+    const loaded = new d.ControlRoomsStorage(storage).load(legacy, NOW)
+    assert.equal(loaded.migrated, false)
+    assert.match(String(loaded.persistenceError), /write failed/)
+    assert.deepEqual(loaded.state.rooms['room-default'].projectIds, legacy.projectIds)
     assert.equal(storage.getItem(d.CONTROL_ROOMS_KEY), null)
     assert.equal(storage.getItem(d.CONTROL_ROOMS_TRASH_KEY), null)
+    assert.equal(storage.getItem(d.CONTROL_ROOMS_MIGRATION_BACKUP_KEY), null)
   })
 
-  test('interrupted migration retains the original one-time raw backup', () => {
-    const storage = new MemoryStorage()
-    storage.failKey = d.CONTROL_ROOMS_KEY
-    assert.throws(() => new d.ControlRoomsStorage(storage).load(legacy, NOW), /write failed/)
-    const originalBackup = storage.getItem(d.CONTROL_ROOMS_MIGRATION_BACKUP_KEY)
-    assert.ok(originalBackup)
+  test('interrupted migration rolls all auxiliary keys back before a clean retry', () => {
+    const originalTrash = JSON.stringify({
+      version: 1,
+      deleted: [],
+      audit: [{ actor: 'user', timestamp: NOW - 1, action: 'legacy', controlRoomId: 'room-old', summary: 'keep audit' }],
+    })
+    const storage = new MemoryStorage({ [d.CONTROL_ROOMS_TRASH_KEY]: originalTrash })
+    storage.failNext(d.CONTROL_ROOMS_KEY)
+    const interrupted = new d.ControlRoomsStorage(storage).load(legacy, NOW)
+    assert.equal(interrupted.migrated, false)
+    assert.match(String(interrupted.persistenceError), /write failed once/)
+    assert.equal(storage.getItem(d.CONTROL_ROOMS_MIGRATION_BACKUP_KEY), null)
+    assert.equal(storage.getItem(d.CONTROL_ROOMS_TRASH_KEY), originalTrash)
+    assert.equal(storage.getItem(d.CONTROL_ROOMS_KEY), null)
 
-    storage.failKey = null
-    const changedLegacy = {
-      ...legacy,
-      projectIds: ['replacement'],
-      rawProjects: '{"replacement":true}',
-      rawView: '{"consoleTheme":"light"}',
-    }
-    const writesBeforeRetry = storage.writes.length
-    const result = new d.ControlRoomsStorage(storage).load(changedLegacy, NOW + 1)
+    const result = new d.ControlRoomsStorage(storage).load(legacy, NOW + 1)
     assert.equal(result.migrated, true)
-    assert.equal(storage.getItem(d.CONTROL_ROOMS_MIGRATION_BACKUP_KEY), originalBackup)
-    assert.equal(storage.writes.slice(writesBeforeRetry).includes(d.CONTROL_ROOMS_MIGRATION_BACKUP_KEY), false)
-    assert.equal(JSON.parse(originalBackup).rawProjects, legacy.rawProjects)
+    assert.equal(result.trash.audit[0].summary, 'keep audit')
+    assert.equal(JSON.parse(storage.getItem(d.CONTROL_ROOMS_MIGRATION_BACKUP_KEY)).rawProjects, legacy.rawProjects)
   })
 
   test('unknown interrupted-backup version is refused before migration writes', () => {
@@ -278,6 +297,49 @@ async function main() {
     assert.equal(storage.getItem(d.CONTROL_ROOMS_MIGRATION_BACKUP_KEY), unknownBackup)
     assert.equal(storage.getItem(d.CONTROL_ROOMS_TRASH_KEY), null)
     assert.equal(storage.getItem(d.CONTROL_ROOMS_KEY), null)
+  })
+
+  test('main-missing unknown trash is refused before every migration write', () => {
+    const unknownTrash = '{"version":2,"deleted":[],"audit":[]}'
+    const storage = new MemoryStorage({ [d.CONTROL_ROOMS_TRASH_KEY]: unknownTrash })
+    assert.throws(() => new d.ControlRoomsStorage(storage).load(legacy, NOW), d.UnknownControlRoomsVersionError)
+    assert.deepEqual(storage.writes, [])
+    assert.deepEqual(storage.removals, [])
+    assert.equal(storage.getItem(d.CONTROL_ROOMS_TRASH_KEY), unknownTrash)
+    assert.equal(storage.getItem(d.CONTROL_ROOMS_MIGRATION_BACKUP_KEY), null)
+    assert.equal(storage.getItem(d.CONTROL_ROOMS_KEY), null)
+  })
+
+  test('main-missing accepts existing version-one backup and trash audit envelopes without overwriting them', () => {
+    const backup = {
+      version: 1,
+      createdAt: NOW - 10,
+      rawProjects: legacy.rawProjects,
+      rawView: legacy.rawView,
+      legacy: {
+        projectIds: legacy.projectIds,
+        projectOrder: legacy.projectOrder,
+        boundSessionId: legacy.boundSessionId,
+        layoutId: legacy.layoutId,
+        themeMode: legacy.themeMode,
+      },
+    }
+    const trash = {
+      version: 1,
+      deleted: [],
+      audit: [{ actor: 'deepseek', timestamp: NOW - 2, action: 'update', controlRoomId: 'room-old', summary: 'preserve me' }],
+    }
+    const backupRaw = JSON.stringify(backup)
+    const trashRaw = JSON.stringify(trash)
+    const storage = new MemoryStorage({
+      [d.CONTROL_ROOMS_MIGRATION_BACKUP_KEY]: backupRaw,
+      [d.CONTROL_ROOMS_TRASH_KEY]: trashRaw,
+    })
+    const result = new d.ControlRoomsStorage(storage).load(legacy, NOW)
+    assert.equal(result.migrated, true)
+    assert.equal(storage.getItem(d.CONTROL_ROOMS_MIGRATION_BACKUP_KEY), backupRaw)
+    assert.equal(result.trash.audit[0].summary, 'preserve me')
+    assert.equal(storage.writes.includes(d.CONTROL_ROOMS_MIGRATION_BACKUP_KEY), false)
   })
 
   test('existing versioned state makes migration one-time', () => {
@@ -306,6 +368,27 @@ async function main() {
     const result = facade.save(desired, emptyTrash())
     assert.equal(result.ok, false)
     assert.ok(facade.getLastGood().state.rooms['memory-only'])
+  })
+
+  test('two-key save rolls back a first-write success when the trash write fails', () => {
+    const initialState = create(empty(), 'recoverable', NOW, { projectIds: ['p1'] })
+    const initialTrash = emptyTrash()
+    const storage = new MemoryStorage({
+      [d.CONTROL_ROOMS_KEY]: JSON.stringify(initialState),
+      [d.CONTROL_ROOMS_TRASH_KEY]: JSON.stringify(initialTrash),
+    })
+    const facade = new d.ControlRoomsStorage(storage)
+    facade.load(undefined, NOW)
+    const archived = d.deleteControlRoom(initialState, initialTrash, 'recoverable', NOW + 1)
+    storage.failNext(d.CONTROL_ROOMS_TRASH_KEY)
+    const saved = facade.save(archived.state, archived.trash)
+    assert.equal(saved.ok, false)
+    assert.match(String(saved.error), /write failed once/)
+    assert.equal(storage.getItem(d.CONTROL_ROOMS_KEY), JSON.stringify(initialState))
+    assert.equal(storage.getItem(d.CONTROL_ROOMS_TRASH_KEY), JSON.stringify(initialTrash))
+    const reloaded = new d.ControlRoomsStorage(storage).load(undefined, NOW + 2)
+    assert.ok(reloaded.state.rooms.recoverable, 'reload retains the room instead of losing its tombstone recovery data')
+    assert.deepEqual(reloaded.state.rooms.recoverable.projectIds, ['p1'])
   })
 
   test('export/import remaps collisions without project master data', () => {

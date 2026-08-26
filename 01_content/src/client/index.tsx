@@ -1129,6 +1129,7 @@ function WorktableSection(props: any) {
   const controlRoomsStorageRef = useRef<ControlRoomsStorage | null>(null)
   if (!controlRoomsStorageRef.current) controlRoomsStorageRef.current = new ControlRoomsStorage(localStorage)
   const initialControlRoomsRef = useRef<ControlRoomsSnapshot | null>(null)
+  const initialControlRoomsPersistenceErrorRef = useRef(false)
   if (!initialControlRoomsRef.current) {
     const legacyProjectIds = [...new Set([
       ...projects.order,
@@ -1149,6 +1150,7 @@ function WorktableSection(props: any) {
       rawView,
     })
     initialControlRoomsRef.current = { state: loaded.state, trash: loaded.trash }
+    initialControlRoomsPersistenceErrorRef.current = loaded.persistenceError != null
   }
   const [controlRooms, setControlRooms] = useState<ControlRoomsSnapshot>(() => initialControlRoomsRef.current!)
   const controlRoomsRef = useRef(controlRooms)
@@ -1172,7 +1174,7 @@ function WorktableSection(props: any) {
   const searchReturnFocusRef = useRef<HTMLElement | null>(null)
   const [searchSelection, setSearchSelection] = useState(0)
   const [roomReloadNotice, setRoomReloadNotice] = useState(false)
-  const [roomSaveFailed, setRoomSaveFailed] = useState(false)
+  const [roomSaveFailed, setRoomSaveFailed] = useState(() => initialControlRoomsPersistenceErrorRef.current)
   const [metas, setMetas] = useState<Record<string, ProjectMeta>>({})
   const [registeredIds, setRegisteredIds] = useState<string[]>(() => [...registryStore.ids])
   const [addOpen, setAddOpen] = useState(false)

@@ -156,7 +156,7 @@ export type ControlRoomsExport = {
   state: ControlRoomsState
 }
 
-export type StorageCompatible = Pick<Storage, 'getItem' | 'setItem'>
+export type StorageCompatible = Pick<Storage, 'getItem' | 'setItem'> & Partial<Pick<Storage, 'removeItem'>>
 
 export type ControlRoomCreateInput = Partial<Omit<ControlRoom, 'id' | 'createdAt' | 'updatedAt' | 'lastOpenedAt' | 'deletedAt'>> & {
   id?: string
@@ -166,6 +166,8 @@ export type ControlRoomsLoadResult = {
   state: ControlRoomsState
   trash: ControlRoomsTrashState
   migrated: boolean
+  /** Non-version storage failures keep this usable in-memory snapshot visible to the UI. */
+  persistenceError: unknown | null
 }
 
 export class UnknownControlRoomsVersionError extends Error {
@@ -175,6 +177,20 @@ export class UnknownControlRoomsVersionError extends Error {
     super(`Unsupported control-room storage version: ${String(version)}`)
     this.name = 'UnknownControlRoomsVersionError'
     this.version = version
+  }
+}
+
+export class ControlRoomsPersistenceError extends Error {
+  readonly writeError: unknown
+  readonly rollbackErrors: unknown[]
+
+  constructor(operation: string, writeError: unknown, rollbackErrors: unknown[] = []) {
+    const detail = writeError instanceof Error ? writeError.message : String(writeError)
+    const rollback = rollbackErrors.length > 0 ? `; ${rollbackErrors.length} rollback operation(s) also failed` : ''
+    super(`${operation} failed: ${detail}${rollback}`)
+    this.name = 'ControlRoomsPersistenceError'
+    this.writeError = writeError
+    this.rollbackErrors = rollbackErrors
   }
 }
 
@@ -763,6 +779,39 @@ function parseStored(storage: StorageCompatible, key: string): unknown | null {
   return raw == null ? null : JSON.parse(raw)
 }
 
+function parseStoredRaw(raw: string | null): unknown | null {
+  return raw == null ? null : JSON.parse(raw)
+}
+
+function validatedMigrationBackup(value: unknown): ControlRoomsMigrationBackup | null {
+  if (value == null) return null
+  if (!isRecord(value) || value.version !== CONTROL_ROOMS_VERSION) {
+    throw new UnknownControlRoomsVersionError(isRecord(value) ? value.version : undefined)
+  }
+  if (!isRecord(value.legacy)) throw new Error('Invalid control-room migration backup')
+  return clone(value as ControlRoomsMigrationBackup)
+}
+
+function restoreStoredRaw(storage: StorageCompatible, key: string, raw: string | null): void {
+  if (raw != null) {
+    storage.setItem(key, raw)
+    return
+  }
+  if (typeof storage.removeItem !== 'function') throw new Error(`Storage cannot roll back absent key: ${key}`)
+  storage.removeItem(key)
+}
+
+function rollbackStoredValues(
+  storage: StorageCompatible,
+  entries: readonly { key: string; raw: string | null }[],
+): unknown[] {
+  const errors: unknown[] = []
+  for (const entry of [...entries].reverse()) {
+    try { restoreStoredRaw(storage, entry.key, entry.raw) } catch (error) { errors.push(error) }
+  }
+  return errors
+}
+
 function createLegacyMigration(
   input: LegacyControlRoomMigrationInput,
   now: number,
@@ -807,38 +856,100 @@ export class ControlRoomsStorage {
   constructor(private readonly storage: StorageCompatible) {}
 
   load(legacyInput?: LegacyControlRoomMigrationInput, now = Date.now()): ControlRoomsLoadResult {
-    const storedState = parseStored(this.storage, CONTROL_ROOMS_KEY)
+    let storedState: unknown | null
+    try {
+      storedState = parseStored(this.storage, CONTROL_ROOMS_KEY)
+    } catch (error) {
+      if (error instanceof UnknownControlRoomsVersionError || !legacyInput) throw error
+      return this.compatibilityResult(legacyInput, now, error)
+    }
     if (storedState != null) {
-      const state = normalizeControlRoomsState(storedState)
-      const storedTrash = parseStored(this.storage, CONTROL_ROOMS_TRASH_KEY)
-      const trash = expireDeletedControlRooms(storedTrash == null ? createEmptyControlRoomsTrashState() : normalizeControlRoomsTrashState(storedTrash), now)
+      let state: ControlRoomsState
+      try { state = normalizeControlRoomsState(storedState) } catch (error) {
+        if (error instanceof UnknownControlRoomsVersionError || !legacyInput) throw error
+        return this.compatibilityResult(legacyInput, now, error)
+      }
+      let trash: ControlRoomsTrashState
+      try {
+        const storedTrash = parseStored(this.storage, CONTROL_ROOMS_TRASH_KEY)
+        trash = expireDeletedControlRooms(storedTrash == null ? createEmptyControlRoomsTrashState() : normalizeControlRoomsTrashState(storedTrash), now)
+      } catch (error) {
+        if (error instanceof UnknownControlRoomsVersionError) throw error
+        trash = createEmptyControlRoomsTrashState()
+        this.lastWriteError = error
+        this.lastGoodState = state
+        this.lastGoodTrash = trash
+        return { state: clone(state), trash: clone(trash), migrated: false, persistenceError: error }
+      }
       this.lastGoodState = state
       this.lastGoodTrash = trash
-      return { state: clone(state), trash: clone(trash), migrated: false }
+      this.lastWriteError = null
+      return { state: clone(state), trash: clone(trash), migrated: false, persistenceError: null }
     }
+
+    let existingTrashRaw: string | null
+    let existingBackupRaw: string | null
+    let existingTrash: ControlRoomsTrashState
+    try {
+      // Every auxiliary envelope is read and version-validated before migration writes.
+      existingTrashRaw = this.storage.getItem(CONTROL_ROOMS_TRASH_KEY)
+      existingBackupRaw = this.storage.getItem(CONTROL_ROOMS_MIGRATION_BACKUP_KEY)
+      const parsedTrash = parseStoredRaw(existingTrashRaw)
+      existingTrash = expireDeletedControlRooms(
+        parsedTrash == null ? createEmptyControlRoomsTrashState() : normalizeControlRoomsTrashState(parsedTrash),
+        now,
+      )
+      validatedMigrationBackup(parseStoredRaw(existingBackupRaw))
+    } catch (error) {
+      if (error instanceof UnknownControlRoomsVersionError || !legacyInput) throw error
+      return this.compatibilityResult(legacyInput, now, error)
+    }
+
     if (!legacyInput) {
       const state = createEmptyControlRoomsState()
-      const trash = createEmptyControlRoomsTrashState()
+      const trash = existingTrash
       this.lastGoodState = state
       this.lastGoodTrash = trash
-      return { state: clone(state), trash: clone(trash), migrated: false }
+      this.lastWriteError = null
+      return { state: clone(state), trash: clone(trash), migrated: false, persistenceError: null }
     }
 
     const migration = createLegacyMigration(legacyInput, now)
-    const trash = createEmptyControlRoomsTrashState()
-    // The backup is one-time: an interrupted migration may have written it without
-    // reaching the main-key completion marker. Validate and retain that original.
-    const existingBackup = this.readMigrationBackup()
-    if (!existingBackup) {
-      // Backup must complete first. If it fails, no new-format key is written.
-      this.storage.setItem(CONTROL_ROOMS_MIGRATION_BACKUP_KEY, JSON.stringify(migration.backup))
+    const trash = existingTrash
+    const originals = [
+      { key: CONTROL_ROOMS_MIGRATION_BACKUP_KEY, raw: existingBackupRaw },
+      { key: CONTROL_ROOMS_TRASH_KEY, raw: existingTrashRaw },
+      { key: CONTROL_ROOMS_KEY, raw: null },
+    ] as const
+    try {
+      // The backup is one-time. A valid interrupted backup stays byte-for-byte intact.
+      if (existingBackupRaw == null) {
+        this.storage.setItem(CONTROL_ROOMS_MIGRATION_BACKUP_KEY, JSON.stringify(migration.backup))
+      }
+      // Likewise, a valid auxiliary trash/audit envelope is retained rather than emptied.
+      if (existingTrashRaw == null) this.storage.setItem(CONTROL_ROOMS_TRASH_KEY, JSON.stringify(trash))
+      // The main key is the migration-complete marker and is deliberately written last.
+      this.storage.setItem(CONTROL_ROOMS_KEY, JSON.stringify(migration.state))
+    } catch (error) {
+      const persistenceError = new ControlRoomsPersistenceError(
+        'Control-room migration persistence',
+        error,
+        rollbackStoredValues(this.storage, originals),
+      )
+      this.lastGoodState = migration.state
+      this.lastGoodTrash = trash
+      this.lastWriteError = persistenceError
+      return {
+        state: clone(migration.state),
+        trash: clone(trash),
+        migrated: false,
+        persistenceError,
+      }
     }
-    this.storage.setItem(CONTROL_ROOMS_TRASH_KEY, JSON.stringify(trash))
-    // The main key is the migration-complete marker and is deliberately written last.
-    this.storage.setItem(CONTROL_ROOMS_KEY, JSON.stringify(migration.state))
     this.lastGoodState = migration.state
     this.lastGoodTrash = trash
-    return { state: clone(migration.state), trash: clone(trash), migrated: true }
+    this.lastWriteError = null
+    return { state: clone(migration.state), trash: clone(trash), migrated: true, persistenceError: null }
   }
 
   save(state: ControlRoomsState, trash: ControlRoomsTrashState): { ok: boolean; error: unknown | null } {
@@ -847,14 +958,25 @@ export class ControlRoomsStorage {
     // The current valid in-memory state survives quota/security write failures.
     this.lastGoodState = nextState
     this.lastGoodTrash = nextTrash
+    let previousState: string | null
+    let previousTrash: string | null
     try {
+      previousState = this.storage.getItem(CONTROL_ROOMS_KEY)
+      previousTrash = this.storage.getItem(CONTROL_ROOMS_TRASH_KEY)
       this.storage.setItem(CONTROL_ROOMS_KEY, JSON.stringify(nextState))
       this.storage.setItem(CONTROL_ROOMS_TRASH_KEY, JSON.stringify(nextTrash))
       this.lastWriteError = null
       return { ok: true, error: null }
     } catch (error) {
-      this.lastWriteError = error
-      return { ok: false, error }
+      const rollbackErrors = previousState === undefined || previousTrash === undefined
+        ? []
+        : rollbackStoredValues(this.storage, [
+            { key: CONTROL_ROOMS_KEY, raw: previousState },
+            { key: CONTROL_ROOMS_TRASH_KEY, raw: previousTrash },
+          ])
+      const persistenceError = new ControlRoomsPersistenceError('Control-room save transaction', error, rollbackErrors)
+      this.lastWriteError = persistenceError
+      return { ok: false, error: persistenceError }
     }
   }
 
@@ -868,13 +990,7 @@ export class ControlRoomsStorage {
   }
 
   readMigrationBackup(): ControlRoomsMigrationBackup | null {
-    const parsed = parseStored(this.storage, CONTROL_ROOMS_MIGRATION_BACKUP_KEY)
-    if (parsed == null) return null
-    if (!isRecord(parsed) || parsed.version !== CONTROL_ROOMS_VERSION) {
-      throw new UnknownControlRoomsVersionError(isRecord(parsed) ? parsed.version : undefined)
-    }
-    if (!isRecord(parsed.legacy)) throw new Error('Invalid control-room migration backup')
-    return clone(parsed as ControlRoomsMigrationBackup)
+    return validatedMigrationBackup(parseStored(this.storage, CONTROL_ROOMS_MIGRATION_BACKUP_KEY))
   }
 
   /** Restore only raw legacy keys. New-format room data is intentionally retained for a later retry. */
@@ -884,5 +1000,23 @@ export class ControlRoomsStorage {
     if (backup.rawProjects != null) this.storage.setItem(LEGACY_PROJECTS_KEY, backup.rawProjects)
     if (backup.rawView != null) this.storage.setItem(LEGACY_VIEW_KEY, backup.rawView)
     return true
+  }
+
+  private compatibilityResult(
+    legacyInput: LegacyControlRoomMigrationInput,
+    now: number,
+    error: unknown,
+  ): ControlRoomsLoadResult {
+    const migration = createLegacyMigration(legacyInput, now)
+    const trash = createEmptyControlRoomsTrashState()
+    this.lastGoodState = migration.state
+    this.lastGoodTrash = trash
+    this.lastWriteError = error
+    return {
+      state: clone(migration.state),
+      trash: clone(trash),
+      migrated: false,
+      persistenceError: error,
+    }
   }
 }
