@@ -22141,6 +22141,8 @@ function WorktableSection(props) {
   const roomManageInitialFocusRef = (0, import_react3.useRef)(null);
   const roomManageReturnFocusRef = (0, import_react3.useRef)(null);
   const roomManageResumeFocusRef = (0, import_react3.useRef)(null);
+  const consoleBindDialogRef = (0, import_react3.useRef)(null);
+  const consoleBindReturnFocusRef = (0, import_react3.useRef)(null);
   const [roomMoreOpen, setRoomMoreOpen] = (0, import_react3.useState)(false);
   const [roomDeleteId, setRoomDeleteId] = (0, import_react3.useState)(null);
   const roomDeleteDialogRef = (0, import_react3.useRef)(null);
@@ -22325,7 +22327,7 @@ function WorktableSection(props) {
     });
   }, [roomCreateOpen]);
   (0, import_react3.useEffect)(() => {
-    if (!roomManageId || roomDeleteId || !roomManageDialogRef.current || !roomManageInitialFocusRef.current) return;
+    if (!roomManageId || roomDeleteId || consoleBind || !roomManageDialogRef.current || !roomManageInitialFocusRef.current) return;
     const initialFocus = roomManageResumeFocusRef.current?.isConnected ? roomManageResumeFocusRef.current : roomManageInitialFocusRef.current;
     roomManageResumeFocusRef.current = null;
     return installModalFocusGuard({
@@ -22334,7 +22336,16 @@ function WorktableSection(props) {
       returnFocus: roomManageReturnFocusRef.current,
       onEscape: closeRoomManage
     });
-  }, [roomManageId, roomDeleteId]);
+  }, [roomManageId, roomDeleteId, consoleBind]);
+  (0, import_react3.useEffect)(() => {
+    if (!consoleBind || !consoleBindDialogRef.current) return;
+    return installModalFocusGuard({
+      dialog: consoleBindDialogRef.current,
+      initialFocus: consoleBindDialogRef.current,
+      returnFocus: consoleBindReturnFocusRef.current,
+      onEscape: () => setConsoleBind(null)
+    });
+  }, [consoleBind]);
   (0, import_react3.useEffect)(() => {
     if (!roomDeleteId || !roomDeleteDialogRef.current || !roomDeleteCancelRef.current) return;
     return installModalFocusGuard({
@@ -22943,6 +22954,9 @@ function WorktableSection(props) {
   }, [t]);
   const manageRoomBinding = (roomId, anchor) => {
     if (!controlRoomsRef.current.state.rooms[roomId]) return;
+    const returnFocus = anchor ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    consoleBindReturnFocusRef.current = returnFocus;
+    if (returnFocus && roomManageDialogRef.current?.contains(returnFocus)) roomManageResumeFocusRef.current = returnFocus;
     const r = anchor?.getBoundingClientRect();
     setConsoleBind({
       roomId,
@@ -24702,12 +24716,12 @@ function WorktableSection(props) {
         ))
       ] }, g.title || "g" + gi)) }) });
     })(),
-    consoleBind && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop", style: { zIndex: 85 }, onClick: () => setConsoleBind(null) }),
+    consoleBind && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop", style: { zIndex: 89 }, onClick: () => setConsoleBind(null) }),
     consoleBind && (() => {
       const room = controlRooms.state.rooms[consoleBind.roomId];
       if (!room) return null;
       const bindingState = controlRoomBindingState(room, knownSessionIds());
-      return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_menu dsh-wt_pop dsh-wt_consoleBindPop", style: { position: "fixed", left: consoleBind.x, top: consoleBind.y, width: 560, zIndex: 86 }, children: [
+      return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { ref: consoleBindDialogRef, tabIndex: -1, className: "dsh-wt_menu dsh-wt_pop dsh-wt_consoleBindPop", style: { position: "fixed", left: consoleBind.x, top: consoleBind.y, width: 560, zIndex: 90 }, role: "dialog", "aria-modal": "true", "aria-label": t("rooms.bindingManage"), children: [
         /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_consoleBindingStatus", "data-state": bindingState, children: [
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: bindingState === "missing" ? t("rooms.bindingMissing", { id: room.boundSessionId ?? "" }) : bindingState === "valid" ? t("rooms.bindingCurrent", { name: boundSessionTitle(room.boundSessionId) }) : t("rooms.bindingNone") }),
           room.boundSessionId && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", onClick: clearControlRoomBinding, children: t("bind.unbind") })
@@ -24911,7 +24925,7 @@ function WorktableSection(props) {
     roomManageId && controlRooms.state.rooms[roomManageId] && (() => {
       const room = controlRooms.state.rooms[roomManageId];
       const roomProjectOptions = projectOptionsForRoom(room);
-      return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { ref: roomManageDialogRef, tabIndex: -1, className: "dsh-wt_roomDialog dsh-wt_roomManageDialog", role: "dialog", "aria-modal": roomDeleteId ? void 0 : true, "aria-labelledby": "dsh-wt_roomManageTitle", "aria-hidden": roomDeleteId ? true : void 0, inert: roomDeleteId ? true : void 0, children: [
+      return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { ref: roomManageDialogRef, tabIndex: -1, className: "dsh-wt_roomDialog dsh-wt_roomManageDialog", role: "dialog", "aria-modal": roomDeleteId || consoleBind ? void 0 : true, "aria-labelledby": "dsh-wt_roomManageTitle", "aria-hidden": roomDeleteId || consoleBind ? true : void 0, inert: roomDeleteId || consoleBind ? true : void 0, children: [
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { ref: roomManageInitialFocusRef, type: "button", className: "dsh-wt_settingsClose", "aria-label": t("manage.done"), onClick: closeRoomManage, children: "\u2715" }),
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("h3", { id: "dsh-wt_roomManageTitle", children: t("rooms.manage") }),
         /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
