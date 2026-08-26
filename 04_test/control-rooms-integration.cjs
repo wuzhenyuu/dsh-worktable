@@ -69,6 +69,12 @@ async function main() {
   for (const key of ['rooms.icon', 'rooms.iconPh', 'rooms.description', 'rooms.descriptionPh']) {
     assert.equal(localeSource.split(`'${key}'`).length - 1, 2, `${key} is complete in Chinese and English`)
   }
+  const readmeEn = fs.readFileSync(path.join(repo, 'README.md'), 'utf8')
+  const readmeZh = fs.readFileSync(path.join(repo, 'README.zh.md'), 'utf8')
+  const contentReadme = fs.readFileSync(path.join(repo, '01_content/README.md'), 'utf8')
+  assert.match(readmeEn, /1-4-column card grid mirrors every effective project member in the room/i, 'English README describes per-room effective-member columns')
+  assert.match(readmeZh, /1-4 列卡片网格实时镜像房间内的每个有效项目成员/, 'Chinese README describes per-room effective-member columns')
+  assert.doesNotMatch(contentReadme, /控制室本身可以[^。\n]*排序/, 'content README does not claim control rooms themselves can be reordered')
   const storage = new MemoryStorage()
   const repository = new d.ControlRoomsStorage(storage)
   let { state, trash } = repository.load()

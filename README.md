@@ -38,7 +38,7 @@
 - Global search (`Ctrl+K` or `Ctrl+Shift+P`) covers rooms, projects, bound conversations and rules, with direct navigation descriptors
 - Room configuration can be exported/imported as `dsh-control-rooms-v1.json`; imports remap ID collisions and never overwrite project/session/global settings
 - The browser's `window.__dshWorktable.controlRooms` is a typed manual/debug seam backed by localStorage. It is not an automatic DeepSeek/Host model-tool registration; DeepSeek cannot discover or call these commands until an official Client Tool surface or an explicit adapter is supplied. Destructive actions require an exact confirmation token and are audited locally
-- 3-column card grid mirrors **every** project: working / needs you / done with live runtime, subagent counts and a cleaned message preview
+- 1-4-column card grid mirrors every effective project member in the room: working / needs you / done with live runtime, subagent counts and a cleaned message preview
 - Drag project cards to reorder them; click a card to open its project and bound conversation, or click the control-room card to switch to its bound conversation
 - Event-driven host snapshot mirroring — **zero polling, zero tokens**
 - Glassmorphism cards, dark / light / system theme, neon status glows and a rotating comet on busy cards
