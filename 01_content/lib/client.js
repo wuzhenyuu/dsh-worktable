@@ -8268,6 +8268,8 @@ var css = xterm_default + "\n" + [
   ".dsh-wt_consoleCard:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 52%,#fff 10%);box-shadow:0 0 28px color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 18%,transparent),0 20px 46px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.2)}",
   ".dsh-wt_consoleCardSelf{cursor:pointer;opacity:.97}",
   ".dsh-wt_consoleCardSelf:not([role=button]){cursor:default}",
+  ".dsh-wt_consoleCardMissing{cursor:default;border-style:dashed;opacity:.9}",
+  ".dsh-wt_consoleCardMissing:hover{transform:none}",
   ".dsh-wt_consoleCardDragging{cursor:grabbing;opacity:.52;transform:scale(.97)}",
   ".dsh-wt_consoleCardDropTarget{border-color:color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 78%,#fff 16%);box-shadow:0 0 0 2px color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 42%,transparent),0 0 34px color-mix(in srgb,var(--dsh-glass-accent,#5278ff) 26%,transparent),0 20px 46px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.24)}",
   ".dsh-wt_consoleCardHead{display:flex;align-items:center;gap:13px;min-width:0}",
@@ -8282,6 +8284,7 @@ var css = xterm_default + "\n" + [
   ".dsh-wt_consoleRuntime{flex:none;font-size:17px;font-weight:600;line-height:24px;color:var(--wt-text2);font-variant-numeric:tabular-nums}",
   ".dsh-wt_consolePreview{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;font-size:8.5px;line-height:13px;color:var(--wt-text2);word-break:break-word}",
   ".dsh-wt_consolePreviewNone{color:var(--wt-text3);font-style:italic;-webkit-line-clamp:1}",
+  ".dsh-wt_consoleMissingClean{align-self:flex-start;padding:5px 8px;border:1px solid var(--wt-borderHover);border-radius:7px;background:transparent;color:var(--wt-text2);font:inherit;font-size:10px;cursor:pointer}",
   // 三色光效：整卡霓虹描边光晕（像侧栏双圆点的发光质感）——完成=绿、待决=黄；工作=蓝色描边顺时针旋转
   ".dsh-wt_consoleCard-glowDone{border-color:rgba(63,185,80,.9);box-shadow:0 0 8px rgba(63,185,80,.5),0 0 26px rgba(63,185,80,.3),inset 0 0 16px rgba(63,185,80,.07)}",
   ".dsh-wt_consoleCard-glowNeed{border-color:rgba(210,153,34,.95);box-shadow:0 0 8px rgba(210,153,34,.5),0 0 26px rgba(210,153,34,.3),inset 0 0 16px rgba(210,153,34,.08)}",
@@ -8335,7 +8338,8 @@ var css = xterm_default + "\n" + [
   ".dsh-wt_roomDialog{position:fixed;z-index:88;left:50%;top:50%;width:min(360px,calc(100vw - 24px));max-height:min(620px,calc(100vh - 24px));overflow:auto;box-sizing:border-box;transform:translate(-50%,-50%);display:flex;flex-direction:column;gap:12px;padding:16px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:12px;background:var(--dsw-alias-bg-base,#10141d);box-shadow:0 18px 55px rgba(0,0,0,.55);color:var(--dsw-alias-label-primary,#e6e8eb)}",
   ".dsh-wt_roomDialog h3{margin:0;font-size:14px;line-height:20px}",
   ".dsh-wt_roomDialog>label{display:flex;flex-direction:column;gap:5px;font-size:11px;color:var(--dsw-alias-label-secondary,#aab6cd)}",
-  ".dsh-wt_roomDialog input[type=text],.dsh-wt_roomDialog>label input{box-sizing:border-box;width:100%;padding:6px 8px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:7px;background:var(--dsw-alias-fill-l1,rgba(255,255,255,.03));color:var(--dsw-alias-label-primary,#e6e8eb);font:inherit}",
+  ".dsh-wt_roomDialog input[type=text],.dsh-wt_roomDialog>label input,.dsh-wt_roomDialog>label textarea{box-sizing:border-box;width:100%;padding:6px 8px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:7px;background:var(--dsw-alias-fill-l1,rgba(255,255,255,.03));color:var(--dsw-alias-label-primary,#e6e8eb);font:inherit}",
+  ".dsh-wt_roomDialog>label textarea{min-height:64px;resize:vertical;line-height:1.4}",
   ".dsh-wt_roomLocalSettings{display:grid;grid-template-columns:1fr 1fr;gap:7px}",
   ".dsh-wt_roomLocalSettings label{display:flex;flex-direction:column;gap:4px;font-size:10.5px;color:var(--dsw-alias-label-secondary,#aab6cd)}",
   ".dsh-wt_roomLocalSettings select{box-sizing:border-box;width:100%;padding:5px 7px;border:1px solid var(--dsw-alias-border-l1,#262b36);border-radius:7px;background:var(--dsw-alias-fill-l1,rgba(255,255,255,.03));color:var(--dsw-alias-label-primary,#e6e8eb);font:inherit}",
@@ -8373,8 +8377,10 @@ var css = xterm_default + "\n" + [
   ".dsh-wt_roomCondition{display:grid;grid-template-columns:minmax(105px,.9fr) minmax(105px,.9fr) minmax(130px,1.2fr) auto auto;align-items:center;gap:5px}",
   ".dsh-wt_roomRuleAddCondition{align-self:flex-start}",
   ".dsh-wt_roomRuleAdd{align-self:flex-start}",
-  ".dsh-wt_roomMemberRow{display:grid;grid-template-columns:20px minmax(100px,1fr) auto auto auto;align-items:center;gap:7px;padding:2px 0;font-size:11px;color:var(--dsw-alias-label-primary,#e6e8eb)}",
+  ".dsh-wt_roomMemberRow{display:grid;grid-template-columns:20px minmax(100px,1fr) auto auto auto auto;align-items:center;gap:7px;padding:2px 0;font-size:11px;color:var(--dsw-alias-label-primary,#e6e8eb)}",
+  ".dsh-wt_roomMemberRow>span:nth-child(2){display:flex;min-width:0;flex-direction:column}.dsh-wt_roomMemberRow small{color:var(--dsw-alias-state-warning,#d29922);font-size:9.5px}.dsh-wt_roomMemberRow code{font:inherit;word-break:break-all}",
   ".dsh-wt_roomMemberRow>label{display:flex;align-items:center;gap:3px;white-space:nowrap;color:var(--dsw-alias-label-secondary,#aab6cd);cursor:pointer}",
+  ".dsh-wt_roomMemberRow>button{padding:4px 7px;border:1px solid var(--dsw-alias-state-warning,#d29922);border-radius:6px;background:transparent;color:var(--dsw-alias-state-warning,#d29922);font:inherit;font-size:10px;cursor:pointer}",
   "@media(max-width:680px){.dsh-wt_roomRuleHead,.dsh-wt_roomCondition{grid-template-columns:1fr 1fr}.dsh-wt_roomConditionExclude{justify-self:start}.dsh-wt_roomMemberRow{grid-template-columns:20px 1fr}.dsh-wt_roomMemberRow>label{grid-column:auto}}",
   ".dsh-wt_roomManageActions{justify-content:space-between}",
   ".dsh-wt_roomDialogActions .dsh-wt_roomDanger{border-color:rgba(248,81,73,.5);color:#ff9d9d}",
@@ -8605,6 +8611,10 @@ var zh = {
   "rooms.create": "\u65B0\u5EFA\u63A7\u5236\u5BA4",
   "rooms.name": "\u540D\u79F0",
   "rooms.namePh": "\u8F93\u5165\u63A7\u5236\u5BA4\u540D\u79F0",
+  "rooms.icon": "\u56FE\u6807",
+  "rooms.iconPh": "\u8F93\u5165 emoji \u6216\u7B80\u77ED\u6587\u5B57",
+  "rooms.description": "\u8BF4\u660E",
+  "rooms.descriptionPh": "\u8F93\u5165\u63A7\u5236\u5BA4\u8BF4\u660E",
   "rooms.projectCount": "{count} \u4E2A\u9879\u76EE",
   "rooms.needCount": "{count} \u4E2A\u9879\u76EE\u5F85\u4F60\u51B3\u5B9A",
   "rooms.navLabel": "{name}\uFF0C{projects} \u4E2A\u9879\u76EE\uFF0C{need} \u4E2A\u5F85\u51B3\u5B9A",
@@ -8626,6 +8636,8 @@ var zh = {
   "rooms.bindingManage": "\u7BA1\u7406\u7ED1\u5B9A",
   "rooms.members": "\u9879\u76EE\u6210\u5458",
   "rooms.noProjects": "\u6CA1\u6709\u53EF\u6DFB\u52A0\u7684\u9879\u76EE",
+  "rooms.projectMissing": "\u9879\u76EE\u5DF2\u4E0D\u5B58\u5728",
+  "rooms.cleanMissingReference": "\u6E05\u7406\u6B64\u63A7\u5236\u5BA4\u5F15\u7528",
   "rooms.copy": "\u590D\u5236",
   "rooms.copySuffix": " \u526F\u672C",
   "rooms.hide": "\u9690\u85CF",
@@ -8928,6 +8940,10 @@ var en = {
   "rooms.create": "Create control room",
   "rooms.name": "Name",
   "rooms.namePh": "Enter a control room name",
+  "rooms.icon": "Icon",
+  "rooms.iconPh": "Enter emoji or short text",
+  "rooms.description": "Description",
+  "rooms.descriptionPh": "Enter a control room description",
   "rooms.projectCount": "{count} projects",
   "rooms.needCount": "{count} projects need you",
   "rooms.navLabel": "{name}, {projects} projects, {need} need you",
@@ -8949,6 +8965,8 @@ var en = {
   "rooms.bindingManage": "Manage binding",
   "rooms.members": "Project membership",
   "rooms.noProjects": "No projects are available to add",
+  "rooms.projectMissing": "Project no longer exists",
+  "rooms.cleanMissingReference": "Remove this room reference",
   "rooms.copy": "Copy",
   "rooms.copySuffix": " copy",
   "rooms.hide": "Hide",
@@ -17757,7 +17775,7 @@ function ConsolePane() {
     { mode: "system", icon: "\u{1F5A5}\uFE0F", key: "console.themeSystem" }
   ];
   const openCard = (c) => {
-    if (suppressClickRef.current || !env) return;
+    if (suppressClickRef.current || !env || c.missing) return;
     if (c.glow) env.onAck?.(c.id);
     if (c.self) env.onJump(c.id);
     else env.onOpen(c.id);
@@ -17800,11 +17818,12 @@ function ConsolePane() {
                 "div",
                 {
                   "data-wt-console-project-id": c.id,
-                  role: !c.self || c.bound ? "button" : void 0,
-                  tabIndex: !c.self || c.bound ? 0 : -1,
-                  draggable: !c.self,
-                  "aria-grabbed": !c.self ? dragId === c.id : void 0,
-                  className: "dsh-wt_consoleCard" + (c.self ? " dsh-wt_consoleCardSelf" : "") + (c.status === "busy" ? " dsh-wt_consoleCard-busy" : "") + (c.glow && c.status === "done" ? " dsh-wt_consoleCard-glowDone" : "") + (c.glow && c.status === "need" ? " dsh-wt_consoleCard-glowNeed" : "") + (dragId === c.id ? " dsh-wt_consoleCardDragging" : "") + (dragOverId === c.id ? " dsh-wt_consoleCardDropTarget" : ""),
+                  "data-missing": c.missing ? "true" : void 0,
+                  role: !c.missing && (!c.self || c.bound) ? "button" : void 0,
+                  tabIndex: !c.missing && (!c.self || c.bound) ? 0 : -1,
+                  draggable: !c.self && !c.missing,
+                  "aria-grabbed": !c.self && !c.missing ? dragId === c.id : void 0,
+                  className: "dsh-wt_consoleCard" + (c.self ? " dsh-wt_consoleCardSelf" : "") + (c.status === "busy" ? " dsh-wt_consoleCard-busy" : "") + (c.glow && c.status === "done" ? " dsh-wt_consoleCard-glowDone" : "") + (c.glow && c.status === "need" ? " dsh-wt_consoleCard-glowNeed" : "") + (c.missing ? " dsh-wt_consoleCardMissing" : "") + (dragId === c.id ? " dsh-wt_consoleCardDragging" : "") + (dragOverId === c.id ? " dsh-wt_consoleCardDropTarget" : ""),
                   title: c.name,
                   onClick: () => openCard(c),
                   onKeyDown: (e) => {
@@ -17813,7 +17832,7 @@ function ConsolePane() {
                     openCard(c);
                   },
                   onDragStart: (e) => {
-                    if (c.self) {
+                    if (c.self || c.missing) {
                       e.preventDefault();
                       return;
                     }
@@ -17852,11 +17871,15 @@ function ConsolePane() {
                     ] }),
                     /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "dsh-wt_consoleDivider", "aria-hidden": true }),
                     /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-wt_consoleStatusRow", children: [
-                      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_consoleStatus dsh-wt_consoleStatus-" + c.status, children: statusLabel[c.status] }),
+                      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_consoleStatus dsh-wt_consoleStatus-" + c.status, children: c.missing ? T("rooms.projectMissing") : statusLabel[c.status] }),
                       c.runtimeMs != null && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_consoleRuntime", children: fmtDur(c.runtimeMs) })
                     ] }),
                     c.status === "busy" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-wt_consoleSweep", "aria-hidden": true }),
-                    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "dsh-wt_consolePreview" + (c.preview ? "" : " dsh-wt_consolePreviewNone"), title: c.preview, children: c.preview || (c.bound ? T("console.noPreview") : T("console.unboundShort")) })
+                    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "dsh-wt_consolePreview" + (c.preview ? "" : " dsh-wt_consolePreviewNone"), title: c.preview, children: c.preview || (c.bound ? T("console.noPreview") : T("console.unboundShort")) }),
+                    c.missing && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", { type: "button", className: "dsh-wt_consoleMissingClean", "aria-label": `${T("rooms.cleanMissingReference")}: ${c.id}`, onClick: (event) => {
+                      event.stopPropagation();
+                      env?.onCleanMissing(c.id);
+                    }, children: T("rooms.cleanMissingReference") })
                   ]
                 },
                 c.id
@@ -19344,6 +19367,18 @@ var UnknownControlRoomsVersionError = class extends Error {
     this.version = version;
   }
 };
+var ControlRoomsPersistenceError = class extends Error {
+  writeError;
+  rollbackErrors;
+  constructor(operation, writeError, rollbackErrors = []) {
+    const detail = writeError instanceof Error ? writeError.message : String(writeError);
+    const rollback = rollbackErrors.length > 0 ? `; ${rollbackErrors.length} rollback operation(s) also failed` : "";
+    super(`${operation} failed: ${detail}${rollback}`);
+    this.name = "ControlRoomsPersistenceError";
+    this.writeError = writeError;
+    this.rollbackErrors = rollbackErrors;
+  }
+};
 var EMPTY_FILTERS = {
   statuses: ["idle", "busy", "need", "done"],
   showHidden: false,
@@ -19562,6 +19597,9 @@ function roomFromInput(input, id, now) {
     deletedAt: null
   }, id);
 }
+function nextControlRoomRevision(room, now) {
+  return Math.max(now, room.updatedAt + 1);
+}
 function createControlRoom(state, input, options) {
   const normalized = normalizeControlRoomsState(state);
   const id = options.id || input.id;
@@ -19579,7 +19617,14 @@ function updateControlRoom(state, roomId, patch, now) {
   const normalized = normalizeControlRoomsState(state);
   const current = normalized.rooms[roomId];
   if (!current) return normalized;
-  const room = normalizeControlRoom({ ...current, ...patch, id: roomId, createdAt: current.createdAt, updatedAt: now, deletedAt: null }, roomId);
+  const room = normalizeControlRoom({
+    ...current,
+    ...patch,
+    id: roomId,
+    createdAt: current.createdAt,
+    updatedAt: nextControlRoomRevision(current, now),
+    deletedAt: null
+  }, roomId);
   return { ...normalized, rooms: { ...normalized.rooms, [roomId]: room } };
 }
 function selectControlRoom(state, roomId, now) {
@@ -19624,7 +19669,7 @@ function deleteControlRoom(state, trash, roomId, now) {
   const room = normalized.rooms[roomId];
   if (!room) return { state: normalized, trash: normalizeControlRoomsTrashState(trash), deleted: null };
   const deleted = {
-    room: { ...clone(room), deletedAt: now, updatedAt: now },
+    room: { ...clone(room), deletedAt: now, updatedAt: nextControlRoomRevision(room, now) },
     deletedAt: now,
     expiresAt: now + CONTROL_ROOM_TRASH_TTL_MS
   };
@@ -19658,7 +19703,7 @@ function restoreControlRoom(state, trash, roomId, now) {
     id: restoredId,
     layoutId: restoredId === roomId ? entry.room.layoutId : `wt-console:${restoredId}`,
     deletedAt: null,
-    updatedAt: now
+    updatedAt: nextControlRoomRevision(entry.room, now)
   }, restoredId);
   return {
     state: {
@@ -19811,7 +19856,7 @@ function importControlRooms(current, serialized, now) {
       ...clone(source),
       id: targetId,
       layoutId: targetId === sourceId ? source.layoutId : `wt-console:${targetId}`,
-      updatedAt: now,
+      updatedAt: nextControlRoomRevision(source, now),
       deletedAt: null
     }, targetId);
     appendedOrder.push(targetId);
@@ -19824,6 +19869,36 @@ function importControlRooms(current, serialized, now) {
 function parseStored(storage, key) {
   const raw = storage.getItem(key);
   return raw == null ? null : JSON.parse(raw);
+}
+function parseStoredRaw(raw) {
+  return raw == null ? null : JSON.parse(raw);
+}
+function validatedMigrationBackup(value) {
+  if (value == null) return null;
+  if (!isRecord(value) || value.version !== CONTROL_ROOMS_VERSION) {
+    throw new UnknownControlRoomsVersionError(isRecord(value) ? value.version : void 0);
+  }
+  if (!isRecord(value.legacy)) throw new Error("Invalid control-room migration backup");
+  return clone(value);
+}
+function restoreStoredRaw(storage, key, raw) {
+  if (raw != null) {
+    storage.setItem(key, raw);
+    return;
+  }
+  if (typeof storage.removeItem !== "function") throw new Error(`Storage cannot roll back absent key: ${key}`);
+  storage.removeItem(key);
+}
+function rollbackStoredValues(storage, entries) {
+  const errors2 = [];
+  for (const entry of [...entries].reverse()) {
+    try {
+      restoreStoredRaw(storage, entry.key, entry.raw);
+    } catch (error2) {
+      errors2.push(error2);
+    }
+  }
+  return errors2;
 }
 function createLegacyMigration(input, now) {
   const projectIds = uniqueStrings(input.projectIds);
@@ -19865,47 +19940,118 @@ var ControlRoomsStorage = class {
   lastGoodTrash = null;
   lastWriteError = null;
   load(legacyInput, now = Date.now()) {
-    const storedState = parseStored(this.storage, CONTROL_ROOMS_KEY);
+    let storedState;
+    try {
+      storedState = parseStored(this.storage, CONTROL_ROOMS_KEY);
+    } catch (error2) {
+      if (error2 instanceof UnknownControlRoomsVersionError || !legacyInput) throw error2;
+      return this.compatibilityResult(legacyInput, now, error2);
+    }
     if (storedState != null) {
-      const state = normalizeControlRoomsState(storedState);
-      const storedTrash = parseStored(this.storage, CONTROL_ROOMS_TRASH_KEY);
-      const trash2 = expireDeletedControlRooms(storedTrash == null ? createEmptyControlRoomsTrashState() : normalizeControlRoomsTrashState(storedTrash), now);
+      let state;
+      try {
+        state = normalizeControlRoomsState(storedState);
+      } catch (error2) {
+        if (error2 instanceof UnknownControlRoomsVersionError || !legacyInput) throw error2;
+        return this.compatibilityResult(legacyInput, now, error2);
+      }
+      let trash2;
+      try {
+        const storedTrash = parseStored(this.storage, CONTROL_ROOMS_TRASH_KEY);
+        trash2 = expireDeletedControlRooms(storedTrash == null ? createEmptyControlRoomsTrashState() : normalizeControlRoomsTrashState(storedTrash), now);
+      } catch (error2) {
+        if (error2 instanceof UnknownControlRoomsVersionError) throw error2;
+        trash2 = createEmptyControlRoomsTrashState();
+        this.lastWriteError = error2;
+        this.lastGoodState = state;
+        this.lastGoodTrash = trash2;
+        return { state: clone(state), trash: clone(trash2), migrated: false, persistenceError: error2 };
+      }
       this.lastGoodState = state;
       this.lastGoodTrash = trash2;
-      return { state: clone(state), trash: clone(trash2), migrated: false };
+      this.lastWriteError = null;
+      return { state: clone(state), trash: clone(trash2), migrated: false, persistenceError: null };
+    }
+    let existingTrashRaw;
+    let existingBackupRaw;
+    let existingTrash;
+    try {
+      existingTrashRaw = this.storage.getItem(CONTROL_ROOMS_TRASH_KEY);
+      existingBackupRaw = this.storage.getItem(CONTROL_ROOMS_MIGRATION_BACKUP_KEY);
+      const parsedTrash = parseStoredRaw(existingTrashRaw);
+      existingTrash = expireDeletedControlRooms(
+        parsedTrash == null ? createEmptyControlRoomsTrashState() : normalizeControlRoomsTrashState(parsedTrash),
+        now
+      );
+      validatedMigrationBackup(parseStoredRaw(existingBackupRaw));
+    } catch (error2) {
+      if (error2 instanceof UnknownControlRoomsVersionError || !legacyInput) throw error2;
+      return this.compatibilityResult(legacyInput, now, error2);
     }
     if (!legacyInput) {
       const state = createEmptyControlRoomsState();
-      const trash2 = createEmptyControlRoomsTrashState();
+      const trash2 = existingTrash;
       this.lastGoodState = state;
       this.lastGoodTrash = trash2;
-      return { state: clone(state), trash: clone(trash2), migrated: false };
+      this.lastWriteError = null;
+      return { state: clone(state), trash: clone(trash2), migrated: false, persistenceError: null };
     }
     const migration = createLegacyMigration(legacyInput, now);
-    const trash = createEmptyControlRoomsTrashState();
-    const existingBackup = this.readMigrationBackup();
-    if (!existingBackup) {
-      this.storage.setItem(CONTROL_ROOMS_MIGRATION_BACKUP_KEY, JSON.stringify(migration.backup));
+    const trash = existingTrash;
+    const originals = [
+      { key: CONTROL_ROOMS_MIGRATION_BACKUP_KEY, raw: existingBackupRaw },
+      { key: CONTROL_ROOMS_TRASH_KEY, raw: existingTrashRaw },
+      { key: CONTROL_ROOMS_KEY, raw: null }
+    ];
+    try {
+      if (existingBackupRaw == null) {
+        this.storage.setItem(CONTROL_ROOMS_MIGRATION_BACKUP_KEY, JSON.stringify(migration.backup));
+      }
+      if (existingTrashRaw == null) this.storage.setItem(CONTROL_ROOMS_TRASH_KEY, JSON.stringify(trash));
+      this.storage.setItem(CONTROL_ROOMS_KEY, JSON.stringify(migration.state));
+    } catch (error2) {
+      const persistenceError = new ControlRoomsPersistenceError(
+        "Control-room migration persistence",
+        error2,
+        rollbackStoredValues(this.storage, originals)
+      );
+      this.lastGoodState = migration.state;
+      this.lastGoodTrash = trash;
+      this.lastWriteError = persistenceError;
+      return {
+        state: clone(migration.state),
+        trash: clone(trash),
+        migrated: false,
+        persistenceError
+      };
     }
-    this.storage.setItem(CONTROL_ROOMS_TRASH_KEY, JSON.stringify(trash));
-    this.storage.setItem(CONTROL_ROOMS_KEY, JSON.stringify(migration.state));
     this.lastGoodState = migration.state;
     this.lastGoodTrash = trash;
-    return { state: clone(migration.state), trash: clone(trash), migrated: true };
+    this.lastWriteError = null;
+    return { state: clone(migration.state), trash: clone(trash), migrated: true, persistenceError: null };
   }
   save(state, trash) {
     const nextState = normalizeControlRoomsState(state);
     const nextTrash = normalizeControlRoomsTrashState(trash);
     this.lastGoodState = nextState;
     this.lastGoodTrash = nextTrash;
+    let previousState;
+    let previousTrash;
     try {
+      previousState = this.storage.getItem(CONTROL_ROOMS_KEY);
+      previousTrash = this.storage.getItem(CONTROL_ROOMS_TRASH_KEY);
       this.storage.setItem(CONTROL_ROOMS_KEY, JSON.stringify(nextState));
       this.storage.setItem(CONTROL_ROOMS_TRASH_KEY, JSON.stringify(nextTrash));
       this.lastWriteError = null;
       return { ok: true, error: null };
     } catch (error2) {
-      this.lastWriteError = error2;
-      return { ok: false, error: error2 };
+      const rollbackErrors = previousState === void 0 || previousTrash === void 0 ? [] : rollbackStoredValues(this.storage, [
+        { key: CONTROL_ROOMS_KEY, raw: previousState },
+        { key: CONTROL_ROOMS_TRASH_KEY, raw: previousTrash }
+      ]);
+      const persistenceError = new ControlRoomsPersistenceError("Control-room save transaction", error2, rollbackErrors);
+      this.lastWriteError = persistenceError;
+      return { ok: false, error: persistenceError };
     }
   }
   getLastGood() {
@@ -19916,13 +20062,7 @@ var ControlRoomsStorage = class {
     return this.lastWriteError;
   }
   readMigrationBackup() {
-    const parsed = parseStored(this.storage, CONTROL_ROOMS_MIGRATION_BACKUP_KEY);
-    if (parsed == null) return null;
-    if (!isRecord(parsed) || parsed.version !== CONTROL_ROOMS_VERSION) {
-      throw new UnknownControlRoomsVersionError(isRecord(parsed) ? parsed.version : void 0);
-    }
-    if (!isRecord(parsed.legacy)) throw new Error("Invalid control-room migration backup");
-    return clone(parsed);
+    return validatedMigrationBackup(parseStored(this.storage, CONTROL_ROOMS_MIGRATION_BACKUP_KEY));
   }
   /** Restore only raw legacy keys. New-format room data is intentionally retained for a later retry. */
   restoreLegacyBackup() {
@@ -19931,6 +20071,19 @@ var ControlRoomsStorage = class {
     if (backup.rawProjects != null) this.storage.setItem(LEGACY_PROJECTS_KEY, backup.rawProjects);
     if (backup.rawView != null) this.storage.setItem(LEGACY_VIEW_KEY, backup.rawView);
     return true;
+  }
+  compatibilityResult(legacyInput, now, error2) {
+    const migration = createLegacyMigration(legacyInput, now);
+    const trash = createEmptyControlRoomsTrashState();
+    this.lastGoodState = migration.state;
+    this.lastGoodTrash = trash;
+    this.lastWriteError = error2;
+    return {
+      state: clone(migration.state),
+      trash: clone(trash),
+      migrated: false,
+      persistenceError: error2
+    };
   }
 };
 
@@ -19951,6 +20104,9 @@ var CONTROL_ROOM_COMMAND_OPERATIONS = [
   "control_room.restore",
   "control_room.search"
 ];
+function createControlRoomConfirmationLedger() {
+  return { consumedTokens: /* @__PURE__ */ new Set() };
+}
 var TARGET_ACTIONS = new Set(CONTROL_ROOM_COMMAND_OPERATIONS.filter((action) => action !== "control_room.list" && action !== "control_room.create" && action !== "control_room.search"));
 var UNSUPPORTED_DESTRUCTIVE_ACTIONS = /* @__PURE__ */ new Set([
   "control_room.empty_trash",
@@ -20135,8 +20291,8 @@ function importControlRoomsWithAudit(current, serialized, now, actor) {
     idMap: imported.idMap
   };
 }
-function createControlRoomCommandBridge(adapter) {
-  const consumedConfirmationTokens = /* @__PURE__ */ new Set();
+function createControlRoomCommandBridge(adapter, confirmationLedger = createControlRoomConfirmationLedger()) {
+  const consumedConfirmationTokens = confirmationLedger.consumedTokens;
   const consumedConfirmationFailure = (request) => {
     const token = request.confirmationToken;
     return typeof token === "string" && consumedConfirmationTokens.has(token) ? fail(request.action, "CONFIRMATION_REQUIRED", "This confirmation token was already consumed by a successful mutation.") : null;
@@ -20452,19 +20608,46 @@ function controlRoomLayoutId(roomId) {
 function effectiveControlRoomProjectIds(room, candidateIds, ruleMatchedIds = []) {
   const candidates = candidateIds ? new Set(candidateIds) : null;
   const excluded = new Set(room.excludedProjectIds);
-  const members = new Set([...room.projectIds, ...room.fixedProjectIds, ...ruleMatchedIds].filter((id) => !excluded.has(id)));
+  const liveRuleMatches = ruleMatchedIds.filter((id) => !candidates || candidates.has(id));
+  const members = new Set([...room.projectIds, ...room.fixedProjectIds, ...liveRuleMatches].filter((id) => !excluded.has(id)));
   const result = [];
   const append = (id) => {
     if (!members.has(id) || excluded.has(id) || result.includes(id)) return;
-    if (candidates && !candidates.has(id)) return;
     result.push(id);
   };
   room.projectOrder.forEach(append);
   room.projectIds.forEach(append);
   room.fixedProjectIds.forEach(append);
-  ruleMatchedIds.forEach(append);
+  liveRuleMatches.forEach(append);
   candidateIds?.forEach(append);
   return result;
+}
+function controlRoomProjectReferences(room, liveProjectIds) {
+  const live = new Set(liveProjectIds);
+  const manual = new Set(room.projectIds);
+  const fixed = new Set(room.fixedProjectIds);
+  const excluded = new Set(room.excludedProjectIds);
+  const ids = [];
+  const append = (id) => {
+    if (id && !ids.includes(id) && (manual.has(id) || fixed.has(id) || excluded.has(id))) ids.push(id);
+  };
+  room.projectOrder.forEach(append);
+  room.projectIds.forEach(append);
+  room.fixedProjectIds.forEach(append);
+  room.excludedProjectIds.forEach(append);
+  return ids.map((id) => ({
+    id,
+    missing: !live.has(id),
+    manual: manual.has(id),
+    fixed: fixed.has(id),
+    excluded: excluded.has(id)
+  }));
+}
+function clearMissingControlRoomProjectReference(state, roomId, projectId, liveProjectIds, now) {
+  const room = state.rooms[roomId];
+  if (!room || liveProjectIds.includes(projectId)) return state;
+  const referenced = room.projectIds.includes(projectId) || room.fixedProjectIds.includes(projectId) || room.excludedProjectIds.includes(projectId);
+  return referenced ? removeProjectFromRoom(state, roomId, projectId, now) : state;
 }
 function controlRoomBindingState(room, knownSessionIds2) {
   if (!room.boundSessionId) return "unbound";
@@ -20503,6 +20686,20 @@ function copyControlRoomSplitGeometryInStorage(storage, storageKey, sourceLayout
   } catch {
     return false;
   }
+}
+function createControlRoomAfterCopyCallback(options) {
+  return (sourceControlRoomId, newControlRoomId) => {
+    const sourceLayoutId = options.getSourceLayoutId(sourceControlRoomId) ?? controlRoomLayoutId(sourceControlRoomId);
+    const targetLayoutId = controlRoomLayoutId(newControlRoomId);
+    options.updateViews((views) => copyControlRoomLayoutView(views, sourceLayoutId, targetLayoutId));
+    const geometryCopied = copyControlRoomSplitGeometryInStorage(
+      options.storage,
+      options.storageKey,
+      sourceLayoutId,
+      targetLayoutId
+    );
+    return { sourceLayoutId, targetLayoutId, geometryCopied };
+  };
 }
 function reconcileNeedAckTransitions(seen, current) {
   const next = { ...seen };
@@ -20792,7 +20989,7 @@ function searchControlRooms(input, query) {
   const roomById = new Map(input.rooms.map((room) => [room.id, room]));
   const ownersByProject = /* @__PURE__ */ new Map();
   for (const room of input.rooms) {
-    for (const projectId of room.effectiveProjectIds) {
+    for (const projectId of /* @__PURE__ */ new Set([...room.effectiveProjectIds, ...room.referencedProjectIds ?? []])) {
       const owners = ownersByProject.get(projectId) ?? [];
       if (!owners.includes(room.id)) owners.push(room.id);
       ownersByProject.set(projectId, owners);
@@ -20837,8 +21034,9 @@ function searchControlRooms(input, query) {
       roomIds: [...roomIds],
       roomId,
       relevance: 0,
+      missing: project.missing === true || void 0,
       searchTitle: project.name,
-      searchDetails: [...project.tags, project.workspace],
+      searchDetails: [project.id, ...project.tags, project.workspace],
       recentAt: Math.max(project.lastUsedAt, ...roomIds.map((id) => roomById.get(id)?.lastOpenedAt ?? 0)),
       need: project.status === "need" || roomIds.some((id) => (roomById.get(id)?.needCount ?? 0) > 0),
       current: !!input.currentRoomId && roomIds.includes(input.currentRoomId),
@@ -21887,7 +22085,10 @@ function WorktableSection(props) {
   const [projects, setProjects] = (0, import_react3.useState)(loadProjects);
   const controlRoomsStorageRef = (0, import_react3.useRef)(null);
   if (!controlRoomsStorageRef.current) controlRoomsStorageRef.current = new ControlRoomsStorage(localStorage);
+  const controlRoomConfirmationLedgerRef = (0, import_react3.useRef)(null);
+  if (!controlRoomConfirmationLedgerRef.current) controlRoomConfirmationLedgerRef.current = createControlRoomConfirmationLedger();
   const initialControlRoomsRef = (0, import_react3.useRef)(null);
+  const initialControlRoomsPersistenceErrorRef = (0, import_react3.useRef)(false);
   if (!initialControlRoomsRef.current) {
     const legacyProjectIds = [...new Set([
       ...projects.order,
@@ -21914,6 +22115,7 @@ function WorktableSection(props) {
       rawView
     });
     initialControlRoomsRef.current = { state: loaded.state, trash: loaded.trash };
+    initialControlRoomsPersistenceErrorRef.current = loaded.persistenceError != null;
   }
   const [controlRooms, setControlRooms] = (0, import_react3.useState)(() => initialControlRoomsRef.current);
   const controlRoomsRef = (0, import_react3.useRef)(controlRooms);
@@ -21926,7 +22128,16 @@ function WorktableSection(props) {
   const roomRuleRefreshRef = (0, import_react3.useRef)(null);
   const [roomCreateOpen, setRoomCreateOpen] = (0, import_react3.useState)(false);
   const [roomCreateName, setRoomCreateName] = (0, import_react3.useState)("");
+  const [roomCreateIcon, setRoomCreateIcon] = (0, import_react3.useState)("\u{1F5A5}\uFE0F");
+  const [roomCreateDescription, setRoomCreateDescription] = (0, import_react3.useState)("");
+  const roomCreateDialogRef = (0, import_react3.useRef)(null);
+  const roomCreateNameRef = (0, import_react3.useRef)(null);
+  const roomCreateReturnFocusRef = (0, import_react3.useRef)(null);
   const [roomManageId, setRoomManageId] = (0, import_react3.useState)(null);
+  const roomManageDialogRef = (0, import_react3.useRef)(null);
+  const roomManageInitialFocusRef = (0, import_react3.useRef)(null);
+  const roomManageReturnFocusRef = (0, import_react3.useRef)(null);
+  const roomManageResumeFocusRef = (0, import_react3.useRef)(null);
   const [roomMoreOpen, setRoomMoreOpen] = (0, import_react3.useState)(false);
   const [roomDeleteId, setRoomDeleteId] = (0, import_react3.useState)(null);
   const roomDeleteDialogRef = (0, import_react3.useRef)(null);
@@ -21937,7 +22148,7 @@ function WorktableSection(props) {
   const searchReturnFocusRef = (0, import_react3.useRef)(null);
   const [searchSelection, setSearchSelection] = (0, import_react3.useState)(0);
   const [roomReloadNotice, setRoomReloadNotice] = (0, import_react3.useState)(false);
-  const [roomSaveFailed, setRoomSaveFailed] = (0, import_react3.useState)(false);
+  const [roomSaveFailed, setRoomSaveFailed] = (0, import_react3.useState)(() => initialControlRoomsPersistenceErrorRef.current);
   const [metas, setMetas] = (0, import_react3.useState)({});
   const [registeredIds, setRegisteredIds] = (0, import_react3.useState)(() => [...registryStore.ids]);
   const [addOpen, setAddOpen] = (0, import_react3.useState)(false);
@@ -22033,6 +22244,26 @@ function WorktableSection(props) {
   const [consoleBusy, setConsoleBusy] = (0, import_react3.useState)(false);
   const roomImportInputRef = (0, import_react3.useRef)(null);
   const [roomDataNotice, setRoomDataNotice] = (0, import_react3.useState)(null);
+  const resetRoomCreateDraft = () => {
+    setRoomCreateName("");
+    setRoomCreateIcon("\u{1F5A5}\uFE0F");
+    setRoomCreateDescription("");
+  };
+  const openRoomCreate = (returnFocus) => {
+    roomCreateReturnFocusRef.current = returnFocus ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    resetRoomCreateDraft();
+    setRoomCreateOpen(true);
+  };
+  const closeRoomCreate = () => setRoomCreateOpen(false);
+  const openRoomManage = (roomId, returnFocus) => {
+    roomManageReturnFocusRef.current = returnFocus ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    roomManageResumeFocusRef.current = null;
+    setRoomManageId(roomId);
+  };
+  const closeRoomManage = () => {
+    roomManageResumeFocusRef.current = null;
+    setRoomManageId(null);
+  };
   const commitControlRooms = (mutate) => {
     const next = mutate(controlRoomsRef.current);
     const saved = controlRoomsStorageRef.current.save(next.state, next.trash);
@@ -22081,6 +22312,26 @@ function WorktableSection(props) {
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
+  (0, import_react3.useEffect)(() => {
+    if (!roomCreateOpen || !roomCreateDialogRef.current || !roomCreateNameRef.current) return;
+    return installModalFocusGuard({
+      dialog: roomCreateDialogRef.current,
+      initialFocus: roomCreateNameRef.current,
+      returnFocus: roomCreateReturnFocusRef.current,
+      onEscape: closeRoomCreate
+    });
+  }, [roomCreateOpen]);
+  (0, import_react3.useEffect)(() => {
+    if (!roomManageId || roomDeleteId || !roomManageDialogRef.current || !roomManageInitialFocusRef.current) return;
+    const initialFocus = roomManageResumeFocusRef.current?.isConnected ? roomManageResumeFocusRef.current : roomManageInitialFocusRef.current;
+    roomManageResumeFocusRef.current = null;
+    return installModalFocusGuard({
+      dialog: roomManageDialogRef.current,
+      initialFocus,
+      returnFocus: roomManageReturnFocusRef.current,
+      onEscape: closeRoomManage
+    });
+  }, [roomManageId, roomDeleteId]);
   (0, import_react3.useEffect)(() => {
     if (!roomDeleteId || !roomDeleteDialogRef.current || !roomDeleteCancelRef.current) return;
     return installModalFocusGuard({
@@ -22204,7 +22455,14 @@ function WorktableSection(props) {
     for (const id of ordered) {
       const meta = pr.metas[id];
       const layout = pr.projects.layouts.find((l) => l.id === id);
-      if (!meta && !layout) continue;
+      if (!meta && !layout) {
+        cards.push({
+          ...make(id, t("rooms.projectMissing"), "\u26A0\uFE0F", false),
+          preview: id,
+          missing: true
+        });
+        continue;
+      }
       const name = pr.projects.nameOverrides[id] ?? meta?.name ?? layout?.title ?? id;
       const icon = meta?.icon ?? layout?.icon ?? "\u{1F9F1}";
       cards.push(make(id, name, icon, false));
@@ -22323,6 +22581,15 @@ function WorktableSection(props) {
         onManageBinding: () => {
           const roomId = currentRoomRef.current?.id;
           if (roomId) actionsRef.current?.manageRoomBinding(roomId);
+        },
+        onCleanMissing: (projectId) => {
+          const roomId = currentRoomRef.current?.id;
+          if (!roomId) return;
+          const liveIds = [...projectsRef.current.aliveRegisteredIds, ...projectsRef.current.projects.layouts.map((layout) => layout.id)];
+          commitUserControlRooms(roomId, "clean_missing_project_reference", `Removed missing project reference ${projectId}`, (current, now) => ({
+            ...current,
+            state: clearMissingControlRoomProjectReference(current.state, roomId, projectId, liveIds, now)
+          }));
         },
         onReorder: (id, targetId) => {
           if (!id || !targetId || id === CONSOLE_ID || targetId === CONSOLE_ID || id === targetId) return;
@@ -23103,14 +23370,23 @@ function WorktableSection(props) {
     const primary = new Set(roomNavigation.primaryIds);
     return controlRooms.state.order.filter((id) => !primary.has(id));
   }, [controlRooms.state.order, roomNavigation.primaryIds]);
-  const roomProjectOptions = (0, import_react3.useMemo)(() => allIds.map((id) => {
+  const liveRoomProjectOptions = (0, import_react3.useMemo)(() => allIds.map((id) => {
     const layout = projects.layouts.find((item) => item.id === id);
     return {
       id,
       name: projects.nameOverrides[id] ?? metas[id]?.name ?? layout?.title ?? id,
-      icon: projects.iconOverrides[id] ?? metas[id]?.icon ?? layout?.icon ?? "\u{1F4E6}"
+      icon: projects.iconOverrides[id] ?? metas[id]?.icon ?? layout?.icon ?? "\u{1F4E6}",
+      missing: false
     };
   }), [allIds, projects.layouts, projects.nameOverrides, projects.iconOverrides, metas]);
+  const projectOptionsForRoom = (room) => {
+    const options = [...liveRoomProjectOptions];
+    for (const reference2 of controlRoomProjectReferences(room, allIds)) {
+      if (!reference2.missing || options.some((option) => option.id === reference2.id)) continue;
+      options.push({ id: reference2.id, name: t("rooms.projectMissing"), icon: "\u26A0\uFE0F", missing: true });
+    }
+    return options;
+  };
   const buildControlRoomSearchResponse = (query2, limit) => {
     const factsById = new Map(roomRuleRefresh.facts.map((fact) => [fact.id, fact]));
     const knownSessions = knownSessionIds();
@@ -23126,6 +23402,7 @@ function WorktableSection(props) {
           icon: room.icon,
           description: room.description,
           effectiveProjectIds: roomRuleRefresh.summariesByRoom[room.id]?.memberIds ?? [],
+          referencedProjectIds: controlRoomProjectReferences(room, allIds).filter((reference2) => reference2.missing).map((reference2) => reference2.id),
           boundSessionId: validBoundSession,
           boundSessionTitle: validBoundSession ? boundSessionTitle(validBoundSession) : "",
           rules: room.rules,
@@ -23133,15 +23410,30 @@ function WorktableSection(props) {
           needCount: roomRuleRefresh.summariesByRoom[room.id]?.needCount ?? 0
         }];
       }),
-      projects: ruleProjectInputs.map((project) => ({
-        id: project.id,
-        name: project.name,
-        icon: project.icon,
-        tags: project.tags ?? [],
-        workspace: project.workspace ?? "",
-        lastUsedAt: projects.lastUsed[project.id] ?? project.lastActiveAt ?? 0,
-        status: factsById.get(project.id)?.status ?? "idle"
-      })),
+      projects: [
+        ...ruleProjectInputs.map((project) => ({
+          id: project.id,
+          name: project.name,
+          icon: project.icon,
+          tags: project.tags ?? [],
+          workspace: project.workspace ?? "",
+          lastUsedAt: projects.lastUsed[project.id] ?? project.lastActiveAt ?? 0,
+          status: factsById.get(project.id)?.status ?? "idle"
+        })),
+        ...[...new Set(controlRooms.state.order.flatMap((roomId) => {
+          const room = controlRooms.state.rooms[roomId];
+          return room ? controlRoomProjectReferences(room, allIds).filter((reference2) => reference2.missing).map((reference2) => reference2.id) : [];
+        }))].map((id) => ({
+          id,
+          name: id,
+          icon: "\u26A0\uFE0F",
+          tags: [],
+          workspace: "",
+          lastUsedAt: 0,
+          status: "idle",
+          missing: true
+        }))
+      ],
       ...limit === void 0 ? {} : { limit }
     }, query2);
   };
@@ -23167,15 +23459,23 @@ function WorktableSection(props) {
     while (controlRoomsRef.current.state.rooms[id]) id = `${base2}-${suffix++}`;
     return id;
   };
-  const createNamedRoom = (rawName) => {
+  const createNamedRoom = (rawName, rawIcon = "\u{1F5A5}\uFE0F", rawDescription = "") => {
     const name = rawName.trim();
     if (!name) return;
+    const icon = rawIcon.trim() || "\u{1F5A5}\uFE0F";
+    const description = rawDescription.trim();
     const id = createRoomId();
     commitUserControlRooms(id, "create", "Created control room", (current, now) => {
-      const created = createControlRoom(current.state, { name }, { id, now });
+      const created = createControlRoom(current.state, { name, icon, description }, { id, now });
       return { ...current, state: selectControlRoom(created, id, now) };
     });
   };
+  const afterControlRoomCopy = createControlRoomAfterCopyCallback({
+    getSourceLayoutId: (sourceControlRoomId) => controlRoomsRef.current.state.rooms[sourceControlRoomId]?.layoutId,
+    updateViews: (update) => persistProjects((prev) => ({ ...prev, views: update(prev.views) })),
+    storage: localStorage,
+    storageKey: SPLIT_PERSIST_KEY
+  });
   const closeGlobalSearch = () => persistView({ searchOpen: false, query: "" });
   const openGlobalSearch = (returnFocus) => {
     searchReturnFocusRef.current = returnFocus ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
@@ -23210,9 +23510,9 @@ function WorktableSection(props) {
   }, [roomDeleteId, view.searchOpen]);
   const createRoomFromDialog = () => {
     if (!roomCreateName.trim()) return;
-    createNamedRoom(roomCreateName);
-    setRoomCreateName("");
-    setRoomCreateOpen(false);
+    createNamedRoom(roomCreateName, roomCreateIcon, roomCreateDescription);
+    resetRoomCreateDraft();
+    closeRoomCreate();
   };
   const selectRoomFromNavigation = (roomId, anchor) => {
     setRoomMoreOpen(false);
@@ -23234,7 +23534,8 @@ function WorktableSection(props) {
       ...current,
       state: copyControlRoom(current.state, roomId, { id, now, name: source.name + t("rooms.copySuffix") })
     }));
-    setRoomManageId(id);
+    afterControlRoomCopy(roomId, id);
+    openRoomManage(id, roomManageReturnFocusRef.current);
   };
   const toggleRoomHidden = (roomId) => {
     const room = controlRoomsRef.current.state.rooms[roomId];
@@ -23278,7 +23579,8 @@ function WorktableSection(props) {
       splitStore.close();
       if (transition.openRoomId) openControlRoom(transition.openRoomId);
     }
-    if (roomManageId === roomDeleteId) setRoomManageId(null);
+    if (roomManageId === roomDeleteId) closeRoomManage();
+    roomManageResumeFocusRef.current = null;
     setRoomDeleteId(null);
     window.requestAnimationFrame(() => {
       document.querySelector('.dsh-wt_roomNav[aria-current="page"],.dsh-wt_roomCreate')?.focus();
@@ -23357,6 +23659,12 @@ function WorktableSection(props) {
   const toggleRoomExcluded = (roomId, projectId, excluded) => {
     commitUserControlRooms(roomId, "update_project_policy", `${excluded ? "Excluded" : "Included"} project ${projectId}`, (current, now) => ({ ...current, state: setProjectExcluded(current.state, roomId, projectId, excluded, now) }));
   };
+  const cleanMissingRoomProjectReference = (roomId, projectId) => {
+    commitUserControlRooms(roomId, "clean_missing_project_reference", `Removed missing project reference ${projectId}`, (current, now) => ({
+      ...current,
+      state: clearMissingControlRoomProjectReference(current.state, roomId, projectId, allIds, now)
+    }));
+  };
   const exportRoomConfiguration = () => {
     const blob = new Blob([exportControlRooms(controlRoomsRef.current.state, Date.now())], { type: "application/json" });
     const href = URL.createObjectURL(blob);
@@ -23387,12 +23695,7 @@ function WorktableSection(props) {
       isSessionRunning: (sessionId) => sessionsSnapshotStore.snapshot?.byId?.[sessionId]?.running === true,
       open: openControlRoom,
       search: (query2, limit) => ({ query: query2, ...buildControlRoomSearchResponse(query2, limit) }),
-      afterCopy: (sourceControlRoomId, newControlRoomId) => {
-        const sourceLayoutId = controlRoomsRef.current.state.rooms[sourceControlRoomId]?.layoutId ?? `wt-console:${sourceControlRoomId}`;
-        const targetLayoutId = `wt-console:${newControlRoomId}`;
-        persistProjects((prev) => ({ ...prev, views: copyControlRoomLayoutView(prev.views, sourceLayoutId, targetLayoutId) }));
-        copyControlRoomSplitGeometryInStorage(localStorage, SPLIT_PERSIST_KEY, sourceLayoutId, targetLayoutId);
-      },
+      afterCopy: afterControlRoomCopy,
       afterArchive: (controlRoomId, layoutId) => {
         if (splitStore.active && splitStore.spec?.id === layoutId) {
           splitStore.close();
@@ -23406,7 +23709,7 @@ function WorktableSection(props) {
         persistProjects((prev) => ({ ...prev, views: copyControlRoomLayoutView(prev.views, sourceLayoutId, targetLayoutId) }));
         copyControlRoomSplitGeometryInStorage(localStorage, SPLIT_PERSIST_KEY, sourceLayoutId, targetLayoutId);
       }
-    });
+    }, controlRoomConfirmationLedgerRef.current);
     const debugRoot = window.__dshWorktable ??= {};
     debugRoot.controlRooms = bridge;
     const searchNavigation = (result, actions) => executeControlRoomSearchNavigation(describeControlRoomSearchNavigation(result), actions);
@@ -23435,7 +23738,7 @@ function WorktableSection(props) {
   const openRuleFromSearch = (roomId, ruleId) => {
     if (!controlRoomsRef.current.state.rooms[roomId]) return;
     setRoomMoreOpen(false);
-    setRoomManageId(roomId);
+    openRoomManage(roomId, searchReturnFocusRef.current);
     locateSearchTarget("data-wt-room-rule-id", ruleId);
   };
   const activateSearchResult = (result) => {
@@ -23471,7 +23774,7 @@ function WorktableSection(props) {
           ]
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_roomMenuBtn", "aria-label": t("rooms.manageRoom", { name: room.name }), onClick: () => setRoomManageId(roomId), children: "\u2022\u2022\u2022" })
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_roomMenuBtn", "data-wt-room-manage-id": roomId, "aria-label": t("rooms.manageRoom", { name: room.name }), onClick: (event) => openRoomManage(roomId, event.currentTarget), children: "\u2022\u2022\u2022" })
     ] }, roomId);
   };
   const ownerProps = {
@@ -23899,10 +24202,7 @@ function WorktableSection(props) {
         const room = controlRooms.state.rooms[roomId];
         return { icon: room.icon, name: room.name, onClick: (e) => selectRoomFromNavigation(roomId, e.currentTarget) };
       }),
-      ...controlRooms.state.order.length === 0 ? [{ icon: "\uFF0B", name: t("rooms.create"), onClick: () => {
-        const name = window.prompt(t("rooms.namePh"));
-        if (name) createNamedRoom(name);
-      } }] : [],
+      ...controlRooms.state.order.length === 0 ? [{ icon: "\uFF0B", name: t("rooms.create"), onClick: (e) => openRoomCreate(e.currentTarget) }] : [],
       ...aliveRegisteredIds.map((id) => ({
         icon: projects.iconOverrides[id] ?? metas[id]?.icon ?? "\u{1F4E6}",
         name: projects.nameOverrides[id] ?? metas[id]?.name ?? id,
@@ -24559,7 +24859,11 @@ function WorktableSection(props) {
                         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_globalSearchIcon", "aria-hidden": true, children: result.icon }),
                         /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "dsh-wt_globalSearchText", children: [
                           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: result.title }),
-                          result.subtitle && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("small", { children: result.subtitle })
+                          result.missing ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("small", { children: [
+                            t("rooms.projectMissing"),
+                            " \xB7 ",
+                            result.targetId
+                          ] }) : result.subtitle && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("small", { children: result.subtitle })
                         ] }),
                         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "dsh-wt_globalSearchRoom", children: controlRooms.state.rooms[result.roomId]?.name ?? result.roomId })
                       ]
@@ -24577,29 +24881,72 @@ function WorktableSection(props) {
         ]
       }
     ),
-    roomCreateOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop", style: { zIndex: 87 }, onClick: () => setRoomCreateOpen(false) }),
-    roomCreateOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomDialog", role: "dialog", "aria-modal": "true", "aria-labelledby": "dsh-wt_roomCreateTitle", children: [
+    roomCreateOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop", style: { zIndex: 87 }, onClick: closeRoomCreate }),
+    roomCreateOpen && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { ref: roomCreateDialogRef, tabIndex: -1, className: "dsh-wt_roomDialog", role: "dialog", "aria-modal": "true", "aria-labelledby": "dsh-wt_roomCreateTitle", children: [
       /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("h3", { id: "dsh-wt_roomCreateTitle", children: t("rooms.create") }),
       /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: t("rooms.name") }),
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { autoFocus: true, value: roomCreateName, placeholder: t("rooms.namePh"), onChange: (event) => setRoomCreateName(event.target.value), onKeyDown: (event) => {
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { ref: roomCreateNameRef, "data-wt-room-create-field": "name", value: roomCreateName, placeholder: t("rooms.namePh"), onChange: (event) => setRoomCreateName(event.target.value), onKeyDown: (event) => {
           if (event.key === "Enter") createRoomFromDialog();
         } })
       ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: t("rooms.icon") }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { "data-wt-room-create-field": "icon", "aria-label": t("rooms.icon"), value: roomCreateIcon, placeholder: t("rooms.iconPh"), onChange: (event) => setRoomCreateIcon(event.target.value) })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: t("rooms.description") }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("textarea", { "data-wt-room-create-field": "description", "aria-label": t("rooms.description"), value: roomCreateDescription, placeholder: t("rooms.descriptionPh"), onChange: (event) => setRoomCreateDescription(event.target.value) })
+      ] }),
       /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomDialogActions", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", onClick: () => setRoomCreateOpen(false), children: t("confirm.cancel") }),
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", disabled: !roomCreateName.trim(), onClick: createRoomFromDialog, children: t("rooms.create") })
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", onClick: closeRoomCreate, children: t("confirm.cancel") }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", "data-wt-room-create-submit": true, disabled: !roomCreateName.trim(), onClick: createRoomFromDialog, children: t("rooms.create") })
       ] })
     ] }),
-    roomManageId && controlRooms.state.rooms[roomManageId] && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop", style: { zIndex: 87 }, onClick: () => setRoomManageId(null) }),
+    roomManageId && controlRooms.state.rooms[roomManageId] && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_popBackdrop", style: { zIndex: 87 }, onClick: closeRoomManage }),
     roomManageId && controlRooms.state.rooms[roomManageId] && (() => {
       const room = controlRooms.state.rooms[roomManageId];
-      return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomDialog dsh-wt_roomManageDialog", role: "dialog", "aria-modal": roomDeleteId ? void 0 : true, "aria-labelledby": "dsh-wt_roomManageTitle", "aria-hidden": roomDeleteId ? true : void 0, inert: roomDeleteId ? true : void 0, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_settingsClose", "aria-label": t("manage.done"), onClick: () => setRoomManageId(null), children: "\u2715" }),
+      const roomProjectOptions = projectOptionsForRoom(room);
+      return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { ref: roomManageDialogRef, tabIndex: -1, className: "dsh-wt_roomDialog dsh-wt_roomManageDialog", role: "dialog", "aria-modal": roomDeleteId ? void 0 : true, "aria-labelledby": "dsh-wt_roomManageTitle", "aria-hidden": roomDeleteId ? true : void 0, inert: roomDeleteId ? true : void 0, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { ref: roomManageInitialFocusRef, type: "button", className: "dsh-wt_settingsClose", "aria-label": t("manage.done"), onClick: closeRoomManage, children: "\u2715" }),
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("h3", { id: "dsh-wt_roomManageTitle", children: t("rooms.manage") }),
         /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: t("rooms.name") }),
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(RenameInput, { initial: room.name, placeholder: t("rooms.namePh"), onCommit: (name) => renameRoom(room.id, name) }, room.id + ":" + room.name)
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: t("rooms.icon") }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+            "input",
+            {
+              "data-wt-room-manage-field": "icon",
+              "aria-label": t("rooms.icon"),
+              defaultValue: room.icon,
+              placeholder: t("rooms.iconPh"),
+              onBlur: (event) => {
+                const icon = event.currentTarget.value.trim() || "\u{1F5A5}\uFE0F";
+                if (icon !== room.icon) updateRoomPresentation(room.id, { icon });
+              }
+            },
+            room.id + ":" + room.icon
+          )
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: t("rooms.description") }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+            "textarea",
+            {
+              "data-wt-room-manage-field": "description",
+              "aria-label": t("rooms.description"),
+              defaultValue: room.description,
+              placeholder: t("rooms.descriptionPh"),
+              onBlur: (event) => {
+                const description = event.currentTarget.value.trim();
+                if (description !== room.description) updateRoomPresentation(room.id, { description });
+              }
+            },
+            room.id + ":" + room.description
+          )
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomLocalSettings", children: [
           /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
@@ -24739,7 +25086,14 @@ function WorktableSection(props) {
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("legend", { children: t("rooms.members") }),
           roomProjectOptions.length > 0 ? roomProjectOptions.map((project) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomMemberRow", children: [
             /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { "aria-hidden": true, children: project.icon }),
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: project.name }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { children: [
+              project.name,
+              project.missing && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("small", { children: [
+                t("rooms.projectMissing"),
+                " \xB7 ",
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("code", { children: project.id })
+              ] })
+            ] }),
             /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
               /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { type: "checkbox", checked: room.projectIds.includes(project.id), onChange: (event) => toggleRoomProject(room.id, project.id, event.target.checked) }),
               " ",
@@ -24754,7 +25108,8 @@ function WorktableSection(props) {
               /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { type: "checkbox", checked: room.excludedProjectIds.includes(project.id), onChange: (event) => toggleRoomExcluded(room.id, project.id, event.target.checked) }),
               " ",
               t("rooms.memberExcluded")
-            ] })
+            ] }),
+            project.missing && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", "aria-label": `${t("rooms.cleanMissingReference")}: ${project.id}`, onClick: () => cleanMissingRoomProjectReference(room.id, project.id), children: t("rooms.cleanMissingReference") })
           ] }, project.id)) : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "dsh-wt_roomMembersEmpty", children: t("rooms.noProjects") })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("fieldset", { className: "dsh-wt_roomData", children: [
@@ -24793,9 +25148,10 @@ function WorktableSection(props) {
           ] })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "dsh-wt_roomDialogActions dsh-wt_roomManageActions", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", onClick: () => copyRoom(room.id), children: t("rooms.copy") }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", "data-wt-room-copy-id": room.id, onClick: () => copyRoom(room.id), children: t("rooms.copy") }),
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", onClick: () => toggleRoomHidden(room.id), children: room.sidebarVisible ? t("rooms.hide") : t("rooms.show") }),
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "dsh-wt_roomDanger", onClick: (event) => {
+            roomManageResumeFocusRef.current = event.currentTarget;
             roomDeleteReturnFocusRef.current = event.currentTarget;
             setRoomDeleteId(room.id);
           }, children: t("rooms.delete") })
@@ -24824,7 +25180,7 @@ function WorktableSection(props) {
           " ",
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("kbd", { children: "Ctrl K" })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("button", { type: "button", className: "dsh-wt_roomCreate", onClick: () => setRoomCreateOpen(true), children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("button", { type: "button", className: "dsh-wt_roomCreate", onClick: (event) => openRoomCreate(event.currentTarget), children: [
           "\uFF0B ",
           t("rooms.create")
         ] }),
