@@ -1180,6 +1180,8 @@ function WorktableSection(props: any) {
   const roomManageInitialFocusRef = useRef<HTMLButtonElement | null>(null)
   const roomManageReturnFocusRef = useRef<HTMLElement | null>(null)
   const roomManageResumeFocusRef = useRef<HTMLElement | null>(null)
+  const consoleBindDialogRef = useRef<HTMLDivElement | null>(null)
+  const consoleBindReturnFocusRef = useRef<HTMLElement | null>(null)
   const [roomMoreOpen, setRoomMoreOpen] = useState(false)
   const [roomDeleteId, setRoomDeleteId] = useState<string | null>(null)
   const roomDeleteDialogRef = useRef<HTMLDivElement | null>(null)
@@ -1359,7 +1361,7 @@ function WorktableSection(props: any) {
   }, [roomCreateOpen])
 
   useEffect(() => {
-    if (!roomManageId || roomDeleteId || !roomManageDialogRef.current || !roomManageInitialFocusRef.current) return
+    if (!roomManageId || roomDeleteId || consoleBind || !roomManageDialogRef.current || !roomManageInitialFocusRef.current) return
     const initialFocus = roomManageResumeFocusRef.current?.isConnected
       ? roomManageResumeFocusRef.current
       : roomManageInitialFocusRef.current
@@ -1370,7 +1372,17 @@ function WorktableSection(props: any) {
       returnFocus: roomManageReturnFocusRef.current,
       onEscape: closeRoomManage,
     })
-  }, [roomManageId, roomDeleteId])
+  }, [roomManageId, roomDeleteId, consoleBind])
+
+  useEffect(() => {
+    if (!consoleBind || !consoleBindDialogRef.current) return
+    return installModalFocusGuard({
+      dialog: consoleBindDialogRef.current,
+      initialFocus: consoleBindDialogRef.current,
+      returnFocus: consoleBindReturnFocusRef.current,
+      onEscape: () => setConsoleBind(null),
+    })
+  }, [consoleBind])
 
   useEffect(() => {
     if (!roomDeleteId || !roomDeleteDialogRef.current || !roomDeleteCancelRef.current) return
@@ -1977,6 +1989,9 @@ function buildCustomLayoutPrompt(req: string): string {
 
   const manageRoomBinding = (roomId: string, anchor?: HTMLElement | null) => {
     if (!controlRoomsRef.current.state.rooms[roomId]) return
+    const returnFocus = anchor ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null)
+    consoleBindReturnFocusRef.current = returnFocus
+    if (returnFocus && roomManageDialogRef.current?.contains(returnFocus)) roomManageResumeFocusRef.current = returnFocus
     const r = anchor?.getBoundingClientRect()
     setConsoleBind({
       roomId,
@@ -3715,13 +3730,13 @@ function buildCustomLayoutPrompt(req: string): string {
       })()}
 
       {/* 控制室管理会话绑定：缺失引用保留并标红，可清除或重新绑定；不会删除任何会话。 */}
-      {consoleBind && <div className="dsh-wt_popBackdrop" style={{ zIndex: 85 }} onClick={() => setConsoleBind(null)} />}
+      {consoleBind && <div className="dsh-wt_popBackdrop" style={{ zIndex: 89 }} onClick={() => setConsoleBind(null)} />}
       {consoleBind && (() => {
         const room = controlRooms.state.rooms[consoleBind.roomId]
         if (!room) return null
         const bindingState = controlRoomBindingState(room, knownSessionIds())
         return (
-        <div className="dsh-wt_menu dsh-wt_pop dsh-wt_consoleBindPop" style={{ position: 'fixed', left: consoleBind.x, top: consoleBind.y, width: 560, zIndex: 86 }}>
+        <div ref={consoleBindDialogRef} tabIndex={-1} className="dsh-wt_menu dsh-wt_pop dsh-wt_consoleBindPop" style={{ position: 'fixed', left: consoleBind.x, top: consoleBind.y, width: 560, zIndex: 90 }} role="dialog" aria-modal="true" aria-label={t('rooms.bindingManage')}>
           <div className="dsh-wt_consoleBindingStatus" data-state={bindingState}>
             <span>{bindingState === 'missing'
               ? t('rooms.bindingMissing', { id: room.boundSessionId ?? '' })
@@ -3935,7 +3950,7 @@ function buildCustomLayoutPrompt(req: string): string {
         const room = controlRooms.state.rooms[roomManageId]
         const roomProjectOptions = projectOptionsForRoom(room)
         return (
-          <div ref={roomManageDialogRef} tabIndex={-1} className="dsh-wt_roomDialog dsh-wt_roomManageDialog" role="dialog" aria-modal={roomDeleteId ? undefined : true} aria-labelledby="dsh-wt_roomManageTitle" aria-hidden={roomDeleteId ? true : undefined} inert={roomDeleteId ? true : undefined}>
+          <div ref={roomManageDialogRef} tabIndex={-1} className="dsh-wt_roomDialog dsh-wt_roomManageDialog" role="dialog" aria-modal={roomDeleteId || consoleBind ? undefined : true} aria-labelledby="dsh-wt_roomManageTitle" aria-hidden={roomDeleteId || consoleBind ? true : undefined} inert={roomDeleteId || consoleBind ? true : undefined}>
             <button ref={roomManageInitialFocusRef} type="button" className="dsh-wt_settingsClose" aria-label={t('manage.done')} onClick={closeRoomManage}>✕</button>
             <h3 id="dsh-wt_roomManageTitle">{t('rooms.manage')}</h3>
             <label>

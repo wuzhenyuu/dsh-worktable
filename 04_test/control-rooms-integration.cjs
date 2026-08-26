@@ -65,7 +65,10 @@ async function main() {
   assert.doesNotMatch(indexSource, /window\.prompt\(t\('rooms\.namePh'\)\)/, 'collapsed navigation does not bypass the three-field create dialog')
   assert.match(indexSource, /data-wt-room-manage-field="icon"[\s\S]*updateRoomPresentation\(room\.id, \{ icon \}\)[\s\S]*data-wt-room-manage-field="description"[\s\S]*updateRoomPresentation\(room\.id, \{ description \}\)/, 'the production management controls commit icon and description edits')
   assert.match(indexSource, /roomCreateDialogRef[\s\S]*installModalFocusGuard\([\s\S]*roomCreateNameRef/, 'the production create dialog installs the shared modal focus guard')
-  assert.match(indexSource, /roomManageDialogRef[\s\S]*installModalFocusGuard\([\s\S]*roomDeleteId[\s\S]*\[roomManageId, roomDeleteId\]/, 'the production management guard pauses and resumes around nested deletion')
+  assert.match(indexSource, /if \(!roomManageId \|\| roomDeleteId \|\| consoleBind[\s\S]*roomManageDialogRef[\s\S]*installModalFocusGuard\([\s\S]*\[roomManageId, roomDeleteId, consoleBind\]/, 'the production management guard pauses and resumes around both nested dialogs')
+  assert.match(indexSource, /consoleBindDialogRef[\s\S]*installModalFocusGuard\([\s\S]*setConsoleBind\(null\)/, 'the nested binding dialog owns keyboard focus and Escape handling')
+  assert.match(indexSource, /consoleBind && <div className="dsh-wt_popBackdrop" style=\{\{ zIndex: 89 \}\}[\s\S]*dsh-wt_consoleBindPop[\s\S]*zIndex: 90/, 'the nested binding dialog renders above the management dialog')
+  assert.match(indexSource, /aria-modal=\{roomDeleteId \|\| consoleBind \? undefined : true\}[\s\S]*aria-hidden=\{roomDeleteId \|\| consoleBind \? true : undefined\}[\s\S]*inert=\{roomDeleteId \|\| consoleBind \? true : undefined\}/, 'the background management dialog is hidden and inert while either nested dialog is active')
   const localeSource = fs.readFileSync(path.join(repo, '01_content/src/client/locales.ts'), 'utf8')
   for (const key of ['rooms.icon', 'rooms.iconPh', 'rooms.description', 'rooms.descriptionPh']) {
     assert.equal(localeSource.split(`'${key}'`).length - 1, 2, `${key} is complete in Chinese and English`)
