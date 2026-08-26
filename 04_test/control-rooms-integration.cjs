@@ -58,6 +58,17 @@ async function main() {
   assert.match(String(throwingInitialization.persistenceError), /SecurityError/, 'production initialization exposes the persistence failure')
   const indexSource = fs.readFileSync(path.join(repo, '01_content/src/client/index.tsx'), 'utf8')
   assert.match(indexSource, /initialControlRoomsPersistenceErrorRef\.current = loaded\.persistenceError != null/, 'React initialization wires the repository failure into visible UI state')
+  assert.match(indexSource, /data-wt-room-create-field="icon"[\s\S]*data-wt-room-create-field="description"/, 'the production create dialog renders accessible icon and description controls')
+  assert.match(indexSource, /data-wt-room-manage-field="icon"[\s\S]*data-wt-room-manage-field="description"/, 'the production management dialog renders icon and description controls')
+  assert.match(indexSource, /createNamedRoom\(roomCreateName, roomCreateIcon, roomCreateDescription\)/, 'the production create action persists all three rendered fields')
+  assert.match(indexSource, /createControlRoom\(current\.state, \{ name, icon, description \}/, 'the create path stores icon and description in the domain model')
+  assert.match(indexSource, /data-wt-room-manage-field="icon"[\s\S]*updateRoomPresentation\(room\.id, \{ icon \}\)[\s\S]*data-wt-room-manage-field="description"[\s\S]*updateRoomPresentation\(room\.id, \{ description \}\)/, 'the production management controls commit icon and description edits')
+  assert.match(indexSource, /roomCreateDialogRef[\s\S]*installModalFocusGuard\([\s\S]*roomCreateNameRef/, 'the production create dialog installs the shared modal focus guard')
+  assert.match(indexSource, /roomManageDialogRef[\s\S]*installModalFocusGuard\([\s\S]*roomDeleteId[\s\S]*\[roomManageId, roomDeleteId\]/, 'the production management guard pauses and resumes around nested deletion')
+  const localeSource = fs.readFileSync(path.join(repo, '01_content/src/client/locales.ts'), 'utf8')
+  for (const key of ['rooms.icon', 'rooms.iconPh', 'rooms.description', 'rooms.descriptionPh']) {
+    assert.equal(localeSource.split(`'${key}'`).length - 1, 2, `${key} is complete in Chinese and English`)
+  }
   const storage = new MemoryStorage()
   const repository = new d.ControlRoomsStorage(storage)
   let { state, trash } = repository.load()
@@ -188,6 +199,35 @@ async function main() {
   assert.equal(prevented, 4, 'trapped keys suppress background interaction')
   disposeModal()
   assert.equal(activeElement, returnFocus, 'closing the confirmation restores trigger focus')
+
+  const parentReturn = makeFocusable('parent-return')
+  const parentClose = makeFocusable('parent-close')
+  const deleteTrigger = makeFocusable('delete-trigger')
+  const deleteCancel = makeFocusable('delete-cancel')
+  const nestedDocument = {
+    get activeElement() { return activeElement },
+    addEventListener() {},
+    removeEventListener() {},
+  }
+  const parentDialog = { ownerDocument: nestedDocument, querySelectorAll: () => [parentClose, deleteTrigger], contains: (element) => element === parentClose || element === deleteTrigger }
+  const deleteDialog = { ownerDocument: nestedDocument, querySelectorAll: () => [deleteCancel], contains: (element) => element === deleteCancel }
+  const disposeParentBeforeDelete = modal.installModalFocusGuard({
+    dialog: parentDialog, initialFocus: parentClose, returnFocus: parentReturn, onEscape() {}, schedule: (callback) => callback(),
+  })
+  assert.equal(activeElement, parentClose, 'parent management dialog receives initial focus')
+  disposeParentBeforeDelete()
+  const disposeNestedDelete = modal.installModalFocusGuard({
+    dialog: deleteDialog, initialFocus: deleteCancel, returnFocus: deleteTrigger, onEscape() {}, schedule: (callback) => callback(),
+  })
+  assert.equal(activeElement, deleteCancel, 'nested deletion pauses the parent and receives focus')
+  disposeNestedDelete()
+  assert.equal(activeElement, deleteTrigger, 'closing nested deletion restores its parent-dialog trigger')
+  const disposeResumedParent = modal.installModalFocusGuard({
+    dialog: parentDialog, initialFocus: deleteTrigger, returnFocus: parentReturn, onEscape() {}, schedule: (callback) => callback(),
+  })
+  assert.equal(activeElement, deleteTrigger, 'resumed parent guard keeps focus on the appropriate control')
+  disposeResumedParent()
+  assert.equal(activeElement, parentReturn, 'closing the resumed parent restores the original external trigger')
 
   let deletedRoom0 = null
   for (const roomId of [...state.order]) {

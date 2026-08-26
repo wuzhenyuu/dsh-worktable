@@ -1169,7 +1169,16 @@ function WorktableSection(props: any) {
   const roomRuleRefreshRef = useRef<ControlRoomRuleRefreshResult | null>(null)
   const [roomCreateOpen, setRoomCreateOpen] = useState(false)
   const [roomCreateName, setRoomCreateName] = useState('')
+  const [roomCreateIcon, setRoomCreateIcon] = useState('🖥️')
+  const [roomCreateDescription, setRoomCreateDescription] = useState('')
+  const roomCreateDialogRef = useRef<HTMLDivElement | null>(null)
+  const roomCreateNameRef = useRef<HTMLInputElement | null>(null)
+  const roomCreateReturnFocusRef = useRef<HTMLElement | null>(null)
   const [roomManageId, setRoomManageId] = useState<string | null>(null)
+  const roomManageDialogRef = useRef<HTMLDivElement | null>(null)
+  const roomManageInitialFocusRef = useRef<HTMLButtonElement | null>(null)
+  const roomManageReturnFocusRef = useRef<HTMLElement | null>(null)
+  const roomManageResumeFocusRef = useRef<HTMLElement | null>(null)
   const [roomMoreOpen, setRoomMoreOpen] = useState(false)
   const [roomDeleteId, setRoomDeleteId] = useState<string | null>(null)
   const roomDeleteDialogRef = useRef<HTMLDivElement | null>(null)
@@ -1265,6 +1274,27 @@ function WorktableSection(props: any) {
   const roomImportInputRef = useRef<HTMLInputElement | null>(null)
   const [roomDataNotice, setRoomDataNotice] = useState<'imported' | 'importFailed' | null>(null)
 
+  const resetRoomCreateDraft = () => {
+    setRoomCreateName('')
+    setRoomCreateIcon('🖥️')
+    setRoomCreateDescription('')
+  }
+  const openRoomCreate = (returnFocus?: HTMLElement | null) => {
+    roomCreateReturnFocusRef.current = returnFocus ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null)
+    resetRoomCreateDraft()
+    setRoomCreateOpen(true)
+  }
+  const closeRoomCreate = () => setRoomCreateOpen(false)
+  const openRoomManage = (roomId: string, returnFocus?: HTMLElement | null) => {
+    roomManageReturnFocusRef.current = returnFocus ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null)
+    roomManageResumeFocusRef.current = null
+    setRoomManageId(roomId)
+  }
+  const closeRoomManage = () => {
+    roomManageResumeFocusRef.current = null
+    setRoomManageId(null)
+  }
+
   const commitControlRooms = (mutate: (current: ControlRoomsSnapshot) => ControlRoomsSnapshot): ControlRoomsSnapshot => {
     const next = mutate(controlRoomsRef.current)
     const saved = controlRoomsStorageRef.current!.save(next.state, next.trash)
@@ -1316,6 +1346,30 @@ function WorktableSection(props: any) {
     window.addEventListener('storage', onStorage)
     return () => window.removeEventListener('storage', onStorage)
   }, [])
+
+  useEffect(() => {
+    if (!roomCreateOpen || !roomCreateDialogRef.current || !roomCreateNameRef.current) return
+    return installModalFocusGuard({
+      dialog: roomCreateDialogRef.current,
+      initialFocus: roomCreateNameRef.current,
+      returnFocus: roomCreateReturnFocusRef.current,
+      onEscape: closeRoomCreate,
+    })
+  }, [roomCreateOpen])
+
+  useEffect(() => {
+    if (!roomManageId || roomDeleteId || !roomManageDialogRef.current || !roomManageInitialFocusRef.current) return
+    const initialFocus = roomManageResumeFocusRef.current?.isConnected
+      ? roomManageResumeFocusRef.current
+      : roomManageInitialFocusRef.current
+    roomManageResumeFocusRef.current = null
+    return installModalFocusGuard({
+      dialog: roomManageDialogRef.current,
+      initialFocus,
+      returnFocus: roomManageReturnFocusRef.current,
+      onEscape: closeRoomManage,
+    })
+  }, [roomManageId, roomDeleteId])
 
   useEffect(() => {
     if (!roomDeleteId || !roomDeleteDialogRef.current || !roomDeleteCancelRef.current) return
@@ -2441,12 +2495,14 @@ function buildCustomLayoutPrompt(req: string): string {
     while (controlRoomsRef.current.state.rooms[id]) id = `${base}-${suffix++}`
     return id
   }
-  const createNamedRoom = (rawName: string) => {
+  const createNamedRoom = (rawName: string, rawIcon = '🖥️', rawDescription = '') => {
     const name = rawName.trim()
     if (!name) return
+    const icon = rawIcon.trim() || '🖥️'
+    const description = rawDescription.trim()
     const id = createRoomId()
     commitUserControlRooms(id, 'create', 'Created control room', (current, now) => {
-      const created = createControlRoom(current.state, { name }, { id, now })
+      const created = createControlRoom(current.state, { name, icon, description }, { id, now })
       return { ...current, state: selectControlRoom(created, id, now) }
     })
   }
@@ -2493,8 +2549,9 @@ function buildCustomLayoutPrompt(req: string): string {
   }, [roomDeleteId, view.searchOpen])
   const createRoomFromDialog = () => {
     if (!roomCreateName.trim()) return
-    createNamedRoom(roomCreateName)
-    setRoomCreateName(''); setRoomCreateOpen(false)
+    createNamedRoom(roomCreateName, roomCreateIcon, roomCreateDescription)
+    resetRoomCreateDraft()
+    closeRoomCreate()
   }
   const selectRoomFromNavigation = (roomId: string, anchor: HTMLElement) => {
     setRoomMoreOpen(false)
@@ -2517,7 +2574,7 @@ function buildCustomLayoutPrompt(req: string): string {
       state: copyControlRoom(current.state, roomId, { id, now, name: source.name + t('rooms.copySuffix') }),
     }))
     afterControlRoomCopy(roomId, id)
-    setRoomManageId(id)
+    openRoomManage(id, roomManageReturnFocusRef.current)
   }
   const toggleRoomHidden = (roomId: string) => {
     const room = controlRoomsRef.current.state.rooms[roomId]
@@ -2561,7 +2618,8 @@ function buildCustomLayoutPrompt(req: string): string {
       splitStore.close()
       if (transition.openRoomId) openControlRoom(transition.openRoomId)
     }
-    if (roomManageId === roomDeleteId) setRoomManageId(null)
+    if (roomManageId === roomDeleteId) closeRoomManage()
+    roomManageResumeFocusRef.current = null
     setRoomDeleteId(null)
     window.requestAnimationFrame(() => {
       document.querySelector<HTMLElement>('.dsh-wt_roomNav[aria-current="page"],.dsh-wt_roomCreate')?.focus()
@@ -2737,7 +2795,7 @@ function buildCustomLayoutPrompt(req: string): string {
   const openRuleFromSearch = (roomId: string, ruleId: string) => {
     if (!controlRoomsRef.current.state.rooms[roomId]) return
     setRoomMoreOpen(false)
-    setRoomManageId(roomId)
+    openRoomManage(roomId, searchReturnFocusRef.current)
     locateSearchTarget('data-wt-room-rule-id', ruleId)
   }
   const activateSearchResult = (result: ControlRoomSearchResult) => {
@@ -2771,7 +2829,7 @@ function buildCustomLayoutPrompt(req: string): string {
           {needCount > 0 && <span className="dsh-wt_roomNeed" title={t('rooms.needCount', { count: String(needCount) })}>{needCount}</span>}
           {inMore && !room.sidebarVisible && <span className="dsh-wt_roomHidden">{t('rooms.hidden')}</span>}
         </button>
-        <button type="button" className="dsh-wt_roomMenuBtn" aria-label={t('rooms.manageRoom', { name: room.name })} onClick={() => setRoomManageId(roomId)}>•••</button>
+        <button type="button" className="dsh-wt_roomMenuBtn" data-wt-room-manage-id={roomId} aria-label={t('rooms.manageRoom', { name: room.name })} onClick={(event) => openRoomManage(roomId, event.currentTarget)}>•••</button>
       </div>
     )
   }
@@ -3850,32 +3908,68 @@ function buildCustomLayoutPrompt(req: string): string {
         </div>
       )}
 
-      {roomCreateOpen && <div className="dsh-wt_popBackdrop" style={{ zIndex: 87 }} onClick={() => setRoomCreateOpen(false)} />}
+      {roomCreateOpen && <div className="dsh-wt_popBackdrop" style={{ zIndex: 87 }} onClick={closeRoomCreate} />}
       {roomCreateOpen && (
-        <div className="dsh-wt_roomDialog" role="dialog" aria-modal="true" aria-labelledby="dsh-wt_roomCreateTitle">
+        <div ref={roomCreateDialogRef} tabIndex={-1} className="dsh-wt_roomDialog" role="dialog" aria-modal="true" aria-labelledby="dsh-wt_roomCreateTitle">
           <h3 id="dsh-wt_roomCreateTitle">{t('rooms.create')}</h3>
           <label>
             <span>{t('rooms.name')}</span>
-            <input autoFocus value={roomCreateName} placeholder={t('rooms.namePh')} onChange={(event) => setRoomCreateName(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') createRoomFromDialog() }} />
+            <input ref={roomCreateNameRef} data-wt-room-create-field="name" value={roomCreateName} placeholder={t('rooms.namePh')} onChange={(event) => setRoomCreateName(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') createRoomFromDialog() }} />
+          </label>
+          <label>
+            <span>{t('rooms.icon')}</span>
+            <input data-wt-room-create-field="icon" aria-label={t('rooms.icon')} value={roomCreateIcon} placeholder={t('rooms.iconPh')} onChange={(event) => setRoomCreateIcon(event.target.value)} />
+          </label>
+          <label>
+            <span>{t('rooms.description')}</span>
+            <textarea data-wt-room-create-field="description" aria-label={t('rooms.description')} value={roomCreateDescription} placeholder={t('rooms.descriptionPh')} onChange={(event) => setRoomCreateDescription(event.target.value)} />
           </label>
           <div className="dsh-wt_roomDialogActions">
-            <button type="button" onClick={() => setRoomCreateOpen(false)}>{t('confirm.cancel')}</button>
-            <button type="button" disabled={!roomCreateName.trim()} onClick={createRoomFromDialog}>{t('rooms.create')}</button>
+            <button type="button" onClick={closeRoomCreate}>{t('confirm.cancel')}</button>
+            <button type="button" data-wt-room-create-submit disabled={!roomCreateName.trim()} onClick={createRoomFromDialog}>{t('rooms.create')}</button>
           </div>
         </div>
       )}
 
-      {roomManageId && controlRooms.state.rooms[roomManageId] && <div className="dsh-wt_popBackdrop" style={{ zIndex: 87 }} onClick={() => setRoomManageId(null)} />}
+      {roomManageId && controlRooms.state.rooms[roomManageId] && <div className="dsh-wt_popBackdrop" style={{ zIndex: 87 }} onClick={closeRoomManage} />}
       {roomManageId && controlRooms.state.rooms[roomManageId] && (() => {
         const room = controlRooms.state.rooms[roomManageId]
         const roomProjectOptions = projectOptionsForRoom(room)
         return (
-          <div className="dsh-wt_roomDialog dsh-wt_roomManageDialog" role="dialog" aria-modal={roomDeleteId ? undefined : true} aria-labelledby="dsh-wt_roomManageTitle" aria-hidden={roomDeleteId ? true : undefined} inert={roomDeleteId ? true : undefined}>
-            <button type="button" className="dsh-wt_settingsClose" aria-label={t('manage.done')} onClick={() => setRoomManageId(null)}>✕</button>
+          <div ref={roomManageDialogRef} tabIndex={-1} className="dsh-wt_roomDialog dsh-wt_roomManageDialog" role="dialog" aria-modal={roomDeleteId ? undefined : true} aria-labelledby="dsh-wt_roomManageTitle" aria-hidden={roomDeleteId ? true : undefined} inert={roomDeleteId ? true : undefined}>
+            <button ref={roomManageInitialFocusRef} type="button" className="dsh-wt_settingsClose" aria-label={t('manage.done')} onClick={closeRoomManage}>✕</button>
             <h3 id="dsh-wt_roomManageTitle">{t('rooms.manage')}</h3>
             <label>
               <span>{t('rooms.name')}</span>
               <RenameInput key={room.id + ':' + room.name} initial={room.name} placeholder={t('rooms.namePh')} onCommit={(name) => renameRoom(room.id, name)} />
+            </label>
+            <label>
+              <span>{t('rooms.icon')}</span>
+              <input
+                key={room.id + ':' + room.icon}
+                data-wt-room-manage-field="icon"
+                aria-label={t('rooms.icon')}
+                defaultValue={room.icon}
+                placeholder={t('rooms.iconPh')}
+                onBlur={(event) => {
+                  const icon = event.currentTarget.value.trim() || '🖥️'
+                  if (icon !== room.icon) updateRoomPresentation(room.id, { icon })
+                }}
+              />
+            </label>
+            <label>
+              <span>{t('rooms.description')}</span>
+              <textarea
+                key={room.id + ':' + room.description}
+                data-wt-room-manage-field="description"
+                aria-label={t('rooms.description')}
+                defaultValue={room.description}
+                placeholder={t('rooms.descriptionPh')}
+                onBlur={(event) => {
+                  const description = event.currentTarget.value.trim()
+                  if (description !== room.description) updateRoomPresentation(room.id, { description })
+                }}
+              />
             </label>
             <div className="dsh-wt_roomLocalSettings">
               <label>
@@ -4058,9 +4152,13 @@ function buildCustomLayoutPrompt(req: string): string {
               </details>
             </fieldset>
             <div className="dsh-wt_roomDialogActions dsh-wt_roomManageActions">
-              <button type="button" onClick={() => copyRoom(room.id)}>{t('rooms.copy')}</button>
+              <button type="button" data-wt-room-copy-id={room.id} onClick={() => copyRoom(room.id)}>{t('rooms.copy')}</button>
               <button type="button" onClick={() => toggleRoomHidden(room.id)}>{room.sidebarVisible ? t('rooms.hide') : t('rooms.show')}</button>
-              <button type="button" className="dsh-wt_roomDanger" onClick={(event) => { roomDeleteReturnFocusRef.current = event.currentTarget; setRoomDeleteId(room.id) }}>{t('rooms.delete')}</button>
+              <button type="button" className="dsh-wt_roomDanger" onClick={(event) => {
+                roomManageResumeFocusRef.current = event.currentTarget
+                roomDeleteReturnFocusRef.current = event.currentTarget
+                setRoomDeleteId(room.id)
+              }}>{t('rooms.delete')}</button>
             </div>
           </div>
         )
@@ -4084,7 +4182,7 @@ function buildCustomLayoutPrompt(req: string): string {
           <button type="button" className="dsh-wt_roomSearch" aria-keyshortcuts="Control+K Control+Shift+P" onClick={(event) => openGlobalSearch(event.currentTarget)}>
             <span aria-hidden>⌕</span> {t('rooms.search')} <kbd>Ctrl K</kbd>
           </button>
-          <button type="button" className="dsh-wt_roomCreate" onClick={() => setRoomCreateOpen(true)}>＋ {t('rooms.create')}</button>
+          <button type="button" className="dsh-wt_roomCreate" onClick={(event) => openRoomCreate(event.currentTarget)}>＋ {t('rooms.create')}</button>
           {(roomMoreIds.length > 0 || controlRooms.trash.deleted.length > 0) && (
             <button type="button" className="dsh-wt_roomMoreBtn" aria-expanded={roomMoreOpen} onClick={() => setRoomMoreOpen((open) => !open)}>
               {t('rooms.more')} {roomMoreOpen ? '▴' : '▾'}
