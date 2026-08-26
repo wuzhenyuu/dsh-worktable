@@ -139,6 +139,15 @@ export type ControlRoomCommandBridge = {
   execute(request: ControlRoomCommandRequest | unknown): ControlRoomCommandResult
 }
 
+export type ControlRoomConfirmationLedger = {
+  /** Component-lifetime single-use record; it intentionally survives bridge adapter reconstruction. */
+  consumedTokens: Set<string>
+}
+
+export function createControlRoomConfirmationLedger(): ControlRoomConfirmationLedger {
+  return { consumedTokens: new Set<string>() }
+}
+
 const TARGET_ACTIONS = new Set<string>(CONTROL_ROOM_COMMAND_OPERATIONS.filter((action) =>
   action !== 'control_room.list' && action !== 'control_room.create' && action !== 'control_room.search'))
 
@@ -382,8 +391,11 @@ export function importControlRoomsWithAudit(
   }
 }
 
-export function createControlRoomCommandBridge(adapter: ControlRoomCommandAdapter): ControlRoomCommandBridge {
-  const consumedConfirmationTokens = new Set<string>()
+export function createControlRoomCommandBridge(
+  adapter: ControlRoomCommandAdapter,
+  confirmationLedger: ControlRoomConfirmationLedger = createControlRoomConfirmationLedger(),
+): ControlRoomCommandBridge {
+  const consumedConfirmationTokens = confirmationLedger.consumedTokens
 
   const consumedConfirmationFailure = (request: Record<string, unknown>): ControlRoomCommandResult | null => {
     const token = request.confirmationToken

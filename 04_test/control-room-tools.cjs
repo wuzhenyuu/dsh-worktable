@@ -305,6 +305,51 @@ async function main() {
     assert.equal(JSON.stringify(snapshot), changedRevisionBefore)
   }
 
+  // Catches: same-millisecond mutations or React effect bridge reconstruction reviving a consumed token.
+  {
+    const ledger = commands.createControlRoomConfirmationLedger()
+    const frozenAdapter = { ...adapter, now: () => 777_000 }
+    const firstBridge = commands.createControlRoomCommandBridge(frozenAdapter, ledger)
+    assert.equal(firstBridge.execute({
+      action: 'control_room.create',
+      controlRoomId: 'same-ms-ledger-room',
+      room: { projectIds: knownProjects, projectOrder: knownProjects },
+    }).ok, true)
+    const initialRevision = snapshot.state.rooms['same-ms-ledger-room'].updatedAt
+    const removeRequest = {
+      action: 'control_room.remove_projects',
+      controlRoomId: 'same-ms-ledger-room',
+      projectIds: ['p1', 'p2', 'p3', 'p4', 'p5'],
+    }
+    const blocked = firstBridge.execute(removeRequest)
+    assert.equal(blocked.error.code, 'CONFIRMATION_REQUIRED')
+    assert.equal(firstBridge.execute({ ...removeRequest, confirmationToken: blocked.confirmation.token }).ok, true)
+    assert.ok(snapshot.state.rooms['same-ms-ledger-room'].updatedAt > initialRevision, 'successful same-millisecond mutation advances the room revision')
+
+    const afterSuccess = JSON.stringify(snapshot)
+    const rebuiltBridge = commands.createControlRoomCommandBridge(frozenAdapter, ledger)
+    const replayed = rebuiltBridge.execute({ ...removeRequest, confirmationToken: blocked.confirmation.token })
+    assert.equal(replayed.ok, false)
+    assert.equal(replayed.error.code, 'CONFIRMATION_REQUIRED')
+    assert.equal(JSON.stringify(snapshot), afterSuccess, 'replayed token after bridge reconstruction changes no state, trash, or audit')
+
+    assert.equal(firstBridge.execute({
+      action: 'control_room.create',
+      controlRoomId: 'same-ms-revision-room',
+      room: { projectIds: knownProjects, projectOrder: knownProjects },
+    }).ok, true)
+    const revisionRequest = { ...removeRequest, controlRoomId: 'same-ms-revision-room' }
+    const stale = firstBridge.execute(revisionRequest)
+    assert.equal(stale.error.code, 'CONFIRMATION_REQUIRED')
+    assert.equal(firstBridge.execute({ action: 'control_room.update', controlRoomId: 'same-ms-revision-room', patch: { description: 'same clock tick' } }).ok, true)
+    const beforeStaleReplay = JSON.stringify(snapshot)
+    const staleReplay = rebuiltBridge.execute({ ...revisionRequest, confirmationToken: stale.confirmation.token })
+    assert.equal(staleReplay.ok, false)
+    assert.equal(staleReplay.error.code, 'CONFIRMATION_REQUIRED')
+    assert.notEqual(staleReplay.confirmation.token, stale.confirmation.token)
+    assert.equal(JSON.stringify(snapshot), beforeStaleReplay, 'stale same-millisecond token changes no state, trash, or audit')
+  }
+
   // Catches: hidden bulk/master-data deletions becoming executable through the fallback.
   {
     for (const action of ['control_room.empty_trash', 'control_room.update_many', 'control_room.remove_project_from_all_rooms', 'control_room.delete_project_master_data']) {

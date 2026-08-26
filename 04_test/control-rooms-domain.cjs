@@ -91,6 +91,14 @@ async function main() {
     assert.equal(state.rooms['room-a'].updatedAt, NOW + 10)
   })
 
+  test('room revisions remain monotonic when multiple mutations share one millisecond', () => {
+    const created = create(empty(), 'room-same-ms', NOW)
+    const first = d.updateControlRoom(created, 'room-same-ms', { description: 'first' }, NOW)
+    const second = d.selectControlRoom(first, 'room-same-ms', NOW)
+    assert.equal(first.rooms['room-same-ms'].updatedAt, NOW + 1)
+    assert.equal(second.rooms['room-same-ms'].updatedAt, NOW + 2)
+  })
+
   test('copy duplicates configuration but not binding', () => {
     const before = create(empty(), 'room-a', NOW, {
       projectIds: ['p1'], projectOrder: ['p1'], boundSessionId: 'session-secret', themeMode: 'dark',

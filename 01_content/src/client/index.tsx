@@ -32,6 +32,7 @@ import {
   type ControlRoomsTrashState,
 } from './controlRooms'
 import {
+  createControlRoomConfirmationLedger,
   createControlRoomCommandBridge,
   importControlRoomsWithAudit,
   type ControlRoomCommandBridge,
@@ -1128,6 +1129,8 @@ function WorktableSection(props: any) {
   const [projects, setProjects] = useState<ProjectsState>(loadProjects)
   const controlRoomsStorageRef = useRef<ControlRoomsStorage | null>(null)
   if (!controlRoomsStorageRef.current) controlRoomsStorageRef.current = new ControlRoomsStorage(localStorage)
+  const controlRoomConfirmationLedgerRef = useRef<ReturnType<typeof createControlRoomConfirmationLedger> | null>(null)
+  if (!controlRoomConfirmationLedgerRef.current) controlRoomConfirmationLedgerRef.current = createControlRoomConfirmationLedger()
   const initialControlRoomsRef = useRef<ControlRoomsSnapshot | null>(null)
   const initialControlRoomsPersistenceErrorRef = useRef(false)
   if (!initialControlRoomsRef.current) {
@@ -2638,7 +2641,7 @@ function buildCustomLayoutPrompt(req: string): string {
         persistProjects((prev) => ({ ...prev, views: copyControlRoomLayoutView(prev.views, sourceLayoutId, targetLayoutId) }))
         copyControlRoomSplitGeometryInStorage(localStorage, SPLIT_PERSIST_KEY, sourceLayoutId, targetLayoutId)
       },
-    })
+    }, controlRoomConfirmationLedgerRef.current!)
     const debugRoot = ((window as any).__dshWorktable ??= {}) as {
       splitStore?: typeof splitStore
       controlRooms?: ControlRoomCommandBridge

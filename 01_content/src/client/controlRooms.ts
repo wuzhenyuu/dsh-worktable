@@ -431,6 +431,10 @@ function roomFromInput(input: ControlRoomCreateInput, id: string, now: number): 
   }, id)
 }
 
+function nextControlRoomRevision(room: Pick<ControlRoom, 'updatedAt'>, now: number): number {
+  return Math.max(now, room.updatedAt + 1)
+}
+
 export function createControlRoom(
   state: ControlRoomsState,
   input: ControlRoomCreateInput,
@@ -458,7 +462,14 @@ export function updateControlRoom(
   const normalized = normalizeControlRoomsState(state)
   const current = normalized.rooms[roomId]
   if (!current) return normalized
-  const room = normalizeControlRoom({ ...current, ...patch, id: roomId, createdAt: current.createdAt, updatedAt: now, deletedAt: null }, roomId)
+  const room = normalizeControlRoom({
+    ...current,
+    ...patch,
+    id: roomId,
+    createdAt: current.createdAt,
+    updatedAt: nextControlRoomRevision(current, now),
+    deletedAt: null,
+  }, roomId)
   return { ...normalized, rooms: { ...normalized.rooms, [roomId]: room } }
 }
 
@@ -532,7 +543,7 @@ export function deleteControlRoom(
   const room = normalized.rooms[roomId]
   if (!room) return { state: normalized, trash: normalizeControlRoomsTrashState(trash), deleted: null }
   const deleted: DeletedControlRoom = {
-    room: { ...clone(room), deletedAt: now, updatedAt: now },
+    room: { ...clone(room), deletedAt: now, updatedAt: nextControlRoomRevision(room, now) },
     deletedAt: now,
     expiresAt: now + CONTROL_ROOM_TRASH_TTL_MS,
   }
@@ -573,7 +584,7 @@ export function restoreControlRoom(
     id: restoredId,
     layoutId: restoredId === roomId ? entry.room.layoutId : `wt-console:${restoredId}`,
     deletedAt: null,
-    updatedAt: now,
+    updatedAt: nextControlRoomRevision(entry.room, now),
   }, restoredId)
   return {
     state: {
@@ -763,7 +774,7 @@ export function importControlRooms(
       ...clone(source),
       id: targetId,
       layoutId: targetId === sourceId ? source.layoutId : `wt-console:${targetId}`,
-      updatedAt: now,
+      updatedAt: nextControlRoomRevision(source, now),
       deletedAt: null,
     }, targetId)
     appendedOrder.push(targetId)
