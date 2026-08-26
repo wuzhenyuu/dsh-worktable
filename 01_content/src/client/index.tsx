@@ -39,7 +39,9 @@ import {
 } from './controlRoomCommands'
 import {
   autoBindControlRoomSession,
+  clearMissingControlRoomProjectReference,
   controlRoomBindingState,
+  controlRoomProjectReferences,
   createControlRoomAfterCopyCallback,
   copyControlRoomLayoutView,
   copyControlRoomSplitGeometryInStorage,
@@ -1453,7 +1455,14 @@ function WorktableSection(props: any) {
     for (const id of ordered) {
       const meta = pr.metas[id]
       const layout = pr.projects.layouts.find((l) => l.id === id)
-      if (!meta && !layout) continue
+      if (!meta && !layout) {
+        cards.push({
+          ...make(id, t('rooms.projectMissing'), '⚠️', false),
+          preview: id,
+          missing: true,
+        })
+        continue
+      }
       const name = pr.projects.nameOverrides[id] ?? meta?.name ?? layout?.title ?? id
       const icon = meta?.icon ?? layout?.icon ?? '🧱'
       cards.push(make(id, name, icon, false))
@@ -1564,6 +1573,15 @@ function WorktableSection(props: any) {
         onManageBinding: () => {
           const roomId = currentRoomRef.current?.id
           if (roomId) actionsRef.current?.manageRoomBinding(roomId)
+        },
+        onCleanMissing: (projectId) => {
+          const roomId = currentRoomRef.current?.id
+          if (!roomId) return
+          const liveIds = [...projectsRef.current.aliveRegisteredIds, ...projectsRef.current.projects.layouts.map((layout) => layout.id)]
+          commitUserControlRooms(roomId, 'clean_missing_project_reference', `Removed missing project reference ${projectId}`, (current, now) => ({
+            ...current,
+            state: clearMissingControlRoomProjectReference(current.state, roomId, projectId, liveIds, now),
+          }))
         },
         onReorder: (id, targetId) => {
           if (!id || !targetId || id === CONSOLE_ID || targetId === CONSOLE_ID || id === targetId) return
@@ -2331,14 +2349,23 @@ function buildCustomLayoutPrompt(req: string): string {
     const primary = new Set(roomNavigation.primaryIds)
     return controlRooms.state.order.filter((id) => !primary.has(id))
   }, [controlRooms.state.order, roomNavigation.primaryIds])
-  const roomProjectOptions = useMemo(() => allIds.map((id) => {
+  const liveRoomProjectOptions = useMemo(() => allIds.map((id) => {
     const layout = projects.layouts.find((item) => item.id === id)
     return {
       id,
       name: projects.nameOverrides[id] ?? metas[id]?.name ?? layout?.title ?? id,
       icon: projects.iconOverrides[id] ?? metas[id]?.icon ?? layout?.icon ?? '📦',
+      missing: false,
     }
   }), [allIds, projects.layouts, projects.nameOverrides, projects.iconOverrides, metas])
+  const projectOptionsForRoom = (room: ControlRoom) => {
+    const options = [...liveRoomProjectOptions]
+    for (const reference of controlRoomProjectReferences(room, allIds)) {
+      if (!reference.missing || options.some((option) => option.id === reference.id)) continue
+      options.push({ id: reference.id, name: t('rooms.projectMissing'), icon: '⚠️', missing: true })
+    }
+    return options
+  }
   const buildControlRoomSearchResponse = (query: string, limit?: number) => {
     const factsById = new Map(roomRuleRefresh.facts.map((fact) => [fact.id, fact]))
     const knownSessions = knownSessionIds()
@@ -2354,6 +2381,7 @@ function buildCustomLayoutPrompt(req: string): string {
           icon: room.icon,
           description: room.description,
           effectiveProjectIds: roomRuleRefresh.summariesByRoom[room.id]?.memberIds ?? [],
+          referencedProjectIds: controlRoomProjectReferences(room, allIds).filter((reference) => reference.missing).map((reference) => reference.id),
           boundSessionId: validBoundSession,
           boundSessionTitle: validBoundSession ? boundSessionTitle(validBoundSession) : '',
           rules: room.rules,
@@ -2361,15 +2389,30 @@ function buildCustomLayoutPrompt(req: string): string {
           needCount: roomRuleRefresh.summariesByRoom[room.id]?.needCount ?? 0,
         }]
       }),
-      projects: ruleProjectInputs.map((project) => ({
-        id: project.id,
-        name: project.name,
-        icon: project.icon,
-        tags: project.tags ?? [],
-        workspace: project.workspace ?? '',
-        lastUsedAt: projects.lastUsed[project.id] ?? project.lastActiveAt ?? 0,
-        status: factsById.get(project.id)?.status ?? 'idle',
-      })),
+      projects: [
+        ...ruleProjectInputs.map((project) => ({
+          id: project.id,
+          name: project.name,
+          icon: project.icon,
+          tags: project.tags ?? [],
+          workspace: project.workspace ?? '',
+          lastUsedAt: projects.lastUsed[project.id] ?? project.lastActiveAt ?? 0,
+          status: factsById.get(project.id)?.status ?? 'idle' as const,
+        })),
+        ...[...new Set(controlRooms.state.order.flatMap((roomId) => {
+          const room = controlRooms.state.rooms[roomId]
+          return room ? controlRoomProjectReferences(room, allIds).filter((reference) => reference.missing).map((reference) => reference.id) : []
+        }))].map((id) => ({
+          id,
+          name: id,
+          icon: '⚠️',
+          tags: [],
+          workspace: '',
+          lastUsedAt: 0,
+          status: 'idle' as const,
+          missing: true,
+        })),
+      ],
       ...(limit === undefined ? {} : { limit }),
     }, query)
   }
@@ -2596,6 +2639,12 @@ function buildCustomLayoutPrompt(req: string): string {
   }
   const toggleRoomExcluded = (roomId: string, projectId: string, excluded: boolean) => {
     commitUserControlRooms(roomId, 'update_project_policy', `${excluded ? 'Excluded' : 'Included'} project ${projectId}`, (current, now) => ({ ...current, state: setProjectExcluded(current.state, roomId, projectId, excluded, now) }))
+  }
+  const cleanMissingRoomProjectReference = (roomId: string, projectId: string) => {
+    commitUserControlRooms(roomId, 'clean_missing_project_reference', `Removed missing project reference ${projectId}`, (current, now) => ({
+      ...current,
+      state: clearMissingControlRoomProjectReference(current.state, roomId, projectId, allIds, now),
+    }))
   }
 
   const exportRoomConfiguration = () => {
@@ -3782,7 +3831,9 @@ function buildCustomLayoutPrompt(req: string): string {
                         <span className="dsh-wt_globalSearchIcon" aria-hidden>{result.icon}</span>
                         <span className="dsh-wt_globalSearchText">
                           <span>{result.title}</span>
-                          {result.subtitle && <small>{result.subtitle}</small>}
+                          {result.missing
+                            ? <small>{t('rooms.projectMissing')} · {result.targetId}</small>
+                            : (result.subtitle && <small>{result.subtitle}</small>)}
                         </span>
                         <span className="dsh-wt_globalSearchRoom">{controlRooms.state.rooms[result.roomId]?.name ?? result.roomId}</span>
                       </button>
@@ -3817,6 +3868,7 @@ function buildCustomLayoutPrompt(req: string): string {
       {roomManageId && controlRooms.state.rooms[roomManageId] && <div className="dsh-wt_popBackdrop" style={{ zIndex: 87 }} onClick={() => setRoomManageId(null)} />}
       {roomManageId && controlRooms.state.rooms[roomManageId] && (() => {
         const room = controlRooms.state.rooms[roomManageId]
+        const roomProjectOptions = projectOptionsForRoom(room)
         return (
           <div className="dsh-wt_roomDialog dsh-wt_roomManageDialog" role="dialog" aria-modal={roomDeleteId ? undefined : true} aria-labelledby="dsh-wt_roomManageTitle" aria-hidden={roomDeleteId ? true : undefined} inert={roomDeleteId ? true : undefined}>
             <button type="button" className="dsh-wt_settingsClose" aria-label={t('manage.done')} onClick={() => setRoomManageId(null)}>✕</button>
@@ -3962,10 +4014,11 @@ function buildCustomLayoutPrompt(req: string): string {
               {roomProjectOptions.length > 0 ? roomProjectOptions.map((project) => (
                 <div key={project.id} className="dsh-wt_roomMemberRow">
                   <span aria-hidden>{project.icon}</span>
-                  <span>{project.name}</span>
+                  <span>{project.name}{project.missing && <small>{t('rooms.projectMissing')} · <code>{project.id}</code></small>}</span>
                   <label><input type="checkbox" checked={room.projectIds.includes(project.id)} onChange={(event) => toggleRoomProject(room.id, project.id, event.target.checked)} /> {t('rooms.memberManual')}</label>
                   <label><input type="checkbox" checked={room.fixedProjectIds.includes(project.id)} onChange={(event) => toggleRoomFixed(room.id, project.id, event.target.checked)} /> {t('rooms.memberFixed')}</label>
                   <label><input type="checkbox" checked={room.excludedProjectIds.includes(project.id)} onChange={(event) => toggleRoomExcluded(room.id, project.id, event.target.checked)} /> {t('rooms.memberExcluded')}</label>
+                  {project.missing && <button type="button" aria-label={`${t('rooms.cleanMissingReference')}: ${project.id}`} onClick={() => cleanMissingRoomProjectReference(room.id, project.id)}>{t('rooms.cleanMissingReference')}</button>}
                 </div>
               )) : <div className="dsh-wt_roomMembersEmpty">{t('rooms.noProjects')}</div>}
             </fieldset>

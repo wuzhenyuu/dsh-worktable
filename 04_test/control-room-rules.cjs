@@ -79,7 +79,7 @@ async function main() {
     'fixed survives no-match while rule matches append',
   )
   const fixedExcluded = domain.normalizeControlRoom({ ...room, fixedProjectIds: ['fixed-excluded'] })
-  assert.deepEqual(runtime.effectiveControlRoomProjectIds(fixedExcluded, ['fixed-excluded'], ['fixed-excluded']), [], 'manual exclusion always wins')
+  assert.deepEqual(runtime.effectiveControlRoomProjectIds(fixedExcluded, ['fixed-excluded'], ['fixed-excluded']), ['manual'], 'manual exclusion wins for the target while an unrelated missing explicit reference stays visible')
 
   const normalized = domain.normalizeControlRoom({
     id: 'corrupt-room',

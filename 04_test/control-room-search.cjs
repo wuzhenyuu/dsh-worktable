@@ -192,6 +192,22 @@ async function main() {
   assert.match(indexSource, /data-wt-room-rule-id=\{rule\.id\}/, 'the production room editor exposes the rule locating target')
   assert.match(indexSource, /Control\+K Control\+Shift\+P/, 'the visible overlay entry advertises both keyboard shortcuts')
   assert.match(indexSource, /installModalFocusGuard\([\s\S]*searchDialogRef\.current[\s\S]*returnFocus: searchReturnFocusRef\.current/, 'the overlay shares the tested focus containment and restoration guard')
+  const missing = search.searchControlRooms({
+    currentRoomId: 'room-missing',
+    rooms: [{
+      id: 'room-missing', name: 'Recovered', icon: '🧭', description: '',
+      effectiveProjectIds: [], referencedProjectIds: ['deleted-project-id'],
+      boundSessionId: null, boundSessionTitle: '', rules: [], lastOpenedAt: 5, needCount: 0,
+    }],
+    projects: [{
+      id: 'deleted-project-id', name: 'deleted-project-id', icon: '⚠️', tags: [], workspace: '',
+      lastUsedAt: 0, status: 'idle', missing: true,
+    }],
+  }, 'deleted-project-id')
+  assert.equal(missing.results[0].targetId, 'deleted-project-id', 'search keeps an exact missing project ID visible')
+  assert.equal(missing.results[0].missing, true, 'search marks the result as missing instead of inventing project master data')
+  assert.match(indexSource, /rooms\.projectMissing[\s\S]*result\.targetId/, 'production search rendering shows the localized missing state and exact ID')
+  assert.match(splitSource, /onCleanMissing[\s\S]*rooms\.cleanMissingReference/, 'the production missing card exposes an accessible room-reference cleanup action')
 
   process.stdout.write('control-room-search: PASS (ranking, Unicode, dedup, cap, focus, and four UI navigation routes)\n')
 }

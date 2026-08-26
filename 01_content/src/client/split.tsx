@@ -209,6 +209,8 @@ export type ConsoleCardData = {
   self: boolean
   /** 完成/待决且未被确认：卡片发对应色光（点击确认后熄灭） */
   glow: boolean
+  /** Stored room reference whose project master record no longer exists. */
+  missing?: boolean
 }
 
 export type ConsoleRoomData = {
@@ -251,6 +253,8 @@ type SplitEnv = {
     onAdd: () => void
     /** Missing/unbound management-session recovery. */
     onManageBinding: () => void
+    /** Remove only one missing reference from the active room. */
+    onCleanMissing: (projectId: string) => void
     getTheme: () => 'dark' | 'light' | 'system'
     setTheme: (th: 'dark' | 'light' | 'system') => void
   }
@@ -1064,7 +1068,7 @@ function ConsolePane() {
     { mode: 'system', icon: '🖥️', key: 'console.themeSystem' },
   ]
   const openCard = (c: ConsoleCardData) => {
-    if (suppressClickRef.current || !env) return
+    if (suppressClickRef.current || !env || c.missing) return
     if (c.glow) env.onAck?.(c.id)
     if (c.self) env.onJump(c.id)
     else env.onOpen(c.id)
@@ -1108,14 +1112,16 @@ function ConsolePane() {
           <div
             key={c.id}
             data-wt-console-project-id={c.id}
-            role={!c.self || c.bound ? 'button' : undefined}
-            tabIndex={!c.self || c.bound ? 0 : -1}
-            draggable={!c.self}
-            aria-grabbed={!c.self ? dragId === c.id : undefined}
+            data-missing={c.missing ? 'true' : undefined}
+            role={!c.missing && (!c.self || c.bound) ? 'button' : undefined}
+            tabIndex={!c.missing && (!c.self || c.bound) ? 0 : -1}
+            draggable={!c.self && !c.missing}
+            aria-grabbed={!c.self && !c.missing ? dragId === c.id : undefined}
             className={'dsh-wt_consoleCard' + (c.self ? ' dsh-wt_consoleCardSelf' : '')
               + (c.status === 'busy' ? ' dsh-wt_consoleCard-busy' : '')
               + (c.glow && c.status === 'done' ? ' dsh-wt_consoleCard-glowDone' : '')
               + (c.glow && c.status === 'need' ? ' dsh-wt_consoleCard-glowNeed' : '')
+              + (c.missing ? ' dsh-wt_consoleCardMissing' : '')
               + (dragId === c.id ? ' dsh-wt_consoleCardDragging' : '')
               + (dragOverId === c.id ? ' dsh-wt_consoleCardDropTarget' : '')}
             title={c.name}
@@ -1126,7 +1132,7 @@ function ConsolePane() {
               openCard(c)
             }}
             onDragStart={(e) => {
-              if (c.self) { e.preventDefault(); return }
+              if (c.self || c.missing) { e.preventDefault(); return }
               suppressClickRef.current = true
               setDragId(c.id)
               setDragOverId(null)
@@ -1160,13 +1166,14 @@ function ConsolePane() {
             </div>
             <div className="dsh-wt_consoleDivider" aria-hidden />
             <div className="dsh-wt_consoleStatusRow">
-              <span className={'dsh-wt_consoleStatus dsh-wt_consoleStatus-' + c.status}>{statusLabel[c.status]}</span>
+              <span className={'dsh-wt_consoleStatus dsh-wt_consoleStatus-' + c.status}>{c.missing ? T('rooms.projectMissing') : statusLabel[c.status]}</span>
               {c.runtimeMs != null && <span className="dsh-wt_consoleRuntime">{fmtDur(c.runtimeMs)}</span>}
             </div>
             {c.status === 'busy' && <span className="dsh-wt_consoleSweep" aria-hidden />}
             <div className={'dsh-wt_consolePreview' + (c.preview ? '' : ' dsh-wt_consolePreviewNone')} title={c.preview}>
               {c.preview || (c.bound ? T('console.noPreview') : T('console.unboundShort'))}
             </div>
+            {c.missing && <button type="button" className="dsh-wt_consoleMissingClean" aria-label={`${T('rooms.cleanMissingReference')}: ${c.id}`} onClick={(event) => { event.stopPropagation(); env?.onCleanMissing(c.id) }}>{T('rooms.cleanMissingReference')}</button>}
           </div>
         ))}
         {/* 创建卡片：永远最后一位；点击 = 侧栏工作台「添加项目」同款流程 */}

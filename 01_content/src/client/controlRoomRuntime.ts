@@ -1,5 +1,6 @@
 import {
   deleteControlRoom,
+  removeProjectFromRoom,
   selectControlRoom,
   updateControlRoom,
   type ControlRoom,
@@ -37,19 +38,69 @@ export function effectiveControlRoomProjectIds(
 ): string[] {
   const candidates = candidateIds ? new Set(candidateIds) : null
   const excluded = new Set(room.excludedProjectIds)
-  const members = new Set([...room.projectIds, ...room.fixedProjectIds, ...ruleMatchedIds].filter((id) => !excluded.has(id)))
+  const liveRuleMatches = ruleMatchedIds.filter((id) => !candidates || candidates.has(id))
+  const members = new Set([...room.projectIds, ...room.fixedProjectIds, ...liveRuleMatches].filter((id) => !excluded.has(id)))
   const result: string[] = []
   const append = (id: string) => {
     if (!members.has(id) || excluded.has(id) || result.includes(id)) return
-    if (candidates && !candidates.has(id)) return
     result.push(id)
   }
   room.projectOrder.forEach(append)
   room.projectIds.forEach(append)
   room.fixedProjectIds.forEach(append)
-  ruleMatchedIds.forEach(append)
+  liveRuleMatches.forEach(append)
   candidateIds?.forEach(append)
   return result
+}
+
+export type ControlRoomProjectReference = {
+  id: string
+  missing: boolean
+  manual: boolean
+  fixed: boolean
+  excluded: boolean
+}
+
+/** Explicit stored references are listed independently from the live rule candidate set. */
+export function controlRoomProjectReferences(
+  room: Pick<ControlRoom, 'projectIds' | 'projectOrder' | 'fixedProjectIds' | 'excludedProjectIds'>,
+  liveProjectIds: readonly string[],
+): ControlRoomProjectReference[] {
+  const live = new Set(liveProjectIds)
+  const manual = new Set(room.projectIds)
+  const fixed = new Set(room.fixedProjectIds)
+  const excluded = new Set(room.excludedProjectIds)
+  const ids: string[] = []
+  const append = (id: string) => {
+    if (id && !ids.includes(id) && (manual.has(id) || fixed.has(id) || excluded.has(id))) ids.push(id)
+  }
+  room.projectOrder.forEach(append)
+  room.projectIds.forEach(append)
+  room.fixedProjectIds.forEach(append)
+  room.excludedProjectIds.forEach(append)
+  return ids.map((id) => ({
+    id,
+    missing: !live.has(id),
+    manual: manual.has(id),
+    fixed: fixed.has(id),
+    excluded: excluded.has(id),
+  }))
+}
+
+/** Accessible cleanup is deliberately scoped to one missing reference in one room. */
+export function clearMissingControlRoomProjectReference(
+  state: ControlRoomsState,
+  roomId: string,
+  projectId: string,
+  liveProjectIds: readonly string[],
+  now: number,
+): ControlRoomsState {
+  const room = state.rooms[roomId]
+  if (!room || liveProjectIds.includes(projectId)) return state
+  const referenced = room.projectIds.includes(projectId)
+    || room.fixedProjectIds.includes(projectId)
+    || room.excludedProjectIds.includes(projectId)
+  return referenced ? removeProjectFromRoom(state, roomId, projectId, now) : state
 }
 
 export function controlRoomBindingState(

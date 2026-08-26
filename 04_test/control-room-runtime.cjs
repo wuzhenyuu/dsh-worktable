@@ -111,6 +111,46 @@ async function main() {
     ['fixed', 'manual-b', 'manual-a'],
     'manual and fixed membership obey room order while exclusions win',
   )
+  const missingMembershipRoom = {
+    ...membershipRoom,
+    projectIds: ['manual-a', 'missing-manual'],
+    fixedProjectIds: ['missing-fixed'],
+    excludedProjectIds: ['missing-excluded'],
+    projectOrder: ['missing-fixed', 'missing-manual', 'manual-a'],
+  }
+  assert.deepEqual(
+    runtime.effectiveControlRoomProjectIds(missingMembershipRoom, ['manual-a', 'live-rule'], ['live-rule', 'missing-rule']),
+    ['missing-fixed', 'missing-manual', 'manual-a', 'live-rule'],
+    'stored explicit references remain visible while rule candidates are restricted to live projects',
+  )
+  assert.deepEqual(runtime.controlRoomProjectReferences(missingMembershipRoom, ['manual-a', 'live-rule']), [
+    { id: 'missing-fixed', missing: true, manual: false, fixed: true, excluded: false },
+    { id: 'missing-manual', missing: true, manual: true, fixed: false, excluded: false },
+    { id: 'manual-a', missing: false, manual: true, fixed: false, excluded: false },
+    { id: 'missing-excluded', missing: true, manual: false, fixed: false, excluded: true },
+  ], 'member management exposes exact missing IDs and their room-local policy')
+
+  const missingMaster = { projects: { 'manual-a': { name: 'Live master' } } }
+  const missingMasterBefore = JSON.stringify(missingMaster)
+  let missingSource = domain.createControlRoom(domain.createEmptyControlRoomsState(), missingMembershipRoom, { id: 'missing-source', now: 2_500 })
+  const importedMissing = domain.importControlRooms(domain.createEmptyControlRoomsState(), domain.exportControlRooms(missingSource, 2_501), 2_502).state
+  assert.deepEqual(
+    runtime.controlRoomProjectReferences(importedMissing.rooms['missing-source'], ['manual-a']).filter((item) => item.missing).map((item) => item.id),
+    ['missing-fixed', 'missing-manual', 'missing-excluded'],
+    'imported missing references stay visible with exact IDs',
+  )
+  const archivedMissing = domain.deleteControlRoom(missingSource, domain.createEmptyControlRoomsTrashState(), 'missing-source', 2_503)
+  const restoredMissing = domain.restoreControlRoom(archivedMissing.state, archivedMissing.trash, 'missing-source', 2_504).state
+  assert.deepEqual(
+    runtime.controlRoomProjectReferences(restoredMissing.rooms['missing-source'], ['manual-a']).filter((item) => item.missing).map((item) => item.id),
+    ['missing-fixed', 'missing-manual', 'missing-excluded'],
+    'restored missing references stay visible with exact IDs',
+  )
+  let otherRoomState = domain.createControlRoom(restoredMissing, { name: 'Other', projectIds: ['missing-manual'] }, { id: 'other-room', now: 2_505 })
+  otherRoomState = runtime.clearMissingControlRoomProjectReference(otherRoomState, 'missing-source', 'missing-manual', ['manual-a'], 2_506)
+  assert.equal(otherRoomState.rooms['missing-source'].projectIds.includes('missing-manual'), false, 'cleanup removes the missing reference from only the selected room')
+  assert.equal(otherRoomState.rooms['other-room'].projectIds.includes('missing-manual'), true, 'cleanup leaves other rooms unchanged')
+  assert.equal(JSON.stringify(missingMaster), missingMasterBefore, 'cleanup never creates or mutates project master data')
 
   const beforeRoom2 = state.rooms['room-2'].projectOrder
   state = domain.reorderProjectsInRoom(state, 'room-1', ['p0-a', 'p0-b'], 3_000)

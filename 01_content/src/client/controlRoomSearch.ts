@@ -8,6 +8,8 @@ export type ControlRoomSearchRoom = {
   icon: string
   description: string
   effectiveProjectIds: string[]
+  /** Missing explicit room references are searchable even though rules only see live projects. */
+  referencedProjectIds?: string[]
   boundSessionId: string | null
   boundSessionTitle: string
   rules: ControlRoomRule[]
@@ -23,6 +25,7 @@ export type ControlRoomSearchProject = {
   workspace: string
   lastUsedAt: number
   status: ControlRoomStatus
+  missing?: boolean
 }
 
 export type ControlRoomSearchInput = {
@@ -43,6 +46,7 @@ export type ControlRoomSearchResult = {
   /** Concrete owning room selected for navigation. */
   roomId: string
   relevance: number
+  missing?: boolean
 }
 
 export type ControlRoomSearchResponse = {
@@ -124,7 +128,7 @@ export function searchControlRooms(input: ControlRoomSearchInput, query: string)
   const roomById = new Map(input.rooms.map((room) => [room.id, room]))
   const ownersByProject = new Map<string, string[]>()
   for (const room of input.rooms) {
-    for (const projectId of room.effectiveProjectIds) {
+    for (const projectId of new Set([...room.effectiveProjectIds, ...(room.referencedProjectIds ?? [])])) {
       const owners = ownersByProject.get(projectId) ?? []
       if (!owners.includes(room.id)) owners.push(room.id)
       ownersByProject.set(projectId, owners)
@@ -171,8 +175,9 @@ export function searchControlRooms(input: ControlRoomSearchInput, query: string)
       roomIds: [...roomIds],
       roomId,
       relevance: 0,
+      missing: project.missing === true || undefined,
       searchTitle: project.name,
-      searchDetails: [...project.tags, project.workspace],
+      searchDetails: [project.id, ...project.tags, project.workspace],
       recentAt: Math.max(project.lastUsedAt, ...roomIds.map((id) => roomById.get(id)?.lastOpenedAt ?? 0)),
       need: project.status === 'need' || roomIds.some((id) => (roomById.get(id)?.needCount ?? 0) > 0),
       current: !!input.currentRoomId && roomIds.includes(input.currentRoomId),
