@@ -45,6 +45,29 @@ async function main() {
 
   const bridge = commands.createControlRoomCommandBridge(adapter)
 
+  // A cross-tab conflict keeps reads available but rejects mutations before
+  // commit/open/callback side effects can run.
+  {
+    let commitCalls = 0
+    let openCalls = 0
+    const blockedBridge = commands.createControlRoomCommandBridge({
+      ...adapter,
+      mutationBlocked: () => true,
+      commit: (mutate) => {
+        commitCalls += 1
+        return adapter.commit(mutate)
+      },
+      open: () => { openCalls += 1 },
+    })
+    assert.equal(blockedBridge.execute({ action: 'control_room.list' }).ok, true)
+    assert.equal(blockedBridge.execute({ action: 'control_room.get', controlRoomId: 'room-alpha' }).error.code, 'CONTROL_ROOM_NOT_FOUND')
+    assert.equal(blockedBridge.execute({ action: 'control_room.search', query: 'alpha' }).ok, true)
+    assert.equal(blockedBridge.execute({ action: 'control_room.create', controlRoomId: 'blocked-room', room: { name: 'Blocked' } }).error.code, 'CONFLICT_RELOAD_REQUIRED')
+    assert.equal(blockedBridge.execute({ action: 'control_room.open', controlRoomId: 'blocked-room' }).error.code, 'CONFLICT_RELOAD_REQUIRED')
+    assert.equal(commitCalls, 0)
+    assert.equal(openCalls, 0)
+  }
+
   // Catches: commands bypassing the domain reorder path or failing to audit model writes.
   {
     const created = bridge.execute({ action: 'control_room.create', controlRoomId: 'room-alpha', room: { name: 'Alpha' } })
@@ -215,6 +238,35 @@ async function main() {
     const confirmed = bridge.execute({ ...removeRequest, confirmationToken: blocked.confirmation.token })
     assert.equal(confirmed.ok, true)
     assert.deepEqual(snapshot.state.rooms['room-alpha'].projectIds, ['p6'])
+
+    bridge.execute({ action: 'control_room.bind_session', controlRoomId: 'room-alpha', sessionId: 'session-running' })
+    const replaceRunningRequest = {
+      action: 'control_room.bind_session',
+      controlRoomId: 'room-alpha',
+      sessionId: 'session-idle',
+    }
+    const replaceRunning = bridge.execute(replaceRunningRequest)
+    assert.equal(replaceRunning.error.code, 'CONFIRMATION_REQUIRED')
+    assert.equal(snapshot.state.rooms['room-alpha'].boundSessionId, 'session-running')
+    const changedReplacement = bridge.execute({
+      ...replaceRunningRequest,
+      sessionId: 'session-other',
+      confirmationToken: replaceRunning.confirmation.token,
+    })
+    assert.equal(changedReplacement.error.code, 'CONFIRMATION_REQUIRED')
+    assert.notEqual(changedReplacement.confirmation.token, replaceRunning.confirmation.token)
+    assert.equal(snapshot.state.rooms['room-alpha'].boundSessionId, 'session-running')
+    const confirmedReplaceRequest = {
+      ...replaceRunningRequest,
+      confirmationToken: replaceRunning.confirmation.token,
+    }
+    assert.equal(bridge.execute(confirmedReplaceRequest).ok, true)
+    assert.equal(snapshot.state.rooms['room-alpha'].boundSessionId, 'session-idle')
+    const afterConfirmedReplace = JSON.stringify(snapshot)
+    const replayedReplace = bridge.execute(confirmedReplaceRequest)
+    assert.equal(replayedReplace.ok, false)
+    assert.equal(replayedReplace.error.code, 'CONFIRMATION_REQUIRED')
+    assert.equal(JSON.stringify(snapshot), afterConfirmedReplace)
 
     bridge.execute({ action: 'control_room.bind_session', controlRoomId: 'room-alpha', sessionId: 'session-running' })
     const unbind = bridge.execute({ action: 'control_room.bind_session', controlRoomId: 'room-alpha', sessionId: null })

@@ -219,6 +219,17 @@ const uniqueStrings = (value: unknown): string[] => {
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
 
+// State values produced by this module already satisfy the normalization
+// invariant. Remember them by identity so a reducer can update one room in
+// O(room size) while still normalizing untrusted callers at the public seam.
+const normalizedControlRoomsStates = new WeakSet<ControlRoomsState>()
+const markNormalizedControlRoomsState = (state: ControlRoomsState): ControlRoomsState => {
+  normalizedControlRoomsStates.add(state)
+  return state
+}
+const ensureNormalizedControlRoomsState = (state: ControlRoomsState): ControlRoomsState =>
+  normalizedControlRoomsStates.has(state) ? state : normalizeControlRoomsState(state)
+
 const normalizedTheme = (value: unknown): ControlRoomThemeMode =>
   value === 'dark' || value === 'light' || value === 'system' ? value : 'system'
 
@@ -308,7 +319,7 @@ function normalizeRule(value: unknown, index: number): ControlRoomRule | null {
 }
 
 export function createEmptyControlRoomsState(): ControlRoomsState {
-  return { version: CONTROL_ROOMS_VERSION, order: [], activeId: null, rooms: {} }
+  return markNormalizedControlRoomsState({ version: CONTROL_ROOMS_VERSION, order: [], activeId: null, rooms: {} })
 }
 
 export function createEmptyControlRoomsTrashState(): ControlRoomsTrashState {
@@ -325,8 +336,12 @@ export function normalizeControlRoom(value: unknown, fallbackId = 'room'): Contr
   const excludedProjectIds = uniqueStrings(room.excludedProjectIds)
   const orderable = new Set([...projectIds, ...fixedProjectIds])
   const projectOrder = uniqueStrings(room.projectOrder).filter((projectId) => orderable.has(projectId))
+  const orderedProjectIds = new Set(projectOrder)
   for (const projectId of [...projectIds, ...fixedProjectIds]) {
-    if (!projectOrder.includes(projectId)) projectOrder.push(projectId)
+    if (!orderedProjectIds.has(projectId)) {
+      orderedProjectIds.add(projectId)
+      projectOrder.push(projectId)
+    }
   }
   const rawRules = Array.isArray(room.rules) ? room.rules : []
   const rules = rawRules
@@ -379,9 +394,15 @@ export function normalizeControlRoomsState(value: unknown): ControlRoomsState {
     rooms[key] = room.id === key ? room : { ...room, id: key, layoutId: room.layoutId === `wt-console:${room.id}` ? `wt-console:${key}` : room.layoutId }
   }
   const order = uniqueStrings(value.order).filter((id) => !!rooms[id])
-  for (const id of Object.keys(rooms)) if (!order.includes(id)) order.push(id)
+  const orderedRoomIds = new Set(order)
+  for (const id of Object.keys(rooms)) {
+    if (!orderedRoomIds.has(id)) {
+      orderedRoomIds.add(id)
+      order.push(id)
+    }
+  }
   const activeId = typeof value.activeId === 'string' && rooms[value.activeId] ? value.activeId : null
-  return { version: CONTROL_ROOMS_VERSION, order, activeId, rooms }
+  return markNormalizedControlRoomsState({ version: CONTROL_ROOMS_VERSION, order, activeId, rooms })
 }
 
 export function normalizeControlRoomsTrashState(value: unknown): ControlRoomsTrashState {
@@ -440,17 +461,17 @@ export function createControlRoom(
   input: ControlRoomCreateInput,
   options: { id?: string; now: number },
 ): ControlRoomsState {
-  const normalized = normalizeControlRoomsState(state)
+  const normalized = ensureNormalizedControlRoomsState(state)
   const id = options.id || input.id
   if (!id) throw new Error('A deterministic control-room id is required')
   if (normalized.rooms[id]) throw new Error(`Control room already exists: ${id}`)
   const room = roomFromInput(input, id, options.now)
-  return {
+  return markNormalizedControlRoomsState({
     ...normalized,
     order: [...normalized.order, id],
     activeId: normalized.activeId ?? id,
     rooms: { ...normalized.rooms, [id]: room },
-  }
+  })
 }
 
 export function updateControlRoom(
@@ -459,7 +480,7 @@ export function updateControlRoom(
   patch: Partial<Omit<ControlRoom, 'id' | 'createdAt' | 'deletedAt'>>,
   now: number,
 ): ControlRoomsState {
-  const normalized = normalizeControlRoomsState(state)
+  const normalized = ensureNormalizedControlRoomsState(state)
   const current = normalized.rooms[roomId]
   if (!current) return normalized
   const room = normalizeControlRoom({
@@ -470,16 +491,16 @@ export function updateControlRoom(
     updatedAt: nextControlRoomRevision(current, now),
     deletedAt: null,
   }, roomId)
-  return { ...normalized, rooms: { ...normalized.rooms, [roomId]: room } }
+  return markNormalizedControlRoomsState({ ...normalized, rooms: { ...normalized.rooms, [roomId]: room } })
 }
 
 /** Select a room and record its recency without changing project/session master data. */
 export function selectControlRoom(state: ControlRoomsState, roomId: string, now: number): ControlRoomsState {
-  const normalized = normalizeControlRoomsState(state)
+  const normalized = ensureNormalizedControlRoomsState(state)
   const room = normalized.rooms[roomId]
   if (!room) return normalized
   const selected = updateControlRoom(normalized, roomId, { lastOpenedAt: now }, now)
-  return { ...selected, activeId: roomId }
+  return markNormalizedControlRoomsState({ ...selected, activeId: roomId })
 }
 
 export type ControlRoomNavigation = {
@@ -495,7 +516,7 @@ export function selectControlRoomNavigation(
   state: ControlRoomsState,
   needRoomIds: ReadonlySet<string>,
 ): ControlRoomNavigation {
-  const normalized = normalizeControlRoomsState(state)
+  const normalized = ensureNormalizedControlRoomsState(state)
   const visibleIds = normalized.order.filter((id) => normalized.rooms[id]?.sidebarVisible !== false)
   if (normalized.order.length <= 8) return { primaryIds: visibleIds, moreIds: [] }
 
@@ -521,10 +542,11 @@ export function copyControlRoom(
   sourceId: string,
   options: { id: string; now: number; name?: string },
 ): ControlRoomsState {
-  const source = normalizeControlRoomsState(state).rooms[sourceId]
-  if (!source) return normalizeControlRoomsState(state)
+  const normalized = ensureNormalizedControlRoomsState(state)
+  const source = normalized.rooms[sourceId]
+  if (!source) return normalized
   const { createdAt: _createdAt, updatedAt: _updatedAt, lastOpenedAt: _lastOpenedAt, deletedAt: _deletedAt, ...copyable } = clone(source)
-  return createControlRoom(state, {
+  return createControlRoom(normalized, {
     ...copyable,
     id: options.id,
     name: options.name ?? `${source.name} 副本`,
@@ -539,7 +561,7 @@ export function deleteControlRoom(
   roomId: string,
   now: number,
 ): { state: ControlRoomsState; trash: ControlRoomsTrashState; deleted: DeletedControlRoom | null } {
-  const normalized = normalizeControlRoomsState(state)
+  const normalized = ensureNormalizedControlRoomsState(state)
   const room = normalized.rooms[roomId]
   if (!room) return { state: normalized, trash: normalizeControlRoomsTrashState(trash), deleted: null }
   const deleted: DeletedControlRoom = {
@@ -551,7 +573,12 @@ export function deleteControlRoom(
   delete rooms[roomId]
   const order = normalized.order.filter((id) => id !== roomId)
   return {
-    state: { ...normalized, rooms, order, activeId: normalized.activeId === roomId ? (order[0] ?? null) : normalized.activeId },
+    state: markNormalizedControlRoomsState({
+      ...normalized,
+      rooms,
+      order,
+      activeId: normalized.activeId === roomId ? (order[0] ?? null) : normalized.activeId,
+    }),
     trash: {
       ...normalizeControlRoomsTrashState(trash),
       deleted: [...normalizeControlRoomsTrashState(trash).deleted.filter((item) => item.room.id !== roomId), deleted],
@@ -573,7 +600,7 @@ export function restoreControlRoom(
   roomId: string,
   now: number,
 ): { state: ControlRoomsState; trash: ControlRoomsTrashState; restoredId: string | null } {
-  const normalized = normalizeControlRoomsState(state)
+  const normalized = ensureNormalizedControlRoomsState(state)
   const normalizedTrash = normalizeControlRoomsTrashState(trash)
   const entry = normalizedTrash.deleted.find((item) => item.room.id === roomId)
   if (!entry || entry.expiresAt <= now) return { state: normalized, trash: expireDeletedControlRooms(normalizedTrash, now), restoredId: null }
@@ -587,12 +614,12 @@ export function restoreControlRoom(
     updatedAt: nextControlRoomRevision(entry.room, now),
   }, restoredId)
   return {
-    state: {
+    state: markNormalizedControlRoomsState({
       ...normalized,
       order: [...normalized.order, restoredId],
       activeId: normalized.activeId ?? restoredId,
       rooms: { ...normalized.rooms, [restoredId]: room },
-    },
+    }),
     trash: { ...normalizedTrash, deleted: normalizedTrash.deleted.filter((item) => item !== entry && item.room.id !== roomId) },
     restoredId,
   }
@@ -604,18 +631,20 @@ export function expireDeletedControlRooms(trash: ControlRoomsTrashState, now: nu
 }
 
 export function addProjectToRoom(state: ControlRoomsState, roomId: string, projectId: string, now: number): ControlRoomsState {
-  const room = normalizeControlRoomsState(state).rooms[roomId]
-  if (!room || !projectId || room.projectIds.includes(projectId)) return normalizeControlRoomsState(state)
-  return updateControlRoom(state, roomId, {
+  const normalized = ensureNormalizedControlRoomsState(state)
+  const room = normalized.rooms[roomId]
+  if (!room || !projectId || room.projectIds.includes(projectId)) return normalized
+  return updateControlRoom(normalized, roomId, {
     projectIds: [...room.projectIds, projectId],
     projectOrder: room.projectOrder.includes(projectId) ? room.projectOrder : [...room.projectOrder, projectId],
   }, now)
 }
 
 export function removeProjectFromRoom(state: ControlRoomsState, roomId: string, projectId: string, now: number): ControlRoomsState {
-  const room = normalizeControlRoomsState(state).rooms[roomId]
-  if (!room) return normalizeControlRoomsState(state)
-  return updateControlRoom(state, roomId, {
+  const normalized = ensureNormalizedControlRoomsState(state)
+  const room = normalized.rooms[roomId]
+  if (!room) return normalized
+  return updateControlRoom(normalized, roomId, {
     projectIds: room.projectIds.filter((id) => id !== projectId),
     projectOrder: room.projectOrder.filter((id) => id !== projectId),
     fixedProjectIds: room.fixedProjectIds.filter((id) => id !== projectId),
@@ -623,32 +652,54 @@ export function removeProjectFromRoom(state: ControlRoomsState, roomId: string, 
   }, now)
 }
 
-export function reorderProjectsInRoom(state: ControlRoomsState, roomId: string, requestedOrder: string[], now: number): ControlRoomsState {
-  const room = normalizeControlRoomsState(state).rooms[roomId]
-  if (!room) return normalizeControlRoomsState(state)
-  const available = new Set([...room.projectIds, ...room.fixedProjectIds])
+export function reorderProjectsInRoom(
+  state: ControlRoomsState,
+  roomId: string,
+  requestedOrder: string[],
+  now: number,
+  promoteProjectIds: readonly string[] = [],
+): ControlRoomsState {
+  const normalized = ensureNormalizedControlRoomsState(state)
+  const room = normalized.rooms[roomId]
+  if (!room) return normalized
+  // A rule-only card has no durable ordering key. Dragging one is an explicit
+  // user override, so promote only the dragged endpoints supplied by the UI.
+  const requested = new Set(uniqueStrings(requestedOrder))
+  const fixedProjectIds = uniqueStrings([
+    ...room.fixedProjectIds,
+    ...uniqueStrings(promoteProjectIds).filter((id) => requested.has(id)),
+  ])
+  const available = new Set([...room.projectIds, ...fixedProjectIds])
   const order = uniqueStrings(requestedOrder).filter((id) => available.has(id))
-  for (const id of room.projectOrder) if (available.has(id) && !order.includes(id)) order.push(id)
-  return updateControlRoom(state, roomId, { projectOrder: order }, now)
+  const ordered = new Set(order)
+  for (const id of room.projectOrder) {
+    if (available.has(id) && !ordered.has(id)) {
+      ordered.add(id)
+      order.push(id)
+    }
+  }
+  return updateControlRoom(normalized, roomId, { fixedProjectIds, projectOrder: order }, now)
 }
 
 export function setProjectFixed(state: ControlRoomsState, roomId: string, projectId: string, fixed: boolean, now: number): ControlRoomsState {
-  const room = normalizeControlRoomsState(state).rooms[roomId]
-  if (!room || !projectId) return normalizeControlRoomsState(state)
+  const normalized = ensureNormalizedControlRoomsState(state)
+  const room = normalized.rooms[roomId]
+  if (!room || !projectId) return normalized
   const fixedProjectIds = fixed
     ? uniqueStrings([...room.fixedProjectIds, projectId])
     : room.fixedProjectIds.filter((id) => id !== projectId)
   const projectOrder = fixed && !room.projectOrder.includes(projectId) ? [...room.projectOrder, projectId] : room.projectOrder
-  return updateControlRoom(state, roomId, { fixedProjectIds, projectOrder }, now)
+  return updateControlRoom(normalized, roomId, { fixedProjectIds, projectOrder }, now)
 }
 
 export function setProjectExcluded(state: ControlRoomsState, roomId: string, projectId: string, excluded: boolean, now: number): ControlRoomsState {
-  const room = normalizeControlRoomsState(state).rooms[roomId]
-  if (!room || !projectId) return normalizeControlRoomsState(state)
+  const normalized = ensureNormalizedControlRoomsState(state)
+  const room = normalized.rooms[roomId]
+  if (!room || !projectId) return normalized
   const excludedProjectIds = excluded
     ? uniqueStrings([...room.excludedProjectIds, projectId])
     : room.excludedProjectIds.filter((id) => id !== projectId)
-  return updateControlRoom(state, roomId, { excludedProjectIds }, now)
+  return updateControlRoom(normalized, roomId, { excludedProjectIds }, now)
 }
 
 export function appendControlRoomAudit(
@@ -658,18 +709,47 @@ export function appendControlRoomAudit(
   return [...audit, clone(entry)].slice(-CONTROL_ROOM_AUDIT_LIMIT)
 }
 
+function compareCanonical(left: unknown, right: unknown): number {
+  const leftKey = JSON.stringify(left)
+  const rightKey = JSON.stringify(right)
+  return leftKey === rightKey ? 0 : leftKey > rightKey ? 1 : -1
+}
+
+function canonicalRoomOrder(
+  left: ControlRoomsState,
+  right: ControlRoomsState,
+  roomIds: readonly string[],
+): string[] {
+  const available = new Set(roomIds)
+  const leftOrder = left.order.filter((id) => available.has(id))
+  const rightOrder = right.order.filter((id) => available.has(id))
+  const primary = compareCanonical(leftOrder, rightOrder) >= 0 ? leftOrder : rightOrder
+  const secondary = primary === leftOrder ? rightOrder : leftOrder
+  return uniqueStrings([...primary, ...secondary, ...roomIds]).filter((id) => available.has(id))
+}
+
 /** Merge room summaries without allowing an older tab to replace newer room data. */
 export function mergeControlRoomSummaries(local: ControlRoomsState, incoming: ControlRoomsState): ControlRoomsState {
   const left = normalizeControlRoomsState(local)
   const right = normalizeControlRoomsState(incoming)
-  const rooms: Record<string, ControlRoom> = { ...left.rooms }
-  for (const [id, room] of Object.entries(right.rooms)) {
-    const current = rooms[id]
-    if (!current || room.updatedAt > current.updatedAt) rooms[id] = clone(room)
+  const roomIds = uniqueStrings([...Object.keys(left.rooms), ...Object.keys(right.rooms)]).sort()
+  const rooms: Record<string, ControlRoom> = {}
+  for (const id of roomIds) {
+    const leftRoom = left.rooms[id]
+    const rightRoom = right.rooms[id]
+    if (!leftRoom && rightRoom) rooms[id] = clone(rightRoom)
+    else if (leftRoom && !rightRoom) rooms[id] = clone(leftRoom)
+    else if (!leftRoom || !rightRoom) continue
+    else if (leftRoom.updatedAt !== rightRoom.updatedAt) {
+      rooms[id] = clone(leftRoom.updatedAt > rightRoom.updatedAt ? leftRoom : rightRoom)
+    } else {
+      rooms[id] = clone(compareCanonical(leftRoom, rightRoom) >= 0 ? leftRoom : rightRoom)
+    }
   }
-  const order = uniqueStrings([...right.order, ...left.order]).filter((id) => !!rooms[id])
-  const activeCandidate = right.activeId && rooms[right.activeId] ? right.activeId : left.activeId
-  return { version: CONTROL_ROOMS_VERSION, order, activeId: activeCandidate && rooms[activeCandidate] ? activeCandidate : null, rooms }
+  const order = canonicalRoomOrder(left, right, roomIds)
+  const activeIds = uniqueStrings([left.activeId, right.activeId].filter((id): id is string => !!id && !!rooms[id])).sort()
+  const activeId = activeIds[activeIds.length - 1] ?? null
+  return { version: CONTROL_ROOMS_VERSION, order, activeId, rooms }
 }
 
 function tombstoneTimestamp(entry: DeletedControlRoom): number {
@@ -685,16 +765,33 @@ export function mergeControlRoomsTrash(
   const byRoomId = new Map<string, DeletedControlRoom>()
   for (const entry of [...left.deleted, ...right.deleted]) {
     const current = byRoomId.get(entry.room.id)
-    if (!current || tombstoneTimestamp(entry) > tombstoneTimestamp(current)) byRoomId.set(entry.room.id, clone(entry))
+    if (!current
+      || tombstoneTimestamp(entry) > tombstoneTimestamp(current)
+      || (tombstoneTimestamp(entry) === tombstoneTimestamp(current) && compareCanonical(entry, current) > 0)) {
+      byRoomId.set(entry.room.id, clone(entry))
+    }
   }
-  const seenAudit = new Set<string>()
-  const audit = [...left.audit, ...right.audit].filter((entry) => {
+  const auditByKey = new Map<string, ControlRoomAuditEntry>()
+  for (const entry of [...left.audit, ...right.audit]) {
     const key = `${entry.actor}\u0000${entry.timestamp}\u0000${entry.action}\u0000${entry.controlRoomId}\u0000${entry.summary}`
-    if (seenAudit.has(key)) return false
-    seenAudit.add(key)
-    return true
-  }).slice(-CONTROL_ROOM_AUDIT_LIMIT)
-  return { version: CONTROL_ROOMS_VERSION, deleted: [...byRoomId.values()], audit }
+    if (!auditByKey.has(key)) auditByKey.set(key, clone(entry))
+  }
+  const audit = [...auditByKey.entries()]
+    .sort(([leftKey, leftEntry], [rightKey, rightEntry]) => leftEntry.timestamp - rightEntry.timestamp || leftKey.localeCompare(rightKey))
+    .slice(-CONTROL_ROOM_AUDIT_LIMIT)
+    .map(([, entry]) => entry)
+  const deleted = [...byRoomId.values()]
+    .sort((leftEntry, rightEntry) => tombstoneTimestamp(leftEntry) - tombstoneTimestamp(rightEntry)
+      || leftEntry.room.id.localeCompare(rightEntry.room.id))
+  return { version: CONTROL_ROOMS_VERSION, deleted, audit }
+}
+
+function sameControlRoomsState(left: ControlRoomsState, right: ControlRoomsState): boolean {
+  return JSON.stringify(left) === JSON.stringify(right)
+}
+
+function sameControlRoomsTrash(left: ControlRoomsTrashState, right: ControlRoomsTrashState): boolean {
+  return JSON.stringify(left) === JSON.stringify(right)
 }
 
 export function resolveControlRoomStorageEvent(
@@ -703,39 +800,68 @@ export function resolveControlRoomStorageEvent(
   openRoomId: string | null,
   localTrash: ControlRoomsTrashState = createEmptyControlRoomsTrashState(),
   incomingTrash: ControlRoomsTrashState = createEmptyControlRoomsTrashState(),
-): { state: ControlRoomsState; trash: ControlRoomsTrashState; requiresReload: boolean } {
+): {
+  state: ControlRoomsState
+  trash: ControlRoomsTrashState
+  storageState: ControlRoomsState
+  storageTrash: ControlRoomsTrashState
+  requiresReload: boolean
+  requiresWriteback: boolean
+} {
   const normalizedLocal = normalizeControlRoomsState(local)
   const normalizedIncoming = normalizeControlRoomsState(incoming)
-  let trash = mergeControlRoomsTrash(localTrash, incomingTrash)
-  const deleted = trash.deleted
+  const normalizedIncomingTrash = normalizeControlRoomsTrashState(incomingTrash)
+  let storageTrash = mergeControlRoomsTrash(localTrash, normalizedIncomingTrash)
+  const deleted = storageTrash.deleted
   const localOpen = openRoomId ? normalizedLocal.rooms[openRoomId] : undefined
   const incomingOpen = openRoomId ? normalizedIncoming.rooms[openRoomId] : undefined
   const openTombstone = openRoomId ? deleted.find((entry) => entry.room.id === openRoomId) : undefined
+  const equalRevisionIncomingWins = !!localOpen
+    && !!incomingOpen
+    && incomingOpen.updatedAt === localOpen.updatedAt
+    && compareCanonical(incomingOpen, localOpen) > 0
   const requiresReload = !!localOpen && (
     (!!incomingOpen && incomingOpen.updatedAt > localOpen.updatedAt)
+    || equalRevisionIncomingWins
     || (!!openTombstone && tombstoneTimestamp(openTombstone) >= localOpen.updatedAt)
   )
-  let state = mergeControlRoomSummaries(normalizedLocal, normalizedIncoming)
+  let storageState = mergeControlRoomSummaries(normalizedLocal, normalizedIncoming)
   for (const entry of deleted) {
-    const current = state.rooms[entry.room.id]
+    const current = storageState.rooms[entry.room.id]
     if (!current) continue
     if (tombstoneTimestamp(entry) < current.updatedAt) {
-      trash = { ...trash, deleted: trash.deleted.filter((item) => item.room.id !== entry.room.id) }
+      storageTrash = { ...storageTrash, deleted: storageTrash.deleted.filter((item) => item.room.id !== entry.room.id) }
       continue
     }
-    if (entry.room.id === openRoomId && localOpen) continue
-    const rooms = { ...state.rooms }
+    const rooms = { ...storageState.rooms }
     delete rooms[entry.room.id]
-    const order = state.order.filter((id) => id !== entry.room.id)
-    state = { ...state, rooms, order, activeId: state.activeId === entry.room.id ? (order[0] ?? null) : state.activeId }
+    const order = storageState.order.filter((id) => id !== entry.room.id)
+    storageState = { ...storageState, rooms, order, activeId: storageState.activeId === entry.room.id ? (order[0] ?? null) : storageState.activeId }
   }
+  // The open room is tab-local UI context. Preserve the value already in
+  // storage instead of letting another tab's local selection ping-pong it.
+  storageState = {
+    ...storageState,
+    activeId: normalizedIncoming.activeId && storageState.rooms[normalizedIncoming.activeId]
+      ? normalizedIncoming.activeId
+      : null,
+  }
+  let state = storageState
   if (normalizedLocal.activeId && state.rooms[normalizedLocal.activeId]) {
     state = { ...state, activeId: normalizedLocal.activeId }
   }
   if (requiresReload && openRoomId && localOpen) {
-    state = { ...state, activeId: openRoomId, rooms: { ...state.rooms, [openRoomId]: localOpen } }
+    const rooms = { ...state.rooms, [openRoomId]: localOpen }
+    const order = state.order.includes(openRoomId) ? state.order : [...state.order]
+    if (!order.includes(openRoomId)) {
+      const localIndex = normalizedLocal.order.indexOf(openRoomId)
+      order.splice(localIndex < 0 ? order.length : Math.min(localIndex, order.length), 0, openRoomId)
+    }
+    state = { ...state, activeId: openRoomId, rooms, order }
   }
-  return { state, trash, requiresReload }
+  const requiresWriteback = !sameControlRoomsState(storageState, normalizedIncoming)
+    || !sameControlRoomsTrash(storageTrash, normalizedIncomingTrash)
+  return { state, trash: storageTrash, storageState, storageTrash, requiresReload, requiresWriteback }
 }
 
 export function exportControlRooms(state: ControlRoomsState, exportedAt: number): string {
@@ -828,8 +954,15 @@ function createLegacyMigration(
   now: number,
 ): { state: ControlRoomsState; backup: ControlRoomsMigrationBackup } {
   const projectIds = uniqueStrings(input.projectIds)
-  const projectOrder = uniqueStrings(input.projectOrder ?? input.projectIds).filter((id) => projectIds.includes(id))
-  for (const id of projectIds) if (!projectOrder.includes(id)) projectOrder.push(id)
+  const projectIdSet = new Set(projectIds)
+  const projectOrder = uniqueStrings(input.projectOrder ?? input.projectIds).filter((id) => projectIdSet.has(id))
+  const orderedProjectIds = new Set(projectOrder)
+  for (const id of projectIds) {
+    if (!orderedProjectIds.has(id)) {
+      orderedProjectIds.add(id)
+      projectOrder.push(id)
+    }
+  }
   const legacy = {
     projectIds,
     projectOrder,
@@ -964,7 +1097,10 @@ export class ControlRoomsStorage {
   }
 
   save(state: ControlRoomsState, trash: ControlRoomsTrashState): { ok: boolean; error: unknown | null } {
-    const nextState = normalizeControlRoomsState(state)
+    // load() normalizes storage ingress and every reducer normalizes only the room
+    // it replaces. Re-normalizing every room here made a one-room mutation scale
+    // with the total number of project references in every control room.
+    const nextState = ensureNormalizedControlRoomsState(state)
     const nextTrash = normalizeControlRoomsTrashState(trash)
     // The current valid in-memory state survives quota/security write failures.
     this.lastGoodState = nextState

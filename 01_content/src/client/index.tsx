@@ -1192,6 +1192,7 @@ function WorktableSection(props: any) {
   const searchReturnFocusRef = useRef<HTMLElement | null>(null)
   const [searchSelection, setSearchSelection] = useState(0)
   const [roomReloadNotice, setRoomReloadNotice] = useState(false)
+  const roomConflictRef = useRef(false)
   const [roomSaveFailed, setRoomSaveFailed] = useState(() => initialControlRoomsPersistenceErrorRef.current)
   const [metas, setMetas] = useState<Record<string, ProjectMeta>>({})
   const [registeredIds, setRegisteredIds] = useState<string[]>(() => [...registryStore.ids])
@@ -1298,7 +1299,17 @@ function WorktableSection(props: any) {
     setRoomManageId(null)
   }
 
+  const rejectRoomMutation = (): boolean => {
+    if (!roomConflictRef.current) return false
+    setRoomReloadNotice(true)
+    return true
+  }
+
   const commitControlRooms = (mutate: (current: ControlRoomsSnapshot) => ControlRoomsSnapshot): ControlRoomsSnapshot => {
+    // The displayed open room may intentionally remain stale after a cross-tab
+    // conflict. Do not let any later action persist that snapshot over the
+    // canonical storage state; reload is the only safe conflict resolution.
+    if (rejectRoomMutation()) return controlRoomsRef.current
     const next = mutate(controlRoomsRef.current)
     const saved = controlRoomsStorageRef.current!.save(next.state, next.trash)
     setRoomSaveFailed(!saved.ok)
@@ -1335,10 +1346,13 @@ function WorktableSection(props: any) {
       try { loaded = controlRoomsStorageRef.current!.load() } catch { return }
       const local = controlRoomsRef.current
       const resolved = resolveControlRoomStorageEvent(local.state, loaded.state, local.state.activeId, local.trash, loaded.trash)
-      if (resolved.requiresReload) setRoomReloadNotice(true)
+      if (resolved.requiresReload) {
+        roomConflictRef.current = true
+        setRoomReloadNotice(true)
+      }
       const next = { state: resolved.state, trash: resolved.trash }
-      if (!resolved.requiresReload) {
-        const saved = controlRoomsStorageRef.current!.save(next.state, next.trash)
+      if (resolved.requiresWriteback) {
+        const saved = controlRoomsStorageRef.current!.save(resolved.storageState, resolved.storageTrash)
         setRoomSaveFailed(!saved.ok)
       }
       controlRoomsRef.current = next
@@ -1592,6 +1606,7 @@ function WorktableSection(props: any) {
           const pid = splitStore.active && splitStore.spec ? splitStore.spec.id : null
           if (!pid || typeof sessionId !== 'string' || !sessionId) return 'none'
           if (pid.startsWith('wt-console:')) {
+            if (rejectRoomMutation()) return 'none'
             const outcome = autoBindControlRoomSession(controlRoomsRef.current.state, pid, sessionId, Date.now())
             if (outcome.result === 'auto') {
               commitUserControlRooms(outcome.roomId!, 'bind_session', `Automatically bound management session ${sessionId}`, (current) => ({ ...current, state: outcome.state }))
@@ -1665,7 +1680,12 @@ function WorktableSection(props: any) {
             if (from < 0 || to < 0) return current
             order.splice(from, 1)
             order.splice(to, 0, id)
-            return { ...current, state: reorderProjectsInRoom(current.state, roomId, order, now) }
+            const ruleMatches = new Set(roomRuleMatchesRef.current[roomId] ?? [])
+            const promoteProjectIds = [id, targetId].filter((projectId) =>
+              ruleMatches.has(projectId)
+              && !room.projectIds.includes(projectId)
+              && !room.fixedProjectIds.includes(projectId))
+            return { ...current, state: reorderProjectsInRoom(current.state, roomId, order, now, promoteProjectIds) }
           })
         },
         onOpen: (id) => {
@@ -1954,6 +1974,7 @@ function buildCustomLayoutPrompt(req: string): string {
 
   /** 唯一的控制室打开入口：房间 id 决定 spec、管理会话和所有局部设置。 */
   const openControlRoom = useCallback((controlRoomId: string) => {
+    if (rejectRoomMutation()) return
     const current = controlRoomsRef.current
     const room = current.state.rooms[controlRoomId]
     if (!room) return
@@ -2004,6 +2025,7 @@ function buildCustomLayoutPrompt(req: string): string {
 
   /** 管理会话可被多个控制室引用；这里只更新房间引用。 */
   const bindControlRoomExisting = (sid: string) => {
+    if (rejectRoomMutation()) return
     const roomId = consoleBind?.roomId
     if (!roomId) return
     commitUserControlRooms(roomId, 'bind_session', `Bound management session ${sid}`, (current, now) => ({
@@ -2015,6 +2037,7 @@ function buildCustomLayoutPrompt(req: string): string {
   }
 
   const clearControlRoomBinding = () => {
+    if (rejectRoomMutation()) return
     const roomId = consoleBind?.roomId
     if (!roomId) return
     commitUserControlRooms(roomId, 'bind_session', 'Unbound management session', (current, now) => ({
@@ -2025,6 +2048,7 @@ function buildCustomLayoutPrompt(req: string): string {
 
   /** 强制绑定：新建空会话并绑定（分组同自定义窗：无 / 现有 / 新建） */
   const bindConsoleNew = async () => {
+    if (rejectRoomMutation()) return
     const b = sessionBridge
     if (!b || typeof b.sessions?.create !== 'function') { setConsoleErr(true); return }
     if (consoleMode === 'new' && (!consoleParent.trim() || !consoleName.trim())) { setConsoleErr(true); return }
@@ -2513,6 +2537,7 @@ function buildCustomLayoutPrompt(req: string): string {
     return id
   }
   const createNamedRoom = (rawName: string, rawIcon = '🖥️', rawDescription = '') => {
+    if (rejectRoomMutation()) return
     const name = rawName.trim()
     if (!name) return
     const icon = rawIcon.trim() || '🖥️'
@@ -2522,6 +2547,7 @@ function buildCustomLayoutPrompt(req: string): string {
       const created = createControlRoom(current.state, { name, icon, description }, { id, now })
       return { ...current, state: selectControlRoom(created, id, now) }
     })
+    openControlRoom(id)
   }
   const afterControlRoomCopy = createControlRoomAfterCopyCallback({
     getSourceLayoutId: (sourceControlRoomId) => controlRoomsRef.current.state.rooms[sourceControlRoomId]?.layoutId,
@@ -2583,6 +2609,7 @@ function buildCustomLayoutPrompt(req: string): string {
     }))
   }
   const copyRoom = (roomId: string) => {
+    if (rejectRoomMutation()) return
     const source = controlRoomsRef.current.state.rooms[roomId]
     if (!source) return
     const id = createRoomId()
@@ -2608,6 +2635,7 @@ function buildCustomLayoutPrompt(req: string): string {
     }))
   }
   const confirmDeleteRoom = () => {
+    if (rejectRoomMutation()) return
     if (!roomDeleteId) return
     const openLayoutId = splitStore.active ? splitStore.spec?.id ?? null : null
     const now = Date.now()
@@ -2643,6 +2671,7 @@ function buildCustomLayoutPrompt(req: string): string {
     })
   }
   const restoreRoomFromTrash = (roomId: string) => {
+    if (rejectRoomMutation()) return
     const sourceLayoutId = controlRoomsRef.current.trash.deleted.find((entry) => entry.room.id === roomId)?.room.layoutId
     let restoredId: string | null = null
     const now = Date.now()
@@ -2734,6 +2763,7 @@ function buildCustomLayoutPrompt(req: string): string {
 
   const importRoomConfiguration = async (file: File | undefined) => {
     if (!file) return
+    if (rejectRoomMutation()) return
     try {
       const serialized = await file.text()
       commitControlRooms((current) => importControlRoomsWithAudit(current, serialized, Date.now(), 'user').snapshot)
@@ -2752,6 +2782,7 @@ function buildCustomLayoutPrompt(req: string): string {
       now: () => Date.now(),
       knownProjectIds: () => allIds,
       isSessionRunning: (sessionId) => sessionsSnapshotStore.snapshot?.byId?.[sessionId]?.running === true,
+      mutationBlocked: () => roomConflictRef.current,
       open: openControlRoom,
       search: (query, limit) => ({ query, ...buildControlRoomSearchResponse(query, limit) }),
       afterCopy: afterControlRoomCopy,

@@ -41,8 +41,10 @@ export function effectiveControlRoomProjectIds(
   const liveRuleMatches = ruleMatchedIds.filter((id) => !candidates || candidates.has(id))
   const members = new Set([...room.projectIds, ...room.fixedProjectIds, ...liveRuleMatches].filter((id) => !excluded.has(id)))
   const result: string[] = []
+  const emitted = new Set<string>()
   const append = (id: string) => {
-    if (!members.has(id) || excluded.has(id) || result.includes(id)) return
+    if (!members.has(id) || excluded.has(id) || emitted.has(id)) return
+    emitted.add(id)
     result.push(id)
   }
   room.projectOrder.forEach(append)
@@ -76,8 +78,12 @@ export function controlRoomProjectReferences(
   const fixed = new Set(room.fixedProjectIds)
   const excluded = new Set(room.excludedProjectIds)
   const ids: string[] = []
+  const seen = new Set<string>()
   const append = (id: string) => {
-    if (id && !ids.includes(id) && (manual.has(id) || fixed.has(id) || excluded.has(id))) ids.push(id)
+    if (id && !seen.has(id) && (manual.has(id) || fixed.has(id) || excluded.has(id))) {
+      seen.add(id)
+      ids.push(id)
+    }
   }
   room.projectOrder.forEach(append)
   room.projectIds.forEach(append)

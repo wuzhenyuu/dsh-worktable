@@ -87,6 +87,7 @@ export type ControlRoomCommandErrorCode =
   | 'INVALID_RULE'
   | 'CONFIRMATION_REQUIRED'
   | 'UNSUPPORTED_DESTRUCTIVE_OPERATION'
+  | 'CONFLICT_RELOAD_REQUIRED'
   | 'COMMAND_FAILED'
 
 export type ControlRoomCommandConfirmation = {
@@ -124,6 +125,8 @@ export type ControlRoomCommandAdapter = {
   now(): number
   knownProjectIds(): readonly string[]
   isSessionRunning(sessionId: string): boolean
+  /** Rejects every mutating/open action while a cross-tab conflict awaits reload. */
+  mutationBlocked?(): boolean
   /** Opens the same production room path used by the UI. */
   open(controlRoomId: string): void
   /** Searches through the same production search projection used by the UI. */
@@ -453,6 +456,10 @@ export function createControlRoomCommandBridge(
       return success(typedAction, false, undefined, adapter.search(request.query, request.limit as number | undefined))
     }
 
+    if (typedAction !== 'control_room.get' && adapter.mutationBlocked?.()) {
+      return fail(action, 'CONFLICT_RELOAD_REQUIRED', 'This tab has a cross-window control-room conflict. Reload before making changes or opening another room.')
+    }
+
     if (typedAction === 'control_room.restore') {
       const archived = before.trash.deleted.find((entry) => entry.room.id === controlRoomId)
       if (!archived) return fail(action, 'CONTROL_ROOM_NOT_FOUND', `Archived control room not found: ${controlRoomId}`)
@@ -650,16 +657,21 @@ export function createControlRoomCommandBridge(
         const replayed = consumedConfirmationFailure(request)
         if (replayed) return replayed
         if (request.sessionId !== null && !exactId(request.sessionId)) return fail(action, 'INVALID_REQUEST', 'sessionId must be one exact ID or null.')
-        const requiresConfirmation = request.sessionId === null && !!room.boundSessionId && adapter.isSessionRunning(room.boundSessionId)
+        const requiresConfirmation = !!room.boundSessionId
+          && request.sessionId !== room.boundSessionId
+          && adapter.isSessionRunning(room.boundSessionId)
         if (request.sessionId === room.boundSessionId) {
           const unexpected = unexpectedConfirmationFailure(request)
           if (unexpected) return unexpected
           return success(typedAction, false, controlRoomId, roomResult(room))
         }
         if (requiresConfirmation) {
-          const confirmation = confirmationFor(typedAction, [controlRoomId!], `Unbind running management session ${room.boundSessionId}`, {
+          const confirmation = confirmationFor(typedAction, [controlRoomId!], request.sessionId === null
+            ? `Unbind running management session ${room.boundSessionId}`
+            : `Replace running management session ${room.boundSessionId} with ${request.sessionId}`, {
             updatedAt: room.updatedAt,
             boundSessionId: room.boundSessionId,
+            requestedSessionId: request.sessionId,
           })
           const blocked = confirmationMissing(request, confirmation)
           if (blocked) return blocked

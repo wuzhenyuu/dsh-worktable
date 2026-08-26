@@ -19399,6 +19399,12 @@ var uniqueStrings = (value) => {
   return result;
 };
 var clone = (value) => JSON.parse(JSON.stringify(value));
+var normalizedControlRoomsStates = /* @__PURE__ */ new WeakSet();
+var markNormalizedControlRoomsState = (state) => {
+  normalizedControlRoomsStates.add(state);
+  return state;
+};
+var ensureNormalizedControlRoomsState = (state) => normalizedControlRoomsStates.has(state) ? state : normalizeControlRoomsState(state);
 var normalizedTheme = (value) => value === "dark" || value === "light" || value === "system" ? value : "system";
 var normalizedPane = (value) => value === "conversation" || value === "files" || value === "terminal" || value === "console" ? value : "console";
 var normalizedStatus = (value) => value === "idle" || value === "busy" || value === "need" || value === "done";
@@ -19487,7 +19493,7 @@ function normalizeRule(value, index) {
   };
 }
 function createEmptyControlRoomsState() {
-  return { version: CONTROL_ROOMS_VERSION, order: [], activeId: null, rooms: {} };
+  return markNormalizedControlRoomsState({ version: CONTROL_ROOMS_VERSION, order: [], activeId: null, rooms: {} });
 }
 function createEmptyControlRoomsTrashState() {
   return { version: CONTROL_ROOMS_VERSION, deleted: [], audit: [] };
@@ -19502,8 +19508,12 @@ function normalizeControlRoom(value, fallbackId = "room") {
   const excludedProjectIds = uniqueStrings(room.excludedProjectIds);
   const orderable = /* @__PURE__ */ new Set([...projectIds, ...fixedProjectIds]);
   const projectOrder = uniqueStrings(room.projectOrder).filter((projectId) => orderable.has(projectId));
+  const orderedProjectIds = new Set(projectOrder);
   for (const projectId of [...projectIds, ...fixedProjectIds]) {
-    if (!projectOrder.includes(projectId)) projectOrder.push(projectId);
+    if (!orderedProjectIds.has(projectId)) {
+      orderedProjectIds.add(projectId);
+      projectOrder.push(projectId);
+    }
   }
   const rawRules = Array.isArray(room.rules) ? room.rules : [];
   const rules = rawRules.map((rule, index) => normalizeRule(rule, index)).filter((rule) => !!rule);
@@ -19549,9 +19559,15 @@ function normalizeControlRoomsState(value) {
     rooms[key] = room.id === key ? room : { ...room, id: key, layoutId: room.layoutId === `wt-console:${room.id}` ? `wt-console:${key}` : room.layoutId };
   }
   const order = uniqueStrings(value.order).filter((id) => !!rooms[id]);
-  for (const id of Object.keys(rooms)) if (!order.includes(id)) order.push(id);
+  const orderedRoomIds = new Set(order);
+  for (const id of Object.keys(rooms)) {
+    if (!orderedRoomIds.has(id)) {
+      orderedRoomIds.add(id);
+      order.push(id);
+    }
+  }
   const activeId = typeof value.activeId === "string" && rooms[value.activeId] ? value.activeId : null;
-  return { version: CONTROL_ROOMS_VERSION, order, activeId, rooms };
+  return markNormalizedControlRoomsState({ version: CONTROL_ROOMS_VERSION, order, activeId, rooms });
 }
 function normalizeControlRoomsTrashState(value) {
   if (!isRecord(value)) return createEmptyControlRoomsTrashState();
@@ -19601,20 +19617,20 @@ function nextControlRoomRevision(room, now) {
   return Math.max(now, room.updatedAt + 1);
 }
 function createControlRoom(state, input, options) {
-  const normalized = normalizeControlRoomsState(state);
+  const normalized = ensureNormalizedControlRoomsState(state);
   const id = options.id || input.id;
   if (!id) throw new Error("A deterministic control-room id is required");
   if (normalized.rooms[id]) throw new Error(`Control room already exists: ${id}`);
   const room = roomFromInput(input, id, options.now);
-  return {
+  return markNormalizedControlRoomsState({
     ...normalized,
     order: [...normalized.order, id],
     activeId: normalized.activeId ?? id,
     rooms: { ...normalized.rooms, [id]: room }
-  };
+  });
 }
 function updateControlRoom(state, roomId, patch, now) {
-  const normalized = normalizeControlRoomsState(state);
+  const normalized = ensureNormalizedControlRoomsState(state);
   const current = normalized.rooms[roomId];
   if (!current) return normalized;
   const room = normalizeControlRoom({
@@ -19625,17 +19641,17 @@ function updateControlRoom(state, roomId, patch, now) {
     updatedAt: nextControlRoomRevision(current, now),
     deletedAt: null
   }, roomId);
-  return { ...normalized, rooms: { ...normalized.rooms, [roomId]: room } };
+  return markNormalizedControlRoomsState({ ...normalized, rooms: { ...normalized.rooms, [roomId]: room } });
 }
 function selectControlRoom(state, roomId, now) {
-  const normalized = normalizeControlRoomsState(state);
+  const normalized = ensureNormalizedControlRoomsState(state);
   const room = normalized.rooms[roomId];
   if (!room) return normalized;
   const selected = updateControlRoom(normalized, roomId, { lastOpenedAt: now }, now);
-  return { ...selected, activeId: roomId };
+  return markNormalizedControlRoomsState({ ...selected, activeId: roomId });
 }
 function selectControlRoomNavigation(state, needRoomIds) {
-  const normalized = normalizeControlRoomsState(state);
+  const normalized = ensureNormalizedControlRoomsState(state);
   const visibleIds = normalized.order.filter((id) => normalized.rooms[id]?.sidebarVisible !== false);
   if (normalized.order.length <= 8) return { primaryIds: visibleIds, moreIds: [] };
   const orderIndex = new Map(normalized.order.map((id, index) => [id, index]));
@@ -19653,10 +19669,11 @@ function selectControlRoomNavigation(state, needRoomIds) {
   };
 }
 function copyControlRoom(state, sourceId, options) {
-  const source = normalizeControlRoomsState(state).rooms[sourceId];
-  if (!source) return normalizeControlRoomsState(state);
+  const normalized = ensureNormalizedControlRoomsState(state);
+  const source = normalized.rooms[sourceId];
+  if (!source) return normalized;
   const { createdAt: _createdAt, updatedAt: _updatedAt, lastOpenedAt: _lastOpenedAt, deletedAt: _deletedAt, ...copyable } = clone(source);
-  return createControlRoom(state, {
+  return createControlRoom(normalized, {
     ...copyable,
     id: options.id,
     name: options.name ?? `${source.name} \u526F\u672C`,
@@ -19665,7 +19682,7 @@ function copyControlRoom(state, sourceId, options) {
   }, options);
 }
 function deleteControlRoom(state, trash, roomId, now) {
-  const normalized = normalizeControlRoomsState(state);
+  const normalized = ensureNormalizedControlRoomsState(state);
   const room = normalized.rooms[roomId];
   if (!room) return { state: normalized, trash: normalizeControlRoomsTrashState(trash), deleted: null };
   const deleted = {
@@ -19677,7 +19694,12 @@ function deleteControlRoom(state, trash, roomId, now) {
   delete rooms[roomId];
   const order = normalized.order.filter((id) => id !== roomId);
   return {
-    state: { ...normalized, rooms, order, activeId: normalized.activeId === roomId ? order[0] ?? null : normalized.activeId },
+    state: markNormalizedControlRoomsState({
+      ...normalized,
+      rooms,
+      order,
+      activeId: normalized.activeId === roomId ? order[0] ?? null : normalized.activeId
+    }),
     trash: {
       ...normalizeControlRoomsTrashState(trash),
       deleted: [...normalizeControlRoomsTrashState(trash).deleted.filter((item) => item.room.id !== roomId), deleted]
@@ -19692,7 +19714,7 @@ function collisionId(baseId, occupied) {
   return candidate;
 }
 function restoreControlRoom(state, trash, roomId, now) {
-  const normalized = normalizeControlRoomsState(state);
+  const normalized = ensureNormalizedControlRoomsState(state);
   const normalizedTrash = normalizeControlRoomsTrashState(trash);
   const entry = normalizedTrash.deleted.find((item) => item.room.id === roomId);
   if (!entry || entry.expiresAt <= now) return { state: normalized, trash: expireDeletedControlRooms(normalizedTrash, now), restoredId: null };
@@ -19706,12 +19728,12 @@ function restoreControlRoom(state, trash, roomId, now) {
     updatedAt: nextControlRoomRevision(entry.room, now)
   }, restoredId);
   return {
-    state: {
+    state: markNormalizedControlRoomsState({
       ...normalized,
       order: [...normalized.order, restoredId],
       activeId: normalized.activeId ?? restoredId,
       rooms: { ...normalized.rooms, [restoredId]: room }
-    },
+    }),
     trash: { ...normalizedTrash, deleted: normalizedTrash.deleted.filter((item) => item !== entry && item.room.id !== roomId) },
     restoredId
   };
@@ -19721,58 +19743,97 @@ function expireDeletedControlRooms(trash, now) {
   return { ...normalized, deleted: normalized.deleted.filter((entry) => entry.expiresAt > now) };
 }
 function addProjectToRoom(state, roomId, projectId, now) {
-  const room = normalizeControlRoomsState(state).rooms[roomId];
-  if (!room || !projectId || room.projectIds.includes(projectId)) return normalizeControlRoomsState(state);
-  return updateControlRoom(state, roomId, {
+  const normalized = ensureNormalizedControlRoomsState(state);
+  const room = normalized.rooms[roomId];
+  if (!room || !projectId || room.projectIds.includes(projectId)) return normalized;
+  return updateControlRoom(normalized, roomId, {
     projectIds: [...room.projectIds, projectId],
     projectOrder: room.projectOrder.includes(projectId) ? room.projectOrder : [...room.projectOrder, projectId]
   }, now);
 }
 function removeProjectFromRoom(state, roomId, projectId, now) {
-  const room = normalizeControlRoomsState(state).rooms[roomId];
-  if (!room) return normalizeControlRoomsState(state);
-  return updateControlRoom(state, roomId, {
+  const normalized = ensureNormalizedControlRoomsState(state);
+  const room = normalized.rooms[roomId];
+  if (!room) return normalized;
+  return updateControlRoom(normalized, roomId, {
     projectIds: room.projectIds.filter((id) => id !== projectId),
     projectOrder: room.projectOrder.filter((id) => id !== projectId),
     fixedProjectIds: room.fixedProjectIds.filter((id) => id !== projectId),
     excludedProjectIds: room.excludedProjectIds.filter((id) => id !== projectId)
   }, now);
 }
-function reorderProjectsInRoom(state, roomId, requestedOrder, now) {
-  const room = normalizeControlRoomsState(state).rooms[roomId];
-  if (!room) return normalizeControlRoomsState(state);
-  const available = /* @__PURE__ */ new Set([...room.projectIds, ...room.fixedProjectIds]);
+function reorderProjectsInRoom(state, roomId, requestedOrder, now, promoteProjectIds = []) {
+  const normalized = ensureNormalizedControlRoomsState(state);
+  const room = normalized.rooms[roomId];
+  if (!room) return normalized;
+  const requested = new Set(uniqueStrings(requestedOrder));
+  const fixedProjectIds = uniqueStrings([
+    ...room.fixedProjectIds,
+    ...uniqueStrings(promoteProjectIds).filter((id) => requested.has(id))
+  ]);
+  const available = /* @__PURE__ */ new Set([...room.projectIds, ...fixedProjectIds]);
   const order = uniqueStrings(requestedOrder).filter((id) => available.has(id));
-  for (const id of room.projectOrder) if (available.has(id) && !order.includes(id)) order.push(id);
-  return updateControlRoom(state, roomId, { projectOrder: order }, now);
+  const ordered = new Set(order);
+  for (const id of room.projectOrder) {
+    if (available.has(id) && !ordered.has(id)) {
+      ordered.add(id);
+      order.push(id);
+    }
+  }
+  return updateControlRoom(normalized, roomId, { fixedProjectIds, projectOrder: order }, now);
 }
 function setProjectFixed(state, roomId, projectId, fixed, now) {
-  const room = normalizeControlRoomsState(state).rooms[roomId];
-  if (!room || !projectId) return normalizeControlRoomsState(state);
+  const normalized = ensureNormalizedControlRoomsState(state);
+  const room = normalized.rooms[roomId];
+  if (!room || !projectId) return normalized;
   const fixedProjectIds = fixed ? uniqueStrings([...room.fixedProjectIds, projectId]) : room.fixedProjectIds.filter((id) => id !== projectId);
   const projectOrder = fixed && !room.projectOrder.includes(projectId) ? [...room.projectOrder, projectId] : room.projectOrder;
-  return updateControlRoom(state, roomId, { fixedProjectIds, projectOrder }, now);
+  return updateControlRoom(normalized, roomId, { fixedProjectIds, projectOrder }, now);
 }
 function setProjectExcluded(state, roomId, projectId, excluded, now) {
-  const room = normalizeControlRoomsState(state).rooms[roomId];
-  if (!room || !projectId) return normalizeControlRoomsState(state);
+  const normalized = ensureNormalizedControlRoomsState(state);
+  const room = normalized.rooms[roomId];
+  if (!room || !projectId) return normalized;
   const excludedProjectIds = excluded ? uniqueStrings([...room.excludedProjectIds, projectId]) : room.excludedProjectIds.filter((id) => id !== projectId);
-  return updateControlRoom(state, roomId, { excludedProjectIds }, now);
+  return updateControlRoom(normalized, roomId, { excludedProjectIds }, now);
 }
 function appendControlRoomAudit(audit, entry) {
   return [...audit, clone(entry)].slice(-CONTROL_ROOM_AUDIT_LIMIT);
 }
+function compareCanonical(left, right) {
+  const leftKey = JSON.stringify(left);
+  const rightKey = JSON.stringify(right);
+  return leftKey === rightKey ? 0 : leftKey > rightKey ? 1 : -1;
+}
+function canonicalRoomOrder(left, right, roomIds) {
+  const available = new Set(roomIds);
+  const leftOrder = left.order.filter((id) => available.has(id));
+  const rightOrder = right.order.filter((id) => available.has(id));
+  const primary = compareCanonical(leftOrder, rightOrder) >= 0 ? leftOrder : rightOrder;
+  const secondary = primary === leftOrder ? rightOrder : leftOrder;
+  return uniqueStrings([...primary, ...secondary, ...roomIds]).filter((id) => available.has(id));
+}
 function mergeControlRoomSummaries(local, incoming) {
   const left = normalizeControlRoomsState(local);
   const right = normalizeControlRoomsState(incoming);
-  const rooms = { ...left.rooms };
-  for (const [id, room] of Object.entries(right.rooms)) {
-    const current = rooms[id];
-    if (!current || room.updatedAt > current.updatedAt) rooms[id] = clone(room);
+  const roomIds = uniqueStrings([...Object.keys(left.rooms), ...Object.keys(right.rooms)]).sort();
+  const rooms = {};
+  for (const id of roomIds) {
+    const leftRoom = left.rooms[id];
+    const rightRoom = right.rooms[id];
+    if (!leftRoom && rightRoom) rooms[id] = clone(rightRoom);
+    else if (leftRoom && !rightRoom) rooms[id] = clone(leftRoom);
+    else if (!leftRoom || !rightRoom) continue;
+    else if (leftRoom.updatedAt !== rightRoom.updatedAt) {
+      rooms[id] = clone(leftRoom.updatedAt > rightRoom.updatedAt ? leftRoom : rightRoom);
+    } else {
+      rooms[id] = clone(compareCanonical(leftRoom, rightRoom) >= 0 ? leftRoom : rightRoom);
+    }
   }
-  const order = uniqueStrings([...right.order, ...left.order]).filter((id) => !!rooms[id]);
-  const activeCandidate = right.activeId && rooms[right.activeId] ? right.activeId : left.activeId;
-  return { version: CONTROL_ROOMS_VERSION, order, activeId: activeCandidate && rooms[activeCandidate] ? activeCandidate : null, rooms };
+  const order = canonicalRoomOrder(left, right, roomIds);
+  const activeIds = uniqueStrings([left.activeId, right.activeId].filter((id) => !!id && !!rooms[id])).sort();
+  const activeId = activeIds[activeIds.length - 1] ?? null;
+  return { version: CONTROL_ROOMS_VERSION, order, activeId, rooms };
 }
 function tombstoneTimestamp(entry) {
   return Math.max(entry.deletedAt, entry.room.updatedAt);
@@ -19783,47 +19844,68 @@ function mergeControlRoomsTrash(local, incoming) {
   const byRoomId = /* @__PURE__ */ new Map();
   for (const entry of [...left.deleted, ...right.deleted]) {
     const current = byRoomId.get(entry.room.id);
-    if (!current || tombstoneTimestamp(entry) > tombstoneTimestamp(current)) byRoomId.set(entry.room.id, clone(entry));
+    if (!current || tombstoneTimestamp(entry) > tombstoneTimestamp(current) || tombstoneTimestamp(entry) === tombstoneTimestamp(current) && compareCanonical(entry, current) > 0) {
+      byRoomId.set(entry.room.id, clone(entry));
+    }
   }
-  const seenAudit = /* @__PURE__ */ new Set();
-  const audit = [...left.audit, ...right.audit].filter((entry) => {
+  const auditByKey = /* @__PURE__ */ new Map();
+  for (const entry of [...left.audit, ...right.audit]) {
     const key = `${entry.actor}\0${entry.timestamp}\0${entry.action}\0${entry.controlRoomId}\0${entry.summary}`;
-    if (seenAudit.has(key)) return false;
-    seenAudit.add(key);
-    return true;
-  }).slice(-CONTROL_ROOM_AUDIT_LIMIT);
-  return { version: CONTROL_ROOMS_VERSION, deleted: [...byRoomId.values()], audit };
+    if (!auditByKey.has(key)) auditByKey.set(key, clone(entry));
+  }
+  const audit = [...auditByKey.entries()].sort(([leftKey, leftEntry], [rightKey, rightEntry]) => leftEntry.timestamp - rightEntry.timestamp || leftKey.localeCompare(rightKey)).slice(-CONTROL_ROOM_AUDIT_LIMIT).map(([, entry]) => entry);
+  const deleted = [...byRoomId.values()].sort((leftEntry, rightEntry) => tombstoneTimestamp(leftEntry) - tombstoneTimestamp(rightEntry) || leftEntry.room.id.localeCompare(rightEntry.room.id));
+  return { version: CONTROL_ROOMS_VERSION, deleted, audit };
+}
+function sameControlRoomsState(left, right) {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+function sameControlRoomsTrash(left, right) {
+  return JSON.stringify(left) === JSON.stringify(right);
 }
 function resolveControlRoomStorageEvent(local, incoming, openRoomId, localTrash = createEmptyControlRoomsTrashState(), incomingTrash = createEmptyControlRoomsTrashState()) {
   const normalizedLocal = normalizeControlRoomsState(local);
   const normalizedIncoming = normalizeControlRoomsState(incoming);
-  let trash = mergeControlRoomsTrash(localTrash, incomingTrash);
-  const deleted = trash.deleted;
+  const normalizedIncomingTrash = normalizeControlRoomsTrashState(incomingTrash);
+  let storageTrash = mergeControlRoomsTrash(localTrash, normalizedIncomingTrash);
+  const deleted = storageTrash.deleted;
   const localOpen = openRoomId ? normalizedLocal.rooms[openRoomId] : void 0;
   const incomingOpen = openRoomId ? normalizedIncoming.rooms[openRoomId] : void 0;
   const openTombstone = openRoomId ? deleted.find((entry) => entry.room.id === openRoomId) : void 0;
-  const requiresReload = !!localOpen && (!!incomingOpen && incomingOpen.updatedAt > localOpen.updatedAt || !!openTombstone && tombstoneTimestamp(openTombstone) >= localOpen.updatedAt);
-  let state = mergeControlRoomSummaries(normalizedLocal, normalizedIncoming);
+  const equalRevisionIncomingWins = !!localOpen && !!incomingOpen && incomingOpen.updatedAt === localOpen.updatedAt && compareCanonical(incomingOpen, localOpen) > 0;
+  const requiresReload = !!localOpen && (!!incomingOpen && incomingOpen.updatedAt > localOpen.updatedAt || equalRevisionIncomingWins || !!openTombstone && tombstoneTimestamp(openTombstone) >= localOpen.updatedAt);
+  let storageState = mergeControlRoomSummaries(normalizedLocal, normalizedIncoming);
   for (const entry of deleted) {
-    const current = state.rooms[entry.room.id];
+    const current = storageState.rooms[entry.room.id];
     if (!current) continue;
     if (tombstoneTimestamp(entry) < current.updatedAt) {
-      trash = { ...trash, deleted: trash.deleted.filter((item) => item.room.id !== entry.room.id) };
+      storageTrash = { ...storageTrash, deleted: storageTrash.deleted.filter((item) => item.room.id !== entry.room.id) };
       continue;
     }
-    if (entry.room.id === openRoomId && localOpen) continue;
-    const rooms = { ...state.rooms };
+    const rooms = { ...storageState.rooms };
     delete rooms[entry.room.id];
-    const order = state.order.filter((id) => id !== entry.room.id);
-    state = { ...state, rooms, order, activeId: state.activeId === entry.room.id ? order[0] ?? null : state.activeId };
+    const order = storageState.order.filter((id) => id !== entry.room.id);
+    storageState = { ...storageState, rooms, order, activeId: storageState.activeId === entry.room.id ? order[0] ?? null : storageState.activeId };
   }
+  storageState = {
+    ...storageState,
+    activeId: normalizedIncoming.activeId && storageState.rooms[normalizedIncoming.activeId] ? normalizedIncoming.activeId : null
+  };
+  let state = storageState;
   if (normalizedLocal.activeId && state.rooms[normalizedLocal.activeId]) {
     state = { ...state, activeId: normalizedLocal.activeId };
   }
   if (requiresReload && openRoomId && localOpen) {
-    state = { ...state, activeId: openRoomId, rooms: { ...state.rooms, [openRoomId]: localOpen } };
+    const rooms = { ...state.rooms, [openRoomId]: localOpen };
+    const order = state.order.includes(openRoomId) ? state.order : [...state.order];
+    if (!order.includes(openRoomId)) {
+      const localIndex = normalizedLocal.order.indexOf(openRoomId);
+      order.splice(localIndex < 0 ? order.length : Math.min(localIndex, order.length), 0, openRoomId);
+    }
+    state = { ...state, activeId: openRoomId, rooms, order };
   }
-  return { state, trash, requiresReload };
+  const requiresWriteback = !sameControlRoomsState(storageState, normalizedIncoming) || !sameControlRoomsTrash(storageTrash, normalizedIncomingTrash);
+  return { state, trash: storageTrash, storageState, storageTrash, requiresReload, requiresWriteback };
 }
 function exportControlRooms(state, exportedAt) {
   const payload = {
@@ -19902,8 +19984,15 @@ function rollbackStoredValues(storage, entries) {
 }
 function createLegacyMigration(input, now) {
   const projectIds = uniqueStrings(input.projectIds);
-  const projectOrder = uniqueStrings(input.projectOrder ?? input.projectIds).filter((id) => projectIds.includes(id));
-  for (const id of projectIds) if (!projectOrder.includes(id)) projectOrder.push(id);
+  const projectIdSet = new Set(projectIds);
+  const projectOrder = uniqueStrings(input.projectOrder ?? input.projectIds).filter((id) => projectIdSet.has(id));
+  const orderedProjectIds = new Set(projectOrder);
+  for (const id of projectIds) {
+    if (!orderedProjectIds.has(id)) {
+      orderedProjectIds.add(id);
+      projectOrder.push(id);
+    }
+  }
   const legacy = {
     projectIds,
     projectOrder,
@@ -20031,7 +20120,7 @@ var ControlRoomsStorage = class {
     return { state: clone(migration.state), trash: clone(trash), migrated: true, persistenceError: null };
   }
   save(state, trash) {
-    const nextState = normalizeControlRoomsState(state);
+    const nextState = ensureNormalizedControlRoomsState(state);
     const nextTrash = normalizeControlRoomsTrashState(trash);
     this.lastGoodState = nextState;
     this.lastGoodTrash = nextTrash;
@@ -20337,6 +20426,9 @@ function createControlRoomCommandBridge(adapter, confirmationLedger = createCont
       }
       return success(typedAction, false, void 0, adapter.search(request.query, request.limit));
     }
+    if (typedAction !== "control_room.get" && adapter.mutationBlocked?.()) {
+      return fail(action, "CONFLICT_RELOAD_REQUIRED", "This tab has a cross-window control-room conflict. Reload before making changes or opening another room.");
+    }
     if (typedAction === "control_room.restore") {
       const archived = before.trash.deleted.find((entry) => entry.room.id === controlRoomId);
       if (!archived) return fail(action, "CONTROL_ROOM_NOT_FOUND", `Archived control room not found: ${controlRoomId}`);
@@ -20522,16 +20614,17 @@ function createControlRoomCommandBridge(adapter, confirmationLedger = createCont
         const replayed = consumedConfirmationFailure(request);
         if (replayed) return replayed;
         if (request.sessionId !== null && !exactId(request.sessionId)) return fail(action, "INVALID_REQUEST", "sessionId must be one exact ID or null.");
-        const requiresConfirmation = request.sessionId === null && !!room.boundSessionId && adapter.isSessionRunning(room.boundSessionId);
+        const requiresConfirmation = !!room.boundSessionId && request.sessionId !== room.boundSessionId && adapter.isSessionRunning(room.boundSessionId);
         if (request.sessionId === room.boundSessionId) {
           const unexpected = unexpectedConfirmationFailure(request);
           if (unexpected) return unexpected;
           return success(typedAction, false, controlRoomId, roomResult(room));
         }
         if (requiresConfirmation) {
-          const confirmation = confirmationFor(typedAction, [controlRoomId], `Unbind running management session ${room.boundSessionId}`, {
+          const confirmation = confirmationFor(typedAction, [controlRoomId], request.sessionId === null ? `Unbind running management session ${room.boundSessionId}` : `Replace running management session ${room.boundSessionId} with ${request.sessionId}`, {
             updatedAt: room.updatedAt,
-            boundSessionId: room.boundSessionId
+            boundSessionId: room.boundSessionId,
+            requestedSessionId: request.sessionId
           });
           const blocked = confirmationMissing(request, confirmation);
           if (blocked) return blocked;
@@ -20611,8 +20704,10 @@ function effectiveControlRoomProjectIds(room, candidateIds, ruleMatchedIds = [])
   const liveRuleMatches = ruleMatchedIds.filter((id) => !candidates || candidates.has(id));
   const members = new Set([...room.projectIds, ...room.fixedProjectIds, ...liveRuleMatches].filter((id) => !excluded.has(id)));
   const result = [];
+  const emitted = /* @__PURE__ */ new Set();
   const append = (id) => {
-    if (!members.has(id) || excluded.has(id) || result.includes(id)) return;
+    if (!members.has(id) || excluded.has(id) || emitted.has(id)) return;
+    emitted.add(id);
     result.push(id);
   };
   room.projectOrder.forEach(append);
@@ -20631,8 +20726,12 @@ function controlRoomProjectReferences(room, liveProjectIds) {
   const fixed = new Set(room.fixedProjectIds);
   const excluded = new Set(room.excludedProjectIds);
   const ids = [];
+  const seen = /* @__PURE__ */ new Set();
   const append = (id) => {
-    if (id && !ids.includes(id) && (manual.has(id) || fixed.has(id) || excluded.has(id))) ids.push(id);
+    if (id && !seen.has(id) && (manual.has(id) || fixed.has(id) || excluded.has(id))) {
+      seen.add(id);
+      ids.push(id);
+    }
   };
   room.projectOrder.forEach(append);
   room.projectIds.forEach(append);
@@ -22153,6 +22252,7 @@ function WorktableSection(props) {
   const searchReturnFocusRef = (0, import_react3.useRef)(null);
   const [searchSelection, setSearchSelection] = (0, import_react3.useState)(0);
   const [roomReloadNotice, setRoomReloadNotice] = (0, import_react3.useState)(false);
+  const roomConflictRef = (0, import_react3.useRef)(false);
   const [roomSaveFailed, setRoomSaveFailed] = (0, import_react3.useState)(() => initialControlRoomsPersistenceErrorRef.current);
   const [metas, setMetas] = (0, import_react3.useState)({});
   const [registeredIds, setRegisteredIds] = (0, import_react3.useState)(() => [...registryStore.ids]);
@@ -22269,7 +22369,13 @@ function WorktableSection(props) {
     roomManageResumeFocusRef.current = null;
     setRoomManageId(null);
   };
+  const rejectRoomMutation = () => {
+    if (!roomConflictRef.current) return false;
+    setRoomReloadNotice(true);
+    return true;
+  };
   const commitControlRooms = (mutate) => {
+    if (rejectRoomMutation()) return controlRoomsRef.current;
     const next = mutate(controlRoomsRef.current);
     const saved = controlRoomsStorageRef.current.save(next.state, next.trash);
     setRoomSaveFailed(!saved.ok);
@@ -22303,10 +22409,13 @@ function WorktableSection(props) {
       }
       const local = controlRoomsRef.current;
       const resolved = resolveControlRoomStorageEvent(local.state, loaded.state, local.state.activeId, local.trash, loaded.trash);
-      if (resolved.requiresReload) setRoomReloadNotice(true);
+      if (resolved.requiresReload) {
+        roomConflictRef.current = true;
+        setRoomReloadNotice(true);
+      }
       const next = { state: resolved.state, trash: resolved.trash };
-      if (!resolved.requiresReload) {
-        const saved = controlRoomsStorageRef.current.save(next.state, next.trash);
+      if (resolved.requiresWriteback) {
+        const saved = controlRoomsStorageRef.current.save(resolved.storageState, resolved.storageTrash);
         setRoomSaveFailed(!saved.ok);
       }
       controlRoomsRef.current = next;
@@ -22535,6 +22644,7 @@ function WorktableSection(props) {
           const pid = splitStore.active && splitStore.spec ? splitStore.spec.id : null;
           if (!pid || typeof sessionId !== "string" || !sessionId) return "none";
           if (pid.startsWith("wt-console:")) {
+            if (rejectRoomMutation()) return "none";
             const outcome = autoBindControlRoomSession(controlRoomsRef.current.state, pid, sessionId, Date.now());
             if (outcome.result === "auto") {
               commitUserControlRooms(outcome.roomId, "bind_session", `Automatically bound management session ${sessionId}`, (current) => ({ ...current, state: outcome.state }));
@@ -22620,7 +22730,9 @@ function WorktableSection(props) {
             if (from < 0 || to < 0) return current;
             order.splice(from, 1);
             order.splice(to, 0, id);
-            return { ...current, state: reorderProjectsInRoom(current.state, roomId, order, now) };
+            const ruleMatches = new Set(roomRuleMatchesRef.current[roomId] ?? []);
+            const promoteProjectIds = [id, targetId].filter((projectId) => ruleMatches.has(projectId) && !room.projectIds.includes(projectId) && !room.fixedProjectIds.includes(projectId));
+            return { ...current, state: reorderProjectsInRoom(current.state, roomId, order, now, promoteProjectIds) };
           });
         },
         onOpen: (id) => {
@@ -22908,6 +23020,7 @@ function WorktableSection(props) {
     }
   }, [projects.views]);
   const openControlRoom = (0, import_react3.useCallback)((controlRoomId) => {
+    if (rejectRoomMutation()) return;
     const current = controlRoomsRef.current;
     const room = current.state.rooms[controlRoomId];
     if (!room) return;
@@ -22967,6 +23080,7 @@ function WorktableSection(props) {
     fetchSessionGroups().then((res) => setConsoleGroups(res.groups)).catch(() => setConsoleGroups([]));
   };
   const bindControlRoomExisting = (sid) => {
+    if (rejectRoomMutation()) return;
     const roomId = consoleBind?.roomId;
     if (!roomId) return;
     commitUserControlRooms(roomId, "bind_session", `Bound management session ${sid}`, (current, now) => ({
@@ -22977,6 +23091,7 @@ function WorktableSection(props) {
     openControlRoom(roomId);
   };
   const clearControlRoomBinding = () => {
+    if (rejectRoomMutation()) return;
     const roomId = consoleBind?.roomId;
     if (!roomId) return;
     commitUserControlRooms(roomId, "bind_session", "Unbound management session", (current, now) => ({
@@ -22985,6 +23100,7 @@ function WorktableSection(props) {
     }));
   };
   const bindConsoleNew = async () => {
+    if (rejectRoomMutation()) return;
     const b = sessionBridge;
     if (!b || typeof b.sessions?.create !== "function") {
       setConsoleErr(true);
@@ -23478,6 +23594,7 @@ function WorktableSection(props) {
     return id;
   };
   const createNamedRoom = (rawName, rawIcon = "\u{1F5A5}\uFE0F", rawDescription = "") => {
+    if (rejectRoomMutation()) return;
     const name = rawName.trim();
     if (!name) return;
     const icon = rawIcon.trim() || "\u{1F5A5}\uFE0F";
@@ -23487,6 +23604,7 @@ function WorktableSection(props) {
       const created = createControlRoom(current.state, { name, icon, description }, { id, now });
       return { ...current, state: selectControlRoom(created, id, now) };
     });
+    openControlRoom(id);
   };
   const afterControlRoomCopy = createControlRoomAfterCopyCallback({
     getSourceLayoutId: (sourceControlRoomId) => controlRoomsRef.current.state.rooms[sourceControlRoomId]?.layoutId,
@@ -23545,6 +23663,7 @@ function WorktableSection(props) {
     }));
   };
   const copyRoom = (roomId) => {
+    if (rejectRoomMutation()) return;
     const source = controlRoomsRef.current.state.rooms[roomId];
     if (!source) return;
     const id = createRoomId();
@@ -23570,6 +23689,7 @@ function WorktableSection(props) {
     }));
   };
   const confirmDeleteRoom = () => {
+    if (rejectRoomMutation()) return;
     if (!roomDeleteId) return;
     const openLayoutId = splitStore.active ? splitStore.spec?.id ?? null : null;
     const now = Date.now();
@@ -23605,6 +23725,7 @@ function WorktableSection(props) {
     });
   };
   const restoreRoomFromTrash = (roomId) => {
+    if (rejectRoomMutation()) return;
     const sourceLayoutId = controlRoomsRef.current.trash.deleted.find((entry) => entry.room.id === roomId)?.room.layoutId;
     let restoredId = null;
     const now = Date.now();
@@ -23694,6 +23815,7 @@ function WorktableSection(props) {
   };
   const importRoomConfiguration = async (file) => {
     if (!file) return;
+    if (rejectRoomMutation()) return;
     try {
       const serialized = await file.text();
       commitControlRooms((current) => importControlRoomsWithAudit(current, serialized, Date.now(), "user").snapshot);
@@ -23711,6 +23833,7 @@ function WorktableSection(props) {
       now: () => Date.now(),
       knownProjectIds: () => allIds,
       isSessionRunning: (sessionId) => sessionsSnapshotStore.snapshot?.byId?.[sessionId]?.running === true,
+      mutationBlocked: () => roomConflictRef.current,
       open: openControlRoom,
       search: (query2, limit) => ({ query: query2, ...buildControlRoomSearchResponse(query2, limit) }),
       afterCopy: afterControlRoomCopy,

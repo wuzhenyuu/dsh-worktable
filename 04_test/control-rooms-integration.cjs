@@ -58,6 +58,12 @@ async function main() {
   assert.match(String(throwingInitialization.persistenceError), /SecurityError/, 'production initialization exposes the persistence failure')
   const indexSource = fs.readFileSync(path.join(repo, '01_content/src/client/index.tsx'), 'utf8')
   assert.match(indexSource, /initialControlRoomsPersistenceErrorRef\.current = loaded\.persistenceError != null/, 'React initialization wires the repository failure into visible UI state')
+  assert.match(indexSource, /if \(resolved\.requiresWriteback\)[\s\S]*save\(resolved\.storageState, resolved\.storageTrash\)/, 'storage events write back only a canonical reconciliation that differs from incoming storage')
+  assert.match(indexSource, /const rejectRoomMutation =[\s\S]*if \(!roomConflictRef\.current\) return false[\s\S]*if \(rejectRoomMutation\(\)\) return controlRoomsRef\.current/, 'a stale displayed room cannot be persisted by later actions before reload')
+  assert.match(indexSource, /if \(resolved\.requiresReload\)[\s\S]*roomConflictRef\.current = true/, 'a cross-tab open-room conflict locks persistence until reload')
+  assert.match(indexSource, /const openControlRoom = useCallback\(\(controlRoomId: string\) => \{\s*if \(rejectRoomMutation\(\)\) return/, 'opening a room is rejected before layout or session side effects during a conflict')
+  assert.match(indexSource, /mutationBlocked: \(\) => roomConflictRef\.current/, 'the typed command bridge rejects conflicted mutations before callbacks')
+  assert.match(indexSource, /const createNamedRoom =[\s\S]*commitUserControlRooms\(id,[\s\S]*openControlRoom\(id\)[\s\S]*const afterControlRoomCopy/, 'creating and selecting a room immediately opens that exact room layout and management-session context')
   assert.match(indexSource, /data-wt-room-create-field="icon"[\s\S]*data-wt-room-create-field="description"/, 'the production create dialog renders accessible icon and description controls')
   assert.match(indexSource, /data-wt-room-manage-field="icon"[\s\S]*data-wt-room-manage-field="description"/, 'the production management dialog renders icon and description controls')
   assert.match(indexSource, /createNamedRoom\(roomCreateName, roomCreateIcon, roomCreateDescription\)/, 'the production create action persists all three rendered fields')
@@ -111,6 +117,36 @@ async function main() {
   assert.ok(nav.primaryIds.includes('room-9'), 'current room remains visible')
   assert.ok(nav.primaryIds.includes('room-0'), 'need room remains visible')
   assert.deepEqual(nav.moreIds, ['room-1', 'room-2', 'room-3'], 'remaining rooms are available under More')
+
+  const equalBase = d.createControlRoom(d.createEmptyControlRoomsState(), { name: 'Base' }, { id: 'equal-room', now: 2_900 })
+  const equalAlpha = d.updateControlRoom(equalBase, 'equal-room', { name: 'Alpha' }, 3_000)
+  const equalZulu = d.updateControlRoom(equalBase, 'equal-room', { name: 'Zulu' }, 3_000)
+  assert.equal(equalAlpha.rooms['equal-room'].updatedAt, equalZulu.rooms['equal-room'].updatedAt, 'fixture reproduces an equal-revision cross-tab edit')
+  const alphaSawZulu = d.resolveControlRoomStorageEvent(equalAlpha, equalZulu, 'equal-room')
+  const zuluSawAlpha = d.resolveControlRoomStorageEvent(equalZulu, equalAlpha, 'equal-room')
+  assert.deepEqual(alphaSawZulu.storageState, zuluSawAlpha.storageState, 'equal-revision tabs choose one deterministic canonical room snapshot')
+  assert.equal(alphaSawZulu.storageState.rooms['equal-room'].name, 'Zulu', 'the canonical equal-revision tie-break is stable and literal')
+  assert.equal(alphaSawZulu.requiresReload, true, 'the equal-revision losing open tab receives an explicit reload conflict')
+  assert.equal(alphaSawZulu.state.rooms['equal-room'].name, 'Alpha', 'the losing tab keeps its local open-room display until reload')
+  assert.equal(zuluSawAlpha.requiresReload, false, 'the canonical equal-revision winner does not show a false conflict')
+  assert.equal(zuluSawAlpha.state.rooms['equal-room'].name, 'Zulu', 'the winning tab keeps the canonical open-room state')
+  assert.equal(Number(alphaSawZulu.requiresWriteback) + Number(zuluSawAlpha.requiresWriteback), 1, 'only the losing incoming snapshot requires one convergence writeback')
+  const settled = d.resolveControlRoomStorageEvent(
+    alphaSawZulu.storageState,
+    alphaSawZulu.storageState,
+    'equal-room',
+    alphaSawZulu.storageTrash,
+    alphaSawZulu.storageTrash,
+  )
+  assert.equal(settled.requiresWriteback, false, 'receiving the canonical snapshot is a no-op and cannot start a storage-event loop')
+
+  const twoRooms = d.createControlRoom(equalBase, { name: 'Second' }, { id: 'second-room', now: 3_001 })
+  const localNavigation = { ...twoRooms, activeId: 'second-room' }
+  const incomingNavigation = { ...twoRooms, activeId: 'equal-room' }
+  const navigationOnly = d.resolveControlRoomStorageEvent(localNavigation, incomingNavigation, 'second-room')
+  assert.equal(navigationOnly.state.activeId, 'second-room', 'the receiving tab keeps its local open-room context')
+  assert.equal(navigationOnly.storageState.activeId, 'equal-room', 'reconciliation leaves the last persisted navigation context untouched')
+  assert.equal(navigationOnly.requiresWriteback, false, 'tab-local navigation differences never cause writeback ping-pong')
 
   const localBeforeStorage = state
   let incoming = d.updateControlRoom(state, 'room-0', { name: 'external newer' }, 3_001)

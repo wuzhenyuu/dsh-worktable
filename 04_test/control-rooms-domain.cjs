@@ -169,6 +169,13 @@ async function main() {
     assert.deepEqual(state.rooms.a.projectOrder, ['p3', 'p1', 'p2'])
   })
 
+  test('dragging a rule-only member promotes an explicit ordering override', () => {
+    const before = create(empty(), 'a', NOW, { projectIds: ['manual'], projectOrder: ['manual'] })
+    const state = d.reorderProjectsInRoom(before, 'a', ['rule-only', 'manual'], NOW + 1, ['rule-only'])
+    assert.deepEqual(state.rooms.a.fixedProjectIds, ['rule-only'])
+    assert.deepEqual(state.rooms.a.projectOrder, ['rule-only', 'manual'])
+  })
+
   test('fix and exclude are room-local reference operations', () => {
     let state = create(create(empty(), 'a'), 'b')
     state = d.setProjectFixed(state, 'a', 'p1', true, NOW + 1)
